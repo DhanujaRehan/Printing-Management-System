@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TonerPro Ultra — Enterprise Print Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Separated CSS files -->
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/login.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     LOGIN PAGE
+     ════════════════════════════════════════════════════════ -->
+<div id="login">
+  <div class="login-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="login-grid"></div>
+  </div>
+
+  <div class="lw">
+    <!-- Brand header -->
+    <div class="login-brand">
+      <div class="login-logo-ring">🖨️</div>
+      <div class="login-title">Toner<span>Pro</span> Ultra</div>
+      <div class="login-subtitle">Enterprise Print Intelligence Platform · v4.2</div>
+    </div>
+
+    <!-- Feature badges -->
+    <div class="login-badges">
+      <div class="lbadge lbadge-blue">🏢 10 Branches</div>
+      <div class="lbadge lbadge-green">🖨️ 40 Printers</div>
+      <div class="lbadge lbadge-purple">📊 Live Monitoring</div>
+    </div>
+
+    <!-- Login card -->
+    <div class="lf">
+      <!-- Role selector -->
+      <div class="rp" id="rp">
+        <div class="rb a" onclick="selectRole(this,'manager')">
+          <div class="re">👔</div><div class="rl">Manager</div><div class="rs">Full access</div>
+        </div>
+        <div class="rb" onclick="selectRole(this,'service')">
+          <div class="re">🔧</div><div class="rl">Service</div><div class="rs">Field ops</div>
+        </div>
+        <div class="rb" onclick="selectRole(this,'dba')">
+          <div class="re">🗄️</div><div class="rl">DBA</div><div class="rs">Database</div>
+        </div>
+      </div>
+
+      <div class="lfi">
+        <label class="lfl">Username</label>
+        <input id="lu" type="text" value="admin" placeholder="Enter your username" autocomplete="off">
+      </div>
+      <div class="lfi">
+        <label class="lfl">Password</label>
+        <input id="lp" type="password" value="1234" placeholder="••••••••">
+      </div>
+
+      <div class="lerr" id="lerr"></div>
+
+      <button class="lbtn" onclick="doLogin()">Sign in to Dashboard →</button>
+    </div>
+
+    <div class="login-footer">Authorised personnel only · All access is logged and monitored</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     APP SHELL (shown after login)
+     ════════════════════════════════════════════════════════ -->
+<div id="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sblogo">
+      <div class="sbm">🖨️</div>
+      <div>
+        <div class="sblt">Toner<b>Pro</b></div>
+        <div class="sblv">ULTRA v4.2.0</div>
+      </div>
+    </div>
+
+    <div style="padding:10px 10px 0">
+      <div class="sbu">
+        <div class="sbav" id="sb-av">JA</div>
+        <div>
+          <div class="sbun" id="sb-name">—</div>
+          <div class="sbur" id="sb-role">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sbnav" id="sbnav"></div>
+
+    <div class="sbft">
+      <div class="live">
+        <div class="ldot"></div>
+        <div class="ltx">Connected to DB</div>
+        <div class="lclk" id="lclk">—</div>
+      </div>
+      <button class="lgout" onclick="doLogout()">⬅ Sign Out</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT AREA -->
+  <div class="main">
+
+    <!-- ── DASHBOARD PAGE ──────────────────────────────── -->
+    <div class="page" id="page-dashboard">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Executive Dashboard</div>
+          <div class="pgs">Live toner intelligence across all branches</div>
+        </div>
+        <div class="pgact">
+          <button class="btn btn-g" onclick="loadDashboard()">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="krow">
+        <div class="kpi k1"><span class="kico">🏢</span><div class="knum" id="k-branches">—</div><div class="klbl">Active Branches</div><div class="ktr" id="k-branches-s"></div><div class="kbg">🏢</div></div>
+        <div class="kpi k2"><span class="kico">📦</span><div class="knum" id="k-stock">—</div><div class="klbl">Stock Units</div><div class="ktr" id="k-stock-s"></div><div class="kbg">📦</div></div>
+        <div class="kpi k3"><span class="kico">⚠️</span><div class="knum" id="k-low">—</div><div class="klbl">Low Toner (≤25%)</div><div class="ktr" id="k-low-s"></div><div class="kbg">⚠️</div></div>
+        <div class="kpi k4"><span class="kico">🚨</span><div class="knum" id="k-crit">—</div><div class="klbl">Critical (≤5 days)</div><div class="ktr" id="k-crit-s"></div><div class="kbg">🚨</div></div>
+      </div>
+
+      <div class="as" id="dash-alerts"></div>
+
+      <div class="twocol mb20">
+        <div class="card">
+          <div class="ch">
+            <h3>All Printer Toner Status</h3>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search printers..." oninput="filterPrTable(this.value)">
+            </div>
+          </div>
+          <div class="scx scy">
+            <table class="tbl">
+              <thead><tr><th>Printer</th><th>Branch</th><th>Level</th><th>Model</th><th>Days Left</th><th>Copies Left</th><th>Next Date</th><th>Status</th></tr></thead>
+              <tbody id="pr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:15px">
+          <div class="card" style="padding:20px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--tx)">🔔 Recent Activity</div>
+            <div id="dash-activity" class="aff"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BRANCHES PAGE ───────────────────────────────── -->
+    <div class="page" id="page-branches">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Branches</div>
+          <div class="pgs">Manage all branches and view toner status</div>
+        </div>
+        <button class="btn btn-p" id="addbr-btn" onclick="openAddBranch()" style="display:none">+ Add Branch</button>
+      </div>
+      <div class="bgrid" id="branch-grid"></div>
+    </div>
+
+    <!-- ── PRINTERS PAGE ───────────────────────────────── -->
+    <div class="page" id="page-printers">
+
+      <!-- ── PAGE HEADER ─────────────────────────────── -->
+      <div class="pgh">
+        <div>
+          <div class="pgt">Printer Management</div>
+          <div class="pgs">Manage printers and monitor paper levels per branch</div>
+        </div>
+        <div class="pgact" id="pr-actions-printers">
+          <select class="fs" id="pr-filter-branch" style="width:180px;background:#fff" onchange="loadPrinters()">
+            <option value="">All Branches</option>
+          </select>
+          <button class="btn btn-p" onclick="openAddPrinter()">+ Add Printer</button>
+        </div>
+        <div class="pgact" id="pr-actions-paper" style="display:none">
+          <button class="btn btn-g" onclick="loadPaperLevels()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- ── TABS ────────────────────────────────────── -->
+      <div class="pr-tabs">
+        <button class="pr-tab pr-tab-act" id="tab-printers" onclick="switchPrTab('printers')">
+          🖨️ Printers
+        </button>
+        <button class="pr-tab" id="tab-paper" onclick="switchPrTab('paper')">
+          📄 Paper Levels
+        </button>
+      </div>
+
+      <!-- ── TAB: PRINTERS ───────────────────────────── -->
+      <div id="pr-panel-printers">
+        <div class="card">
+          <div class="ch">
+            <h3>All Printers</h3>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search..." oninput="filterPrMgmt(this.value)">
+            </div>
+          </div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Code</th><th>Branch</th><th>Model</th><th>Location</th><th>Toner %</th><th>Days Left</th><th>Toner Model</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="prmgmt-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: PAPER LEVELS ───────────────────────── -->
+      <div id="pr-panel-paper" style="display:none">
+        <div id="paper-levels-container">
+          <div style="padding:40px;text-align:center;color:var(--t3)">
+            <div class="spin" style="margin:0 auto 12px"></div>Loading paper levels...
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── STOCK PAGE ──────────────────────────────────── -->
+    <div class="page" id="page-stock">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Stock Management</div>
+          <div class="pgs">Warehouse toner inventory</div>
+        </div>
+        <div class="pgact">
+          <button class="btn btn-g" onclick="openModal('m-addModel')">+ Toner Model</button>
+          <button class="btn btn-p" onclick="openModal('m-receive')">📦 Receive Stock</button>
+        </div>
+      </div>
+      <div class="stgrid" id="stock-grid"></div>
+      <div class="card">
+        <div class="ch">
+          <h3>Stock Movement Log</h3>
+          <div class="chr"><span style="font-size:12px;color:var(--t3)" id="log-ct"></span></div>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Date/Time</th><th>Type</th><th>Toner Model</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead>
+            <tbody id="stock-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPLACE PAGE ────────────────────────────────── -->
+    <div class="page" id="page-replace">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Toner Replacement</div>
+          <div class="pgs">Log installation — stock auto-deducts</div>
+        </div>
+      </div>
+      <div class="twocol">
+        <div class="fg">
+          <div class="fgt">🔄 New Toner Installation</div>
+          <div class="fr">
+            <div class="ff"><label class="ffl">Branch</label><select class="fs" id="r-branch" onchange="loadRepPrinters()"><option value="">— Select Branch —</option></select></div>
+            <div class="ff"><label class="ffl">Printer</label><select class="fs" id="r-printer"><option value="">— Select Printer —</option></select></div>
+          </div>
+          <div class="ff"><label class="ffl">Toner Model</label><select class="fs" id="r-model"><option value="">— Select Model —</option></select></div>
+          <div class="fr">
+            <div class="ff"><label class="ffl">Yield (copies)</label><input class="fi2" id="r-yield" type="number" value="3000"></div>
+            <div class="ff"><label class="ffl">Avg Daily Copies</label><input class="fi2" id="r-daily" type="number" value="150"></div>
+          </div>
+          <div class="ff"><label class="ffl">Notes (optional)</label><input class="fi2" id="r-notes" type="text" placeholder="Observations or issues..."></div>
+          <button class="sbtn" onclick="submitReplacement()">✓ Confirm Toner Replacement</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card" style="padding:18px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--er)">🔴 Urgent — Replace Now</div>
+            <div id="urgent-list"></div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div class="ch"><h3>My Recent Replacements</h3></div>
+            <div style="padding:10px 18px 14px" id="my-log"></div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:11px;color:var(--tx)">📦 Available Stock</div>
+            <div id="avail-stock"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAPER PAGE ───────────────────────────────────── -->
+    <div class="page" id="page-paper">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Paper Stock</div>
+          <div class="pgs">Warehouse inventory &amp; branch dispatch</div>
+        </div>
+        <div class="pgact">
+          <button class="btn btn-g" onclick="openModal('m-paper-type')">+ Paper Type</button>
+          <button class="btn btn-g" onclick="openModal('m-paper-receive')">📄 Receive Paper</button>
+          <button class="btn btn-p" onclick="openModal('m-paper-dispatch')">📦 Dispatch to Branch</button>
+        </div>
+      </div>
+
+      <!-- Warehouse stock cards -->
+      <div class="stgrid" id="paper-grid"></div>
+
+      <!-- Branch stock table -->
+      <div class="card mb20">
+        <div class="ch">
+          <h3>📍 Paper at Branches</h3>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Branch</th><th>Paper Type</th><th>Spec</th><th>Qty (reams)</th><th>Last Updated</th></tr></thead>
+            <tbody id="paper-branch-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Movement log -->
+      <div class="card">
+        <div class="ch">
+          <h3>Paper Movement Log</h3>
+          <div class="chr"><span style="font-size:12px;color:var(--t3)" id="paper-log-ct"></span></div>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead>
+            <tbody id="paper-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DBA PAGE ────────────────────────────────────── -->
+    <div class="page" id="page-dba">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Administration</div>
+          <div class="pgs">Users, audit log, system info</div>
+        </div>
+        <button class="btn btn-p" onclick="openModal('m-addUser')">+ Add User</button>
+      </div>
+      <div class="twocol mb20">
+        <div class="card">
+          <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <h3>👥 User Management</h3>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input id="user-search" type="text" placeholder="Search name, username, role…"
+                oninput="searchUsers()"
+                style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
+              <button class="btn btn-sm" onclick="clearSearch()"
+                style="font-size:11px;padding:5px 10px">✕ Clear</button>
+            </div>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="ch"><h3>🔍 Audit Log</h3></div>
+          <div class="scy">
+            <table class="tbl">
+              <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+              <tbody id="audit-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════ -->
+
+<!-- Add/Edit Branch -->
+<div class="mb" id="m-addBranch">
+  <div class="mx">
+    <div class="mt">🏢 <span id="abr-title">Add New Branch</span></div>
+    <input type="hidden" id="abr-id">
+    <div class="fr">
+      <div class="ff"><label class="ffl">Branch Code</label><input class="fi2" id="abr-code" placeholder="e.g. K" maxlength="5"></div>
+      <div class="ff"><label class="ffl">Branch Name</label><input class="fi2" id="abr-name" placeholder="e.g. Branch Kilo"></div>
+    </div>
+    <div class="ff"><label class="ffl">Location</label><input class="fi2" id="abr-loc" placeholder="Floor / building"></div>
+    <div class="ff"><label class="ffl">Contact Person</label><input class="fi2" id="abr-contact" placeholder="Branch manager name"></div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-addBranch')">Cancel</button>
+      <button class="mok" onclick="saveBranch()">Save Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Printer -->
+<div class="mb" id="m-addPrinter">
+  <div class="mx">
+    <div class="mt">🖨️ <span id="apr-title">Add Printer</span></div>
+    <input type="hidden" id="apr-id">
+    <div class="ff"><label class="ffl">Branch</label><select class="fs" id="apr-branch"><option value="">— Select Branch —</option></select></div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Printer Code</label><input class="fi2" id="apr-code" placeholder="e.g. A5"></div>
+      <div class="ff"><label class="ffl">Printer Model</label><input class="fi2" id="apr-model" placeholder="e.g. HP LaserJet M404"></div>
+    </div>
+    <div class="ff"><label class="ffl">Location Note</label><input class="fi2" id="apr-loc" placeholder="e.g. 2nd floor reception"></div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-addPrinter')">Cancel</button>
+      <button class="mok" onclick="savePrinter()">Save Printer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receive Stock -->
+<div class="mb" id="m-receive">
+  <div class="mx">
+    <div class="mt">📦 Receive Stock</div>
+    <div class="ff"><label class="ffl">Toner Model</label><select class="fs" id="recv-model"><option value="">— Select Model —</option></select></div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Quantity</label><input class="fi2" id="recv-qty" type="number" value="10" min="1"></div>
+      <div class="ff"><label class="ffl">Supplier</label><input class="fi2" id="recv-sup" value="HP Direct"></div>
+    </div>
+    <div class="ff"><label class="ffl">Notes</label><input class="fi2" id="recv-notes" placeholder="Optional"></div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-receive')">Cancel</button>
+      <button class="mok" onclick="doReceive()">✓ Confirm Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Toner Model -->
+<div class="mb" id="m-addModel">
+  <div class="mx">
+    <div class="mt">🖨️ Add Toner Model</div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Model Code</label><input class="fi2" id="am-code" placeholder="e.g. HP CF226A"></div>
+      <div class="ff"><label class="ffl">Brand</label><input class="fi2" id="am-brand" placeholder="e.g. HP"></div>
+    </div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Yield (copies)</label><input class="fi2" id="am-yield" type="number" value="3000"></div>
+      <div class="ff"><label class="ffl">Min Stock Alert</label><input class="fi2" id="am-min" type="number" value="5"></div>
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-addModel')">Cancel</button>
+      <button class="mok" onclick="saveTonerModel()">Add Model</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User -->
+<div class="mb" id="m-addUser">
+  <div class="mx">
+    <div class="mt">👤 Add User</div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Full Name</label><input class="fi2" id="au-name" placeholder="Full name"></div>
+      <div class="ff"><label class="ffl">Username</label><input class="fi2" id="au-un" placeholder="Login username"></div>
+    </div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Role</label>
+        <select class="fs" id="au-role">
+          <option value="manager">Manager</option>
+          <option value="service">Service Person</option>
+          <option value="dba">DBA</option>
+        </select>
+      </div>
+      <div class="ff"><label class="ffl">Password</label><input class="fi2" id="au-pw" type="password" placeholder="Min 4 chars"></div>
+    </div>
+    <div class="ff"><label class="ffl">Branch Access</label><input class="fi2" id="au-branch" value="ALL" placeholder="ALL or A,B,C"></div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-addUser')">Cancel</button>
+      <button class="mok" onclick="saveUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Load Paper into Printer -->
+<div class="mb" id="m-load-printer-paper">
+  <div class="mx">
+    <div class="mt">📄 Load Paper into Printer</div>
+    <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">
+      Printer: <strong id="lp-printer-label"></strong>
+    </p>
+    <div class="ff"><label class="ffl">Paper Type</label>
+      <select class="fs" id="lp-paper-type"><option value="">— Select Type —</option></select>
+    </div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Reams to Load</label>
+        <input class="fi2" id="lp-qty" type="number" value="1" min="1" max="20">
+      </div>
+      <div class="ff"><label class="ffl">Tray Capacity (reams)</label>
+        <input class="fi2" id="lp-capacity" type="number" value="5" min="1" max="50">
+      </div>
+    </div>
+    <div class="ff"><label class="ffl">Notes (optional)</label>
+      <input class="fi2" id="lp-notes" placeholder="e.g. Refill before Monday">
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-load-printer-paper')">Cancel</button>
+      <button class="mok" onclick="doLoadPrinterPaper()">✓ Load Paper</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Paper Type -->
+<div class="mb" id="m-paper-type">
+  <div class="mx">
+    <div class="mt">📄 Add Paper Type</div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Name</label><input class="fi2" id="pt-name" placeholder="e.g. A4 80gsm"></div>
+      <div class="ff"><label class="ffl">Size</label>
+        <select class="fs" id="pt-size">
+          <option value="A4">A4</option>
+          <option value="A3">A3</option>
+          <option value="Letter">Letter</option>
+          <option value="Legal">Legal</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">GSM (weight)</label><input class="fi2" id="pt-gsm" type="number" value="80" min="60" max="300"></div>
+      <div class="ff"><label class="ffl">Min Stock Alert (reams)</label><input class="fi2" id="pt-min" type="number" value="10" min="1"></div>
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-paper-type')">Cancel</button>
+      <button class="mok" onclick="savePaperType()">Add Type</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receive Paper into Warehouse -->
+<div class="mb" id="m-paper-receive">
+  <div class="mx">
+    <div class="mt">📄 Receive Paper Stock</div>
+    <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="pr-recv-type"><option value="">— Select Type —</option></select></div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Quantity (reams)</label><input class="fi2" id="pr-recv-qty" type="number" value="50" min="1"></div>
+      <div class="ff"><label class="ffl">Notes</label><input class="fi2" id="pr-recv-notes" placeholder="Optional — supplier, PO #"></div>
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-paper-receive')">Cancel</button>
+      <button class="mok" onclick="doReceivePaper()">✓ Confirm Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dispatch Paper to Branch -->
+<div class="mb" id="m-paper-dispatch">
+  <div class="mx">
+    <div class="mt">📦 Dispatch Paper to Branch</div>
+    <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="pr-disp-type"><option value="">— Select Type —</option></select></div>
+    <div class="ff"><label class="ffl">Branch</label><select class="fs" id="pr-disp-branch" onchange="loadPaperPrinters()"><option value="">— Select Branch —</option></select></div>
+    <div class="ff"><label class="ffl">Printer (optional)</label><select class="fs" id="pr-disp-printer"><option value="">— All Branch (no specific printer) —</option></select></div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Quantity (reams)</label><input class="fi2" id="pr-disp-qty" type="number" value="5" min="1"></div>
+      <div class="ff"><label class="ffl">Notes</label><input class="fi2" id="pr-disp-notes" placeholder="Optional"></div>
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-paper-dispatch')">Cancel</button>
+      <button class="mok" onclick="doDispatchPaper()">✓ Confirm Dispatch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="mb" id="m-resetPw">
+  <div class="mx">
+    <div class="mt">🔑 Reset Password</div>
+    <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">
+      Setting new password for: <strong id="rp-username-label"></strong>
+    </p>
+    <div class="ff"><label class="ffl">New Password</label>
+      <input class="fi2" id="rp-new-pw" type="password" placeholder="Min 6 characters">
+    </div>
+    <div class="ff"><label class="ffl">Confirm Password</label>
+      <input class="fi2" id="rp-confirm-pw" type="password" placeholder="Repeat new password">
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-resetPw')">Cancel</button>
+      <button class="mok" onclick="saveResetPassword()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <div class="toico" id="t-ico">✅</div>
+  <div>
+    <div class="totx" id="t-tx"></div>
+    <div class="tosb" id="t-sb"></div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT — Separate module files loaded in order
+     ════════════════════════════════════════════════════════ -->
+<script src="/js/api.js"></script>      <!-- API calls + login logic + APP state -->
+<script src="/js/nav.js"></script>      <!-- Sidebar nav, page routing, modals, toast, utils -->
+<script src="/js/dashboard.js"></script><!-- Dashboard KPIs, printer table, activity feed -->
+<script src="/js/branches.js"></script> <!-- Branch grid, add/edit/delete -->
+<script src="/js/printers.js"></script> <!-- Printer table, add/edit/delete -->
+<script src="/js/stock.js"></script>    <!-- Stock tubes, receive, toner models -->
+<script src="/js/service.js"></script>  <!-- Toner replacement form -->
+<script src="/js/dba.js"></script>      <!-- User management, audit log -->
+<script src="/js/paper.js"></script>    <!-- Paper stock management -->
+
+</body>
+</html>

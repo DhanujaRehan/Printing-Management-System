@@ -1,0 +1,376 @@
+/* ============================================================
+   TonerPro Ultra — Pages / Dashboard Styles
+   File: css/pages.css
+   ============================================================ */
+
+/* ── KPI CARDS ──────────────────────────────────────────── */
+.kpi {
+  background: var(--white); border:1px solid var(--sb); border-radius:18px;
+  padding:22px 24px; position:relative; overflow:hidden;
+  transition:all .25s; box-shadow:var(--shadow);
+}
+.kpi:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0;
+  height:3px; border-radius:3px 3px 0 0; }
+.k1::before { background:linear-gradient(90deg,var(--c1),#38bdf8); }
+.k2::before { background:linear-gradient(90deg,var(--c2),#818cf8); }
+.k3::before { background:linear-gradient(90deg,var(--wr),#fbbf24); }
+.k4::before { background:linear-gradient(90deg,var(--er),#f87171); }
+.kico  { font-size:26px; margin-bottom:12px; display:block; }
+.knum  { font-size:36px; font-weight:800; font-family:var(--m);
+  letter-spacing:-.02em; line-height:1; margin-bottom:5px; }
+.k1 .knum{color:var(--c1)} .k2 .knum{color:var(--c2)}
+.k3 .knum{color:var(--wr)} .k4 .knum{color:var(--er)}
+.klbl  { font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--t2); }
+.ktr   { font-size:11px; margin-top:7px; display:flex;
+  align-items:center; gap:3px; color:var(--t3); }
+.kbg   { position:absolute; bottom:-10px; right:-10px;
+  font-size:64px; opacity:.05; pointer-events:none; }
+
+/* ── ALERT STRIPS ───────────────────────────────────────── */
+.as  { display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+.ac  { border-radius:12px; padding:13px 16px; display:flex;
+  align-items:center; gap:12px; border:1px solid; transition:all .2s; cursor:pointer; }
+.ac:hover { transform:translateX(3px); }
+.ac.cr { background:#fef2f2; border-color:#fecaca; }
+.ac.wn { background:#fffbeb; border-color:#fde68a; }
+.acico { width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0; }
+.ac.cr .acico { background:#fee2e2; } .ac.wn .acico { background:#fef3c7; }
+.actit { font-size:13px; font-weight:600; color:var(--tx); }
+.acsub { font-size:11px; color:var(--t2); margin-top:2px; }
+.acbtn { margin-left:auto; padding:7px 14px; border-radius:8px;
+  font-size:11px; font-weight:700; cursor:pointer;
+  border:none; font-family:var(--f); flex-shrink:0; }
+.ac.cr .acbtn { background:#fecaca; color:#b91c1c; }
+.ac.wn .acbtn { background:#fde68a; color:#92400e; }
+
+/* ── ACTIVITY FEED ──────────────────────────────────────── */
+.aff   { display:flex; flex-direction:column; }
+.afi   { display:flex; gap:12px; align-items:flex-start;
+  padding:10px 0; border-bottom:1px solid #f1f5f9; }
+.afi:last-child { border-bottom:none; }
+.afdc  { display:flex; flex-direction:column; align-items:center;
+  padding-top:3px; flex-shrink:0; }
+.afd   { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.afl   { width:1px; flex:1; min-height:16px; background:#e2e8f0; margin-top:4px; }
+.aft   { font-size:12px; font-weight:500; color:var(--tx); }
+.afm   { font-size:10px; color:var(--t3); margin-top:2px; }
+
+/* ── BRANCH CARDS ───────────────────────────────────────── */
+.bc {
+  background:var(--white); border:1px solid var(--sb); border-radius:18px;
+  padding:22px; transition:all .25s; box-shadow:var(--shadow);
+}
+.bc:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+.bchead { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.bcbadge { width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:800; flex-shrink:0; }
+.bcn { font-size:14px; font-weight:700; color:var(--tx); }
+.bcs { font-size:11px; color:var(--t2); margin-top:1px; }
+.bca { margin-left:auto; display:flex; gap:5px; }
+.prl { display:flex; flex-direction:column; gap:9px; }
+.pr  { display:flex; align-items:center; gap:9px; }
+.prid   { font-family:var(--m); font-size:11px; font-weight:600; width:26px; color:var(--t3); flex-shrink:0; }
+.prpct  { font-family:var(--m); font-size:11px; font-weight:700; width:34px; text-align:right; flex-shrink:0; }
+.prdays { font-size:10px; color:var(--t3); width:50px; text-align:right; flex-shrink:0; }
+
+/* ── STOCK TUBES ────────────────────────────────────────── */
+.stgrid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }
+.stc {
+  background:var(--white); border:1px solid var(--sb); border-radius:16px;
+  padding:20px 14px; text-align:center; transition:all .25s; box-shadow:var(--shadow);
+}
+.stc:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+.stcode { font-family:var(--m); font-size:9px; color:var(--t3);
+  margin-bottom:12px; letter-spacing:.04em; text-transform:uppercase; }
+/* Tube wrapper */
+.tube { width:52px; height:120px; margin:0 auto 14px; position:relative; }
+
+/* Capsule body */
+.tubeb {
+  width:100%; height:100%;
+  border-radius:26px;
+  border:2px solid #d1d5db;
+  background:linear-gradient(135deg,#f0f4f8 0%,#e8edf2 40%,#dce3ea 100%);
+  overflow:hidden;
+  position:relative;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.12), inset -3px 0 8px rgba(0,0,0,.06);
+}
+
+/* Liquid fill — z-index 1 so glass sits above it */
+.tubef {
+  position:absolute; bottom:0; left:0; right:0;
+  min-height:4px;
+  transition:height 1.4s cubic-bezier(.4,0,.2,1);
+  border-radius:0 0 24px 24px;
+  z-index:1;
+}
+
+/* Liquid surface ripple */
+.tubef::after {
+  content:'';
+  position:absolute; top:-4px; left:0; right:0; height:8px;
+  border-radius:50%;
+  background:inherit;
+  opacity:.5;
+  filter:blur(2px);
+}
+
+/* Glass shine — left highlight — z-index 2 so it renders above fill */
+.tubes {
+  position:absolute; top:8px; left:16%; width:22%; height:72%;
+  background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.1) 70%,transparent 100%);
+  border-radius:4px;
+  pointer-events:none;
+  z-index:2;
+}
+
+/* Glass shine — right edge */
+.tube-shine2 {
+  position:absolute; top:0; right:8%; width:10%; height:100%;
+  background:linear-gradient(180deg,rgba(255,255,255,.25),transparent 60%);
+  border-radius:4px;
+  pointer-events:none;
+  z-index:2;
+}
+
+/* Top cap */
+.tube-cap {
+  position:absolute; top:-1px; left:50%; transform:translateX(-50%);
+  width:60%; height:10px;
+  background:linear-gradient(180deg,#c8d0da,#b0bac6);
+  border-radius:6px 6px 0 0;
+  border:1px solid #a0aab6;
+  z-index:3;
+}
+.stqty  { font-family:var(--m); font-size:26px; font-weight:800; line-height:1; }
+.stunit { font-size:10px; color:var(--t3); margin-top:2px; }
+.stmod  { font-size:10px; color:var(--t2); margin-top:4px; line-height:1.4; }
+.stlow  { font-size:9px; font-weight:700; padding:3px 8px; border-radius:5px; margin-top:7px;
+  display:inline-block; background:#fee2e2; color:var(--er); border:1px solid #fecaca; }
+
+/* ── SERVICE FORM ───────────────────────────────────────── */
+.fg { background:var(--white); border:1px solid var(--sb);
+  border-radius:18px; padding:26px; box-shadow:var(--shadow); }
+.fgt { font-size:16px; font-weight:700; margin-bottom:20px;
+  display:flex; align-items:center; gap:9px; color:var(--tx); }
+.sbtn {
+  width:100%; padding:14px; border-radius:13px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,var(--c3),#059669); color:#fff;
+  font-size:14px; font-weight:800; font-family:var(--f); transition:all .25s;
+  box-shadow:0 4px 16px rgba(16,185,129,.3);
+  display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.sbtn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(16,185,129,.4); }
+
+/* ══════════════════════════════════════════════════════════
+   PAPER LEVELS PANEL — Printer page
+   ══════════════════════════════════════════════════════════ */
+
+/* Branch block */
+.paper-branch-block {
+  background: var(--white);
+  border: 1px solid var(--sb);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.paper-branch-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, #f8faff, #f0f4ff);
+  border-bottom: 1px solid var(--sb);
+}
+.paper-branch-badge {
+  font-family: var(--m);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.paper-branch-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx);
+}
+.paper-branch-ct {
+  font-size: 11px;
+  color: var(--t3);
+  margin-left: auto;
+}
+
+/* Printer cards grid inside each branch */
+.paper-printers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  padding: 16px;
+}
+
+/* Individual printer card */
+.printer-paper-card {
+  background: #fafbfc;
+  border: 1px solid var(--sb);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all .2s;
+}
+.printer-paper-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+.ppc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.ppc-code  { font-family:var(--m); font-size:13px; font-weight:700; color:var(--c1); }
+.ppc-model { font-size:10px; color:var(--t2); margin-top:2px; }
+.ppc-loc   { font-size:10px; color:var(--t3); }
+.ppc-load-btn {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.ppc-load-btn:hover { background: #3b82f6; color: #fff; }
+
+/* Tray container — shows trays side by side if multiple paper types */
+.ppc-trays {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Outer tray wrap (visual + label) */
+.paper-tray-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+/* The physical tray shell */
+.paper-tray-shell {
+  width: 64px;
+  height: 80px;
+  position: relative;
+  border-radius: 4px 4px 6px 6px;
+  background: #e2e8f0;
+  border: 1.5px solid #cbd5e1;
+  overflow: hidden;
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,.1), 2px 3px 8px rgba(0,0,0,.1);
+}
+.empty-shell {
+  background: repeating-linear-gradient(
+    0deg, #f1f5f9 0px, #f1f5f9 3px, #e8eef4 3px, #e8eef4 6px
+  );
+  border-style: dashed;
+}
+
+/* The paper stack inside the tray */
+.paper-tray-inner {
+  position: absolute;
+  bottom: 10px;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1px;
+  justify-content: flex-start;
+}
+
+/* Each sheet line */
+.paper-sheet {
+  height: 4px;
+  border-radius: 1px;
+  transition: all .6s ease;
+}
+.sheet-filled {
+  box-shadow: 0 1px 1px rgba(0,0,0,.08);
+}
+.sheet-empty {
+  background: #e8edf2;
+  opacity: 0.5;
+}
+
+/* Front lip of the tray */
+.paper-tray-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 9px;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Tray label info below the visual */
+.paper-tray-info  { text-align: center; }
+.paper-tray-qty   { font-family:var(--m); font-size:16px; font-weight:800; line-height:1; }
+.paper-tray-label { font-size:10px; color:var(--t3); margin-top:2px; }
+.paper-tray-status {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+.paper-empty-tray {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── PRINTER PAGE TABS ──────────────────────────────────── */
+.pr-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  background: var(--white);
+  border: 1px solid var(--sb);
+  border-radius: 14px;
+  padding: 5px;
+  width: fit-content;
+  box-shadow: var(--shadow);
+}
+.pr-tab {
+  padding: 9px 22px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  font-family: var(--f);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.pr-tab:hover { color: var(--c1); background: #f0f9ff; }
+.pr-tab-act {
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(14,165,233,.35);
+}
+.pr-tab-act:hover { background: linear-gradient(135deg, var(--c1), var(--c2)); }
