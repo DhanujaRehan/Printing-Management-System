@@ -84,7 +84,7 @@ def get_all_requests(current_user: dict = Depends(require_role("manager", "dba")
         return []
 
 
-@router.post("/create")
+@router.post("/submit")
 def create_request(body: CreateRequestBody, current_user: dict = Depends(get_current_user)):
     if body.request_type not in ("toner", "paper"):
         raise HTTPException(status_code=400, detail="request_type must be toner or paper")

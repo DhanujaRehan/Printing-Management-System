@@ -251,7 +251,7 @@ async function submitNewRequest() {
     var btn = document.getElementById('nreq-submit-btn');
     btn.textContent = 'Submitting...';
     btn.disabled = true;
-    await api('POST', '/requests/create', body);
+    await api('POST', '/requests/submit', body);
     btn.textContent = '✓ Request Submitted!';
     btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
     toast('📋', 'Request submitted! Awaiting manager approval.', priority + ' priority');

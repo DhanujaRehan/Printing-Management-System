@@ -1,3 +1,8 @@
+"""
+TonerPro Ultra v4.2 — FastAPI Backend
+Entry point: python main.py
+"""
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -15,8 +20,7 @@ from routes.printers import router as printers_router
 from routes.toner    import router as toner_router
 from routes.users    import router as users_router
 from routes.paper    import router as paper_router
-
-# ── App setup ─────────────────────────────────────────────────────────────────
+from routes.requests import router as requests_router
 
 app = FastAPI(
     title="TonerPro Ultra API",
@@ -24,16 +28,12 @@ app = FastAPI(
     version="4.2.0",
 )
 
-# ── Global error handler — always return JSON, never plain text ───────────────
-
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": f"Internal error: {str(exc)}"}
     )
-
-# ── CORS ──────────────────────────────────────────────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,22 +43,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Routes ────────────────────────────────────────────────────────────────────
-
 app.include_router(auth_router)
 app.include_router(branches_router)
 app.include_router(printers_router)
 app.include_router(toner_router)
 app.include_router(users_router)
 app.include_router(paper_router)
-
-# ── Health check ──────────────────────────────────────────────────────────────
+app.include_router(requests_router)
 
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version": "4.2.0"}
-
-# ── Serve frontend ────────────────────────────────────────────────────────────
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "public"
 
@@ -70,11 +65,14 @@ if FRONTEND_DIR.exists():
     def serve_index():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
 
-    @app.get("/{full_path:path}", response_class=FileResponse)
-    def serve_spa(full_path: str):
-        return FileResponse(str(FRONTEND_DIR / "index.html"))
-
-# ── Run ───────────────────────────────────────────────────────────────────────
+    # SPA fallback — only serve index.html for GET requests to non-API paths
+    # All methods allowed so POST/PATCH/DELETE to /api/* don't get 405
+    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+    async def serve_spa(request: Request, full_path: str):
+        # Only serve frontend for GET requests to non-API paths
+        if request.method == "GET" and not full_path.startswith("api/"):
+            return FileResponse(str(FRONTEND_DIR / "index.html"))
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
 
 if __name__ == "__main__":
     import uvicorn
