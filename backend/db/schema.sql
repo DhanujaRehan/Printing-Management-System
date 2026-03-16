@@ -223,135 +223,33 @@ BEGIN
     END LOOP;
 END $$;
 
--- ============================================================
--- TonerPro Ultra — Paper Stock Migration
--- Run once: psql -d your_db -f paper_migration.sql
--- ============================================================
 
--- Paper types (A4 80gsm, A3 75gsm, etc.)
-CREATE TABLE IF NOT EXISTS paper_types (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(80) UNIQUE NOT NULL,
-    size        VARCHAR(10) DEFAULT 'A4',
-    gsm         INT DEFAULT 80,
-    min_stock   INT DEFAULT 10,
-    created_at  TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Warehouse stock per paper type
-CREATE TABLE IF NOT EXISTS paper_stock (
+-- ── Replacement Requests (added via migration) ────────────
+CREATE TABLE IF NOT EXISTS replacement_requests (
     id              SERIAL PRIMARY KEY,
-    paper_type_id   INT NOT NULL REFERENCES paper_types(id),
-    quantity        INT DEFAULT 0,         -- reams
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(paper_type_id)
-);
-
--- Per-branch stock (after dispatch from warehouse)
-CREATE TABLE IF NOT EXISTS paper_branch_stock (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT NOT NULL REFERENCES paper_types(id),
-    branch_id       INT NOT NULL REFERENCES branches(id),
-    quantity        INT DEFAULT 0,         -- reams
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(paper_type_id, branch_id)
-);
-
--- Every IN (receive) and OUT (dispatch) movement
-CREATE TABLE IF NOT EXISTS paper_movements (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT REFERENCES paper_types(id),
-    movement_type   VARCHAR(5) CHECK (movement_type IN ('IN','OUT')),
-    quantity        INT NOT NULL,
-    branch_id       INT REFERENCES branches(id),
-    printer_id      INT REFERENCES printers(id),
-    performed_by    INT REFERENCES users(id),
-    notes           TEXT,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
--- ── Seed default paper types ──────────────────────────────
-INSERT INTO paper_types (name, size, gsm, min_stock) VALUES
-  ('A4 80gsm',  'A4', 80, 20),
-  ('A4 75gsm',  'A4', 75, 15),
-  ('A3 80gsm',  'A3', 80, 10),
-  ('Letter 75gsm', 'Letter', 75, 10)
-ON CONFLICT (name) DO NOTHING;
-
--- Create warehouse stock rows for each type
-INSERT INTO paper_stock (paper_type_id, quantity)
-SELECT id, 0 FROM paper_types
-ON CONFLICT (paper_type_id) DO NOTHING;
-
--- ============================================================
--- TonerPro Ultra — Paper Stock Migration
--- Run once: psql -d your_db -f paper_migration.sql
--- ============================================================
-
--- Paper types (A4 80gsm, A3 75gsm, etc.)
-CREATE TABLE IF NOT EXISTS paper_types (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(80) UNIQUE NOT NULL,
-    size        VARCHAR(10) DEFAULT 'A4',
-    gsm         INT DEFAULT 80,
-    min_stock   INT DEFAULT 10,
-    created_at  TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Warehouse stock per paper type
-CREATE TABLE IF NOT EXISTS paper_stock (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT NOT NULL REFERENCES paper_types(id),
-    quantity        INT DEFAULT 0,         -- reams
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(paper_type_id)
-);
-
--- Per-branch stock (after dispatch from warehouse)
-CREATE TABLE IF NOT EXISTS paper_branch_stock (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT NOT NULL REFERENCES paper_types(id),
-    branch_id       INT NOT NULL REFERENCES branches(id),
-    quantity        INT DEFAULT 0,         -- reams
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(paper_type_id, branch_id)
-);
-
--- Every IN (receive) and OUT (dispatch) movement
-CREATE TABLE IF NOT EXISTS paper_movements (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT REFERENCES paper_types(id),
-    movement_type   VARCHAR(5) CHECK (movement_type IN ('IN','OUT')),
-    quantity        INT NOT NULL,
-    branch_id       INT REFERENCES branches(id),
-    printer_id      INT REFERENCES printers(id),
-    performed_by    INT REFERENCES users(id),
-    notes           TEXT,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
--- ── Seed default paper types ──────────────────────────────
-INSERT INTO paper_types (name, size, gsm, min_stock) VALUES
-  ('A4 80gsm',  'A4', 80, 20),
-  ('A4 75gsm',  'A4', 75, 15),
-  ('A3 80gsm',  'A3', 80, 10),
-  ('Letter 75gsm', 'Letter', 75, 10)
-ON CONFLICT (name) DO NOTHING;
-
--- Create warehouse stock rows for each type
-INSERT INTO paper_stock (paper_type_id, quantity)
-SELECT id, 0 FROM paper_types
-ON CONFLICT (paper_type_id) DO NOTHING;
-
-
--- ── Printer-level paper stock (added in v2) ───────────────
--- Tracks reams loaded into / assigned to each specific printer
-CREATE TABLE IF NOT EXISTS paper_printer_stock (
-    id              SERIAL PRIMARY KEY,
-    paper_type_id   INT NOT NULL REFERENCES paper_types(id),
+    request_type    VARCHAR(10) NOT NULL CHECK (request_type IN ('toner','paper')),
     printer_id      INT NOT NULL REFERENCES printers(id),
-    quantity        INT DEFAULT 0,         -- reams currently at printer
-    capacity        INT DEFAULT 5,         -- max reams a printer tray holds
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(paper_type_id, printer_id)
+    toner_model_id  INT REFERENCES toner_models(id),
+    paper_type_id   INT REFERENCES paper_types(id),
+    quantity        INT DEFAULT 1,
+    priority        VARCHAR(10) DEFAULT 'normal' CHECK (priority IN ('normal','urgent','critical')),
+    notes           TEXT,
+    status          VARCHAR(10) DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+    requested_by    INT NOT NULL REFERENCES users(id),
+    reviewed_by     INT REFERENCES users(id),
+    review_note     TEXT,
+    requested_at    TIMESTAMPTZ DEFAULT NOW(),
+    reviewed_at     TIMESTAMPTZ
+);
+
+-- ── Print Logs (added via migration) ─────────────────────
+CREATE TABLE IF NOT EXISTS print_logs (
+    id              SERIAL PRIMARY KEY,
+    printer_id      INT NOT NULL REFERENCES printers(id),
+    logged_by       INT NOT NULL REFERENCES users(id),
+    print_count     INT NOT NULL CHECK (print_count >= 0),
+    log_date        DATE NOT NULL DEFAULT CURRENT_DATE,
+    notes           TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(printer_id, log_date)
 );

@@ -6,8 +6,8 @@
 async function loadStock() {
   try {
     const [stock, movements] = await Promise.all([
-      api('GET', '/toner/stock'),
-      api('GET', '/toner/movements?limit=30'),
+      silentApi('GET', '/toner/stock').then(function(r){return r||[];}),
+      silentApi('GET', '/toner/movements?limit=30').then(function(r){return r||[];}),
     ]);
 
     // ── Tube Visualisation ──────────────────────────────────
@@ -97,4 +97,4 @@ async function saveTonerModel() {
     toast('✅', 'Toner model added', body.model_code);
     loadStock();
   } catch (e) {}
-} 
+}

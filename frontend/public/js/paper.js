@@ -11,10 +11,10 @@ let _branches   = [];
 async function loadPaper() {
   try {
     const [stock, branchStock, movements, branches] = await Promise.all([
-      api('GET', '/paper/stock'),
-      api('GET', '/paper/branch-stock'),
-      api('GET', '/paper/movements?limit=40'),
-      api('GET', '/branches'),
+      silentApi('GET', '/paper/stock').then(function(r){return r||[];}),
+      silentApi('GET', '/paper/branch-stock').then(function(r){return r||[];}),
+      silentApi('GET', '/paper/movements?limit=40').then(function(r){return r||[];}),
+      silentApi('GET', '/branches').then(function(r){return r||[];}),
     ]);
 
     _branches = branches;

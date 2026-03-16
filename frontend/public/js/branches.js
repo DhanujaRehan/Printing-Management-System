@@ -13,8 +13,8 @@ async function loadBranches() {
 
   try {
     const [branches, printers] = await Promise.all([
-      api('GET', '/branches'),
-      api('GET', '/printers'),
+      silentApi('GET', '/branches').then(function(r){return r||[];}),
+      silentApi('GET', '/printers').then(function(r){return r||[];}),
     ]);
 
     const canEdit = APP.user.role === 'manager' || APP.user.role === 'dba';

@@ -11,8 +11,8 @@ let _allUsers = [];   // cache for client-side search filtering
 async function loadDBA() {
   try {
     const [users, audit] = await Promise.all([
-      api('GET', '/users'),
-      api('GET', '/users/audit-log?limit=30'),
+      silentApi('GET', '/users').then(function(r){return r||[];}),
+      silentApi('GET', '/users/audit-log?limit=30').then(function(r){return r||[];}),
     ]);
 
     _allUsers = users;

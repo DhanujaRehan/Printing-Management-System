@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SoftWave - Print Management</title>
+<title>TonerPro Ultra — Enterprise Print Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Separated CSS files -->
@@ -27,12 +27,11 @@
   <div class="lw">
     <!-- Brand header -->
     <div class="login-brand">
-
-    <div class="login-logo-ring">🖨️</div>
-      <div class="login-title"><span>SoftWave</span> Printing Management</div>
-      <div class="login-subtitle">Print Management Platform</div>
+      <div class="login-logo-ring">🖨️</div>
+      <div class="login-title">Toner<span>Pro</span> Ultra</div>
+      <div class="login-subtitle">Enterprise Print Intelligence Platform · v4.2</div>
     </div>
-    
+
     <!-- Feature badges -->
     <div class="login-badges">
       <div class="lbadge lbadge-blue">🏢 10 Branches</div>
@@ -258,6 +257,385 @@
     </div>
 
     <!-- ── REPLACE PAGE ────────────────────────────────── -->
+    <!-- ── SERVICE DASHBOARD ────────────────────────────── -->
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE PERSON — UNIFIED DASHBOARD
+         ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-service">
+
+      <!-- ══ HEADER ══════════════════════════════════════ -->
+      <div class="svc-hero">
+        <div class="svc-hero-left">
+          <div class="svc-hero-icon">🛠️</div>
+          <div>
+            <div class="svc-hero-title">Service Dashboard</div>
+            <div class="svc-hero-sub">Manage requests, submit replacements &amp; log daily print counts</div>
+          </div>
+        </div>
+        <button class="btn btn-g" onclick="loadService()" style="font-size:12px;flex-shrink:0">↺ Refresh</button>
+      </div>
+
+      <!-- ══ KPI STRIP ════════════════════════════════════ -->
+      <div class="svc-kpi-row">
+        <div class="svc-kpi svc-kpi-warn" onclick="switchSvcTab('requests')" style="cursor:pointer">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)">
+            <span>⏳</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-pending">—</div>
+            <div class="svc-kpi-lbl">Pending Requests</div>
+          </div>
+          <div class="svc-kpi-arrow">→</div>
+        </div>
+        <div class="svc-kpi svc-kpi-ok" onclick="switchSvcTab('requests')" style="cursor:pointer">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)">
+            <span>✅</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-approved">—</div>
+            <div class="svc-kpi-lbl">Approved</div>
+          </div>
+          <div class="svc-kpi-arrow">→</div>
+        </div>
+        <div class="svc-kpi svc-kpi-err" onclick="switchSvcTab('requests')" style="cursor:pointer">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)">
+            <span>❌</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-rejected">—</div>
+            <div class="svc-kpi-lbl">Rejected</div>
+          </div>
+          <div class="svc-kpi-arrow">→</div>
+        </div>
+        <div class="svc-kpi svc-kpi-crit" onclick="switchSvcTab('requests')" style="cursor:pointer">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fed7aa)">
+            <span>🚨</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-urgent" style="color:#ef4444">—</div>
+            <div class="svc-kpi-lbl">Critical Printers</div>
+          </div>
+          <div class="svc-kpi-arrow">→</div>
+        </div>
+      </div>
+
+      <!-- ══ TAB BAR ══════════════════════════════════════ -->
+      <div class="svc-main-tabs">
+        <button class="svc-tab svc-tab-act" id="svc-tab-requests" onclick="switchSvcTab('requests')">
+          <span class="svc-tab-icon">📋</span> My Requests
+        </button>
+        <button class="svc-tab" id="svc-tab-new" onclick="switchSvcTab('new')">
+          <span class="svc-tab-icon">➕</span> New Request
+        </button>
+        <button class="svc-tab" id="svc-tab-log" onclick="switchSvcTab('log')">
+          <span class="svc-tab-icon">📊</span> End of Day Log
+        </button>
+      </div>
+
+      <!-- ══ PANEL: MY REQUESTS ═══════════════════════════ -->
+      <div id="svc-panel-requests">
+        <div class="svc-twocol">
+
+          <!-- Left: Urgent alerts -->
+          <div class="svc-alerts-panel">
+            <div class="svc-panel-hdr">
+              <div class="svc-panel-hdr-icon" style="background:#fef2f2;color:#ef4444">🚨</div>
+              <div>
+                <div class="svc-panel-hdr-title">Needs Attention</div>
+                <div class="svc-panel-hdr-sub">Printers with ≤7 days toner remaining</div>
+              </div>
+            </div>
+            <div class="svc-alerts-body" id="svc-urgent-list">
+              <div class="svc-empty">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Right: My requests -->
+          <div class="svc-requests-panel">
+            <div class="svc-panel-hdr">
+              <div class="svc-panel-hdr-icon" style="background:#eff6ff;color:#1d4ed8">📋</div>
+              <div>
+                <div class="svc-panel-hdr-title">My Requests</div>
+                <div class="svc-panel-hdr-sub">Latest toner &amp; paper replacement requests</div>
+              </div>
+              <button class="svc-new-req-btn" onclick="switchSvcTab('new')">+ New Request</button>
+            </div>
+            <div class="svc-requests-body" id="svc-my-requests">
+              <div class="svc-empty">Loading...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ PANEL: NEW REQUEST ═══════════════════════════ -->
+      <div id="svc-panel-new" style="display:none">
+        <div class="nreq-shell">
+
+          <!-- Type selector header -->
+          <div class="nreq-type-toggle">
+            <button class="nreq-type-tab nreq-type-act" id="nreq-tab-toner" onclick="switchNReqType('toner')">
+              <span style="font-size:22px">🖨️</span>
+              <div>
+                <div style="font-size:14px;font-weight:700">Toner Replacement</div>
+                <div style="font-size:11px;opacity:.7;margin-top:2px">Request new toner cartridge</div>
+              </div>
+            </button>
+            <button class="nreq-type-tab" id="nreq-tab-paper" onclick="switchNReqType('paper')">
+              <span style="font-size:22px">📄</span>
+              <div>
+                <div style="font-size:14px;font-weight:700">Paper Refill</div>
+                <div style="font-size:11px;opacity:.7;margin-top:2px">Request paper reams for printer</div>
+              </div>
+            </button>
+          </div>
+
+          <div class="nreq-body">
+            <!-- Left: Form -->
+            <div class="nreq-form">
+
+              <div class="nreq-section-hdr">
+                <div class="nreq-section-dot" style="background:#0ea5e9"></div>
+                <span>Location</span>
+              </div>
+              <div class="nreq-row">
+                <div class="nreq-field">
+                  <label class="nreq-label">Branch</label>
+                  <select class="fs" id="nreq-branch" onchange="nreqLoadPrinters()">
+                    <option value="">— Select Branch —</option>
+                  </select>
+                </div>
+                <div class="nreq-field">
+                  <label class="nreq-label">Printer</label>
+                  <select class="fs" id="nreq-printer">
+                    <option value="">— Select Branch First —</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Toner fields -->
+              <div id="nreq-toner-fields">
+                <div class="nreq-section-hdr">
+                  <div class="nreq-section-dot" style="background:#6366f1"></div>
+                  <span>Toner Details</span>
+                </div>
+                <div class="nreq-field">
+                  <label class="nreq-label">Toner Model</label>
+                  <select class="fs" id="nreq-toner-model">
+                    <option value="">— Select Toner Model —</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Paper fields -->
+              <div id="nreq-paper-fields" style="display:none">
+                <div class="nreq-section-hdr">
+                  <div class="nreq-section-dot" style="background:#10b981"></div>
+                  <span>Paper Details</span>
+                </div>
+                <div class="nreq-row">
+                  <div class="nreq-field" style="flex:2">
+                    <label class="nreq-label">Paper Type</label>
+                    <select class="fs" id="nreq-paper-type">
+                      <option value="">— Select Paper Type —</option>
+                    </select>
+                  </div>
+                  <div class="nreq-field" style="flex:1">
+                    <label class="nreq-label">Reams Needed</label>
+                    <input class="fi2" id="nreq-qty" type="number" value="1" min="1" max="50">
+                  </div>
+                </div>
+              </div>
+
+              <div class="nreq-section-hdr">
+                <div class="nreq-section-dot" style="background:#f59e0b"></div>
+                <span>Priority &amp; Notes</span>
+              </div>
+              <div class="nreq-priority-grid">
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="normal" checked onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#10b981;--pb:#f0fdf4">
+                    <span style="font-size:18px">🟢</span>
+                    <span class="nreq-pri-lbl">Normal</span>
+                  </div>
+                </label>
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="urgent" onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#f59e0b;--pb:#fffbeb">
+                    <span style="font-size:18px">🟡</span>
+                    <span class="nreq-pri-lbl">Urgent</span>
+                  </div>
+                </label>
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="critical" onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#ef4444;--pb:#fef2f2">
+                    <span style="font-size:18px">🔴</span>
+                    <span class="nreq-pri-lbl">Critical</span>
+                  </div>
+                </label>
+              </div>
+              <!-- Hidden select to keep JS working -->
+              <select id="nreq-priority" style="display:none">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
+              </select>
+
+              <div class="nreq-field" style="margin-top:14px">
+                <label class="nreq-label">Notes for Manager</label>
+                <textarea class="nreq-textarea" id="nreq-notes" rows="3" placeholder="e.g. Printer is completely out and unable to print. Needed urgently before 9am shift..."></textarea>
+              </div>
+
+              <button class="nreq-submit-btn" id="nreq-submit-btn" onclick="submitNewRequest()">
+                <span>📤</span> Submit Request to Manager
+              </button>
+            </div>
+
+            <!-- Right: Info sidebar -->
+            <div class="nreq-info">
+              <div class="nreq-workflow-card">
+                <div class="nreq-wf-title">How It Works</div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">1</div>
+                  <div class="nreq-wf-text">Fill the form and submit — takes under 30 seconds</div>
+                </div>
+                <div class="nreq-wf-line"></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">2</div>
+                  <div class="nreq-wf-text">Manager reviews &amp; approves or rejects your request</div>
+                </div>
+                <div class="nreq-wf-line"></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">3</div>
+                  <div class="nreq-wf-text">On approval, stock is auto-deducted &amp; logged instantly</div>
+                </div>
+                <div class="nreq-wf-line"></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">4</div>
+                  <div class="nreq-wf-text">Status updates appear live in My Requests tab</div>
+                </div>
+              </div>
+              <div class="nreq-crit-banner">
+                <div style="font-size:20px">🔴</div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:#dc2626">Use Critical for emergencies</div>
+                  <div style="font-size:12px;color:#b91c1c;margin-top:3px;line-height:1.5">Printer completely down, blocking operations, or customer-facing service affected.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: END OF DAY LOG ════════════════════════ -->
+      <div id="svc-panel-log" style="display:none">
+
+        <!-- Top bar -->
+        <div class="log2-topbar">
+          <div class="log2-topbar-left">
+            <div class="log2-topbar-icon">📊</div>
+            <div>
+              <div class="log2-topbar-title">End of Day Print Log</div>
+              <div class="log2-topbar-date" id="log2-date-label"></div>
+            </div>
+          </div>
+          <div class="log2-topbar-right">
+            <select class="fs" id="log2-branch" style="background:#fff;min-width:240px" onchange="loadLogPrinters2()">
+              <option value="">— Select Branch —</option>
+            </select>
+            <button class="btn btn-p" id="log2-submit-all-btn" onclick="submitAllLogs()">✓ Submit All</button>
+          </div>
+        </div>
+
+        <!-- Printer grid -->
+        <div class="log2-grid" id="log2-grid">
+          <div class="svc-empty" style="grid-column:1/-1;padding:50px 20px">
+            <div style="font-size:40px;margin-bottom:12px">🏢</div>
+            <div style="font-weight:600;color:var(--tx);font-size:15px">Select a branch above</div>
+            <div style="color:var(--t3);margin-top:6px;font-size:13px">Printer cards will appear here for you to fill in today's print counts</div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="card" style="margin-top:22px">
+          <div class="ch">
+            <h3>📅 My Print Log History</h3>
+            <div class="chr"><span style="font-size:11px;color:var(--t3)">Last 30 entries</span></div>
+          </div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Printer</th><th>Branch</th><th>Total Prints</th><th>Notes</th></tr></thead>
+              <tbody id="log2-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── MANAGER APPROVALS PAGE ────────────────────────── -->
+    <div class="page" id="page-approvals">
+
+      <!-- ══ HERO HEADER ══════════════════════════════════ -->
+      <div class="appr-hero">
+        <div class="appr-hero-left">
+          <div class="appr-hero-icon">✅</div>
+          <div>
+            <div class="appr-hero-title">Replacement Requests</div>
+            <div class="appr-hero-sub">Review, approve or reject toner &amp; paper requests from the service team</div>
+          </div>
+        </div>
+        <button class="btn btn-g" onclick="loadApprovals()" style="font-size:12px;flex-shrink:0">↺ Refresh</button>
+      </div>
+
+      <!-- ══ KPI STRIP ════════════════════════════════════ -->
+      <div class="appr-kpi-row">
+        <div class="appr-kpi appr-kpi-pending" onclick="filterApprovals('pending')" style="cursor:pointer">
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-pending">—</div>
+            <div class="appr-kpi-lbl">Awaiting Review</div>
+          </div>
+          <div class="appr-kpi-icon-big">⏳</div>
+        </div>
+        <div class="appr-kpi appr-kpi-approved" onclick="filterApprovals('approved')" style="cursor:pointer">
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-approved">—</div>
+            <div class="appr-kpi-lbl">Approved</div>
+          </div>
+          <div class="appr-kpi-icon-big">✅</div>
+        </div>
+        <div class="appr-kpi appr-kpi-rejected" onclick="filterApprovals('rejected')" style="cursor:pointer">
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-rejected">—</div>
+            <div class="appr-kpi-lbl">Rejected</div>
+          </div>
+          <div class="appr-kpi-icon-big">❌</div>
+        </div>
+      </div>
+
+      <!-- ══ FILTER BAR ═══════════════════════════════════ -->
+      <div class="appr-filter-bar">
+        <div class="appr-filter-row">
+          <button class="appr-filter-btn af-act" onclick="filterApprovals('all')">All Requests</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('pending')">⏳ Pending</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('toner')">🖨 Toner</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('paper')">📄 Paper</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('approved')">✅ Approved</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('rejected')">❌ Rejected</button>
+        </div>
+      </div>
+
+      <!-- ══ REQUESTS LIST ════════════════════════════════ -->
+      <div id="approvals-container">
+        <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
+
+    </div>
+
+    <!-- ── PRINTLOG (legacy alias) ────────────────────────── -->
+    <div class="page" id="page-printlog" style="display:none"></div>
+
+    <!-- ── OLD REPLACE PAGE (kept for direct installs) ───── -->
     <div class="page" id="page-replace">
       <div class="pgh">
         <div>
@@ -486,6 +864,63 @@
   </div>
 </div>
 
+<!-- New Replacement Request -->
+<div class="mb" id="m-new-request">
+  <div class="mx" style="max-width:500px">
+    <div class="mt">📋 New Replacement Request</div>
+    <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">Submit a request for manager approval before replacing toner or paper.</p>
+
+    <!-- Type switcher -->
+    <div style="display:flex;gap:6px;background:#f1f5f9;border-radius:10px;padding:4px;margin-bottom:16px">
+      <button class="req-type-tab req-type-act" id="req-tab-toner" onclick="switchReqType('toner')">🖨 Toner Request</button>
+      <button class="req-type-tab" id="req-tab-paper" onclick="switchReqType('paper')">📄 Paper Request</button>
+    </div>
+
+    <div class="fr">
+      <div class="ff"><label class="ffl">Branch</label>
+        <select class="fs" id="req-branch" onchange="loadReqPrinters()"><option value="">— Select Branch —</option></select>
+      </div>
+      <div class="ff"><label class="ffl">Printer</label>
+        <select class="fs" id="req-printer"><option value="">— Select Branch First —</option></select>
+      </div>
+    </div>
+
+    <!-- Toner fields -->
+    <div id="req-toner-fields">
+      <div class="ff"><label class="ffl">Toner Model</label>
+        <select class="fs" id="req-toner-model"><option value="">— Select Model —</option></select>
+      </div>
+    </div>
+
+    <!-- Paper fields -->
+    <div id="req-paper-fields" style="display:none">
+      <div class="fr">
+        <div class="ff"><label class="ffl">Paper Type</label>
+          <select class="fs" id="req-paper-type"><option value="">— Select Branch First —</option></select>
+        </div>
+        <div class="ff"><label class="ffl">Quantity (reams)</label>
+          <input class="fi2" id="req-paper-qty" type="number" value="1" min="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="ff"><label class="ffl">Priority</label>
+      <select class="fs" id="req-priority">
+        <option value="normal">🟢 Normal</option>
+        <option value="urgent">🟡 Urgent</option>
+        <option value="critical">🔴 Critical</option>
+      </select>
+    </div>
+    <div class="ff"><label class="ffl">Notes (optional)</label>
+      <input class="fi2" id="req-notes" placeholder="Reason or observations...">
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-new-request')">Cancel</button>
+      <button class="mok" onclick="submitRequest()">📋 Submit Request</button>
+    </div>
+  </div>
+</div>
+
 <!-- Load Paper into Printer -->
 <div class="mb" id="m-load-printer-paper">
   <div class="mx">
@@ -607,15 +1042,16 @@
 <!-- ════════════════════════════════════════════════════════
      JAVASCRIPT — Separate module files loaded in order
      ════════════════════════════════════════════════════════ -->
-<script src="/js/api.js"></script>      <!-- API calls + login logic + APP state -->
-<script src="/js/nav.js"></script>      <!-- Sidebar nav, page routing, modals, toast, utils -->
-<script src="/js/dashboard.js"></script><!-- Dashboard KPIs, printer table, activity feed -->
-<script src="/js/branches.js"></script> <!-- Branch grid, add/edit/delete -->
-<script src="/js/printers.js"></script> <!-- Printer table, add/edit/delete -->
-<script src="/js/stock.js"></script>    <!-- Stock tubes, receive, toner models -->
-<script src="/js/service.js"></script>  <!-- Toner replacement form -->
-<script src="/js/dba.js"></script>      <!-- User management, audit log -->
-<script src="/js/paper.js"></script>    <!-- Paper stock management -->
+<script src="/js/api.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/branches.js"></script>
+<script src="/js/printers.js"></script>
+<script src="/js/stock.js"></script>
+<script src="/js/service.js"></script>
+<script src="/js/approvals.js"></script>
+<script src="/js/dba.js"></script>
+<script src="/js/paper.js"></script>
 
 </body>
 </html>
