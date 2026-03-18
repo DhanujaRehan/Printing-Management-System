@@ -642,6 +642,62 @@
     <!-- ── PRINTLOG (legacy alias) ────────────────────────── -->
     <div class="page" id="page-printlog" style="display:none"></div>
 
+    <!-- ── PRINT ACTIVITY REPORT (Manager / DBA) ─────────── -->
+    <div class="page" id="page-printreport">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Print Activity Report</div>
+          <div class="pgs">Daily print counts by branch and printer — logged by service team</div>
+        </div>
+        <div class="pgact">
+          <select class="fs" id="pr-filter-branch-sel" style="background:#fff;min-width:160px" onchange="prFilterBranch(this.value)">
+            <option value="">All Branches</option>
+          </select>
+          <select class="fs" id="pr-filter-date-sel" style="background:#fff;min-width:180px" onchange="prFilterDate(this.value)">
+            <option value="">All Dates</option>
+          </select>
+          <button class="btn btn-g" onclick="loadPrintReport()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- KPI Strip -->
+      <div class="pr-kpi-row">
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#eff6ff">🖨️</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-total">—</div>
+            <div class="pr-kpi-lbl">Total Prints</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#f0fdf4">🏢</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-branches">—</div>
+            <div class="pr-kpi-lbl">Active Branches</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#faf5ff">🖥️</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-printers">—</div>
+            <div class="pr-kpi-lbl">Printers Logged</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#fffbeb">📊</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-avg">—</div>
+            <div class="pr-kpi-lbl">Avg per Printer</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report body -->
+      <div id="pr-report-container">
+        <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
+    </div>
+
     <!-- ── OLD REPLACE PAGE (kept for direct installs) ───── -->
     <div class="page" id="page-replace">
       <div class="pgh">
@@ -1057,6 +1113,7 @@
 <script src="/js/stock.js"></script>
 <script src="/js/service.js"></script>
 <script src="/js/approvals.js"></script>
+<script src="/js/printreport.js"></script>
 <script src="/js/dba.js"></script>
 <script src="/js/paper.js"></script>
 

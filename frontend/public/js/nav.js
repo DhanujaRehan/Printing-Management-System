@@ -15,7 +15,8 @@ var NAVS = {
       { i: '📄', l: 'Paper Stock', p: 'paper' },
     ]},
     { s: 'Management', items: [
-      { i: '✅', l: 'Approvals', p: 'approvals', badge: 'approvals-badge' },
+      { i: '✅', l: 'Approvals',      p: 'approvals',    badge: 'approvals-badge' },
+      { i: '📊', l: 'Print Report',   p: 'printreport' },
     ]},
   ],
 
@@ -38,6 +39,7 @@ var NAVS = {
       { i: '📄', l: 'Paper Stock',     p: 'paper'     },
       { i: '🖨️', l: 'Printers',        p: 'printers'  },
       { i: '✅', l: 'Approvals',        p: 'approvals', badge: 'approvals-badge' },
+      { i: '📊', l: 'Print Report',     p: 'printreport' },
     ]},
   ],
 };
@@ -146,8 +148,9 @@ function showPage(id, btn) {
     paper:     loadPaper,
     replace:   loadService,
     printlog:  loadService,
-    approvals: loadApprovals,
-    dba:       loadDBA,
+    approvals:    loadApprovals,
+    printreport:  loadPrintReport,
+    dba:          loadDBA,
   };
   if (loaders[id]) loaders[id]();
 }
