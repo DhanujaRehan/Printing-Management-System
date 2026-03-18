@@ -83,7 +83,7 @@ def get_stock(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/stock/receive")
-def receive_stock(body: StockReceiveBody, current_user: dict = Depends(require_role("manager", "dba"))):
+def receive_stock(body: StockReceiveBody, current_user: dict = Depends(require_role("manager", "dba", "store"))):
     if body.quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be positive")
 

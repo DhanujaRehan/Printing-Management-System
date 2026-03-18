@@ -29,6 +29,7 @@ USERS = [
     {"full_name": "Ahmad Manager",  "username": "admin",  "password": "1234", "role": "manager", "branch_access": "ALL"},
     {"full_name": "Sarah Service",  "username": "sarah",  "password": "1234", "role": "service", "branch_access": "ALL"},
     {"full_name": "Mike Chen DBA",  "username": "mchen",  "password": "1234", "role": "dba",     "branch_access": "ALL"},
+    {"full_name": "Store Person",   "username": "store",  "password": "1234", "role": "store",   "branch_access": "ALL"},
 ]
 
 

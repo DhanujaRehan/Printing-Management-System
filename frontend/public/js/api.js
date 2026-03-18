@@ -96,8 +96,8 @@ async function doLogin() {
     document.getElementById('sb-av').textContent =
       APP.user.full_name.split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2);
 
-    var roleLabels = { manager: 'Manager', service: 'Service Person', dba: 'Database Admin' };
-    var roleColors = { manager: 'var(--c1)', service: 'var(--c3)', dba: 'var(--c4)' };
+    var roleLabels = { manager: 'Manager', service: 'Service Person', dba: 'Database Admin', store: 'Store Person' };
+    var roleColors = { manager: 'var(--c1)', service: 'var(--c3)', dba: 'var(--c4)', store: '#10b981' };
     document.getElementById('sb-role').textContent = roleLabels[APP.user.role];
     document.getElementById('sb-role').style.color = roleColors[APP.user.role];
 

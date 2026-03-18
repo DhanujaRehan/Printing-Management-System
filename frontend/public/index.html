@@ -50,6 +50,9 @@
         <div class="rb" onclick="selectRole(this,'service')">
           <div class="re">🔧</div><div class="rl">Service</div><div class="rs">Field ops</div>
         </div>
+        <div class="rb" onclick="selectRole(this,'store')">
+          <div class="re">🏪</div><div class="rl">Store</div><div class="rs">Warehouse</div>
+        </div>
         <div class="rb" onclick="selectRole(this,'dba')">
           <div class="re">🗄️</div><div class="rl">DBA</div><div class="rs">Database</div>
         </div>
@@ -698,6 +701,214 @@
       </div>
     </div>
 
+    <!-- ── STORE PERSON PAGE ─────────────────────────────── -->
+    <div class="page" id="page-store">
+
+      <!-- Hero -->
+      <div class="svc-hero" style="background:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);box-shadow:0 8px 32px rgba(16,185,129,.22)">
+        <div class="svc-hero-left">
+          <div class="svc-hero-icon">🏪</div>
+          <div>
+            <div class="svc-hero-title">Store Dashboard</div>
+            <div class="svc-hero-sub">Manage warehouse stock — receive, dispatch and track toner &amp; paper</div>
+          </div>
+        </div>
+        <button class="btn" style="background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);font-size:12px" onclick="loadStore()">↺ Refresh</button>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="svc-kpi-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="svc-kpi svc-kpi-ok">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)"><span>🖨️</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-toner">—</div>
+            <div class="svc-kpi-lbl">Toner Units</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-warn" style="--pc:#3b82f6">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)"><span>📄</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-paper">—</div>
+            <div class="svc-kpi-lbl">Paper Stock</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-err">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)"><span>⚠️</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-low-t">—</div>
+            <div class="svc-kpi-lbl">Low Toner Models</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-crit">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><span>📋</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-low-p">—</div>
+            <div class="svc-kpi-lbl">Low Paper Types</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="svc-main-tabs">
+        <button class="svc-tab svc-tab-act" id="store-tab-overview" onclick="switchStoreTab('overview')">
+          <span class="svc-tab-icon">📊</span> Overview
+        </button>
+        <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')">
+          <span class="svc-tab-icon">🖨️</span> Toner Stock
+        </button>
+        <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')">
+          <span class="svc-tab-icon">📄</span> Paper Stock
+        </button>
+        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">
+          <span class="svc-tab-icon">📋</span> Movement History
+        </button>
+      </div>
+
+      <!-- ── PANEL: OVERVIEW ──────────────────────────── -->
+      <div id="store-panel-overview">
+        <div class="st-section-title">🖨️ Toner Warehouse</div>
+        <div class="st-stock-grid" id="st-toner-overview"></div>
+        <div class="st-section-title" style="margin-top:20px">📄 Paper Warehouse</div>
+        <div class="st-stock-grid" id="st-paper-overview"></div>
+      </div>
+
+      <!-- ── PANEL: TONER ─────────────────────────────── -->
+      <div id="store-panel-toner" style="display:none">
+        <div class="st-action-layout">
+
+          <!-- Receive form -->
+          <div class="st-action-card">
+            <div class="st-action-hdr">
+              <div class="st-action-icon" style="background:#f0fdf4;color:#16a34a">📦</div>
+              <div>
+                <div class="st-action-title">Receive Toner Stock</div>
+                <div class="st-action-sub">Add toner cartridges into warehouse</div>
+              </div>
+            </div>
+            <div class="ff"><label class="ffl">Toner Model</label>
+              <select class="fs" id="st-recv-toner-model"><option value="">— Select —</option></select>
+            </div>
+            <div class="ff" style="margin-top:10px"><label class="ffl">Quantity (units)</label>
+              <input class="fi2" id="st-recv-toner-qty" type="number" min="1" placeholder="e.g. 10">
+            </div>
+            <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+              <input class="fi2" id="st-recv-toner-notes" placeholder="e.g. PO #12345">
+            </div>
+            <button class="st-action-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="storeReceiveToner()">
+              ✓ Receive into Warehouse
+            </button>
+          </div>
+
+          <!-- Stock table -->
+          <div class="card" style="flex:1">
+            <div class="ch"><h3>Current Toner Stock</h3></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Model</th><th>Brand</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
+                <tbody id="st-toner-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── PANEL: PAPER ─────────────────────────────── -->
+      <div id="store-panel-paper" style="display:none">
+        <div class="st-action-layout">
+
+          <!-- Left column: receive + dispatch -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Receive -->
+            <div class="st-action-card">
+              <div class="st-action-hdr">
+                <div class="st-action-icon" style="background:#eff6ff;color:#1d4ed8">📥</div>
+                <div>
+                  <div class="st-action-title">Receive Paper</div>
+                  <div class="st-action-sub">Add reams into warehouse</div>
+                </div>
+              </div>
+              <div class="ff"><label class="ffl">Paper Type</label>
+                <select class="fs" id="st-recv-paper-type"><option value="">— Select —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Reams</label>
+                <input class="fi2" id="st-recv-paper-qty" type="number" min="1" placeholder="e.g. 50">
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+                <input class="fi2" id="st-recv-paper-notes" placeholder="e.g. Supplier delivery">
+              </div>
+              <button class="st-action-btn" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)" onclick="storeReceivePaper()">
+                ✓ Receive into Warehouse
+              </button>
+            </div>
+
+            <!-- Dispatch -->
+            <div class="st-action-card">
+              <div class="st-action-hdr">
+                <div class="st-action-icon" style="background:#fef9c3;color:#a16207">📤</div>
+                <div>
+                  <div class="st-action-title">Dispatch to Branch</div>
+                  <div class="st-action-sub">Send paper reams to a branch</div>
+                </div>
+              </div>
+              <div class="ff"><label class="ffl">Paper Type</label>
+                <select class="fs" id="st-disp-paper-type"><option value="">— Select —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Branch</label>
+                <select class="fs" id="st-disp-branch"><option value="">— Select Branch —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Reams to Send</label>
+                <input class="fi2" id="st-disp-qty" type="number" min="1" placeholder="e.g. 20">
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+                <input class="fi2" id="st-disp-notes" placeholder="e.g. Weekly replenishment">
+              </div>
+              <button class="st-action-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="storeDispatchPaper()">
+                ✓ Dispatch to Branch
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Paper stock table -->
+          <div class="card" style="flex:1">
+            <div class="ch"><h3>Current Paper Stock</h3></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Name</th><th>Size/GSM</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
+                <tbody id="st-paper-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── PANEL: HISTORY ───────────────────────────── -->
+      <div id="store-panel-history" style="display:none">
+        <div class="card" style="margin-bottom:18px">
+          <div class="ch"><h3>🖨️ Toner Movement History</h3></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date/Time</th><th>Type</th><th>Model</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
+              <tbody id="st-toner-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><h3>📄 Paper Movement History</h3></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
+              <tbody id="st-paper-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- ── OLD REPLACE PAGE (kept for direct installs) ───── -->
     <div class="page" id="page-replace">
       <div class="pgh">
@@ -914,6 +1125,7 @@
         <select class="fs" id="au-role">
           <option value="manager">Manager</option>
           <option value="service">Service Person</option>
+          <option value="store">Store Person</option>
           <option value="dba">DBA</option>
         </select>
       </div>
@@ -1114,6 +1326,7 @@
 <script src="/js/service.js"></script>
 <script src="/js/approvals.js"></script>
 <script src="/js/printreport.js"></script>
+<script src="/js/store.js"></script>
 <script src="/js/dba.js"></script>
 <script src="/js/paper.js"></script>
 

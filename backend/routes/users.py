@@ -63,7 +63,7 @@ def get_audit_log(limit: int = 50, current_user: dict = Depends(require_role("ma
 
 @router.post("")
 def create_user(body: UserBody, current_user: dict = Depends(require_role("dba"))):
-    if body.role not in ("manager", "service", "dba"):
+    if body.role not in ("manager", "service", "dba", "store"):
         raise HTTPException(status_code=400, detail="Invalid role")
     existing = query("SELECT id FROM users WHERE username=%s", (body.username,), fetch="one")
     if existing:

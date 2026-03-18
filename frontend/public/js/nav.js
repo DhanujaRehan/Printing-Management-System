@@ -31,6 +31,15 @@ var NAVS = {
     ]},
   ],
 
+  store: [
+    { s: 'Warehouse', items: [
+      { i: '📊', l: 'Overview',         p: 'store'   },
+      { i: '🖨️', l: 'Toner Stock',      p: 'store-toner'  },
+      { i: '📄', l: 'Paper Stock',       p: 'store-paper'  },
+      { i: '📋', l: 'Movement History',  p: 'store-history'},
+    ]},
+  ],
+
   dba: [
     { s: 'Admin', items: [
       { i: '🗄️', l: 'Administration', p: 'dba'       },
@@ -136,6 +145,29 @@ function showPage(id, btn) {
     return;
   }
 
+  /* Store sub-pages */
+  if (id === 'store-toner') {
+    var pg = document.getElementById('page-store');
+    if (pg) pg.classList.add('act');
+    if (typeof loadStore === 'function') loadStore();
+    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('toner'); }, 150);
+    return;
+  }
+  if (id === 'store-paper') {
+    var pg = document.getElementById('page-store');
+    if (pg) pg.classList.add('act');
+    if (typeof loadStore === 'function') loadStore();
+    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('paper'); }, 150);
+    return;
+  }
+  if (id === 'store-history') {
+    var pg = document.getElementById('page-store');
+    if (pg) pg.classList.add('act');
+    if (typeof loadStore === 'function') loadStore();
+    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('history'); }, 150);
+    return;
+  }
+
   /* Normal page */
   var pg = document.getElementById('page-' + id);
   if (pg) pg.classList.add('act');
@@ -150,6 +182,7 @@ function showPage(id, btn) {
     printlog:  loadService,
     approvals:    loadApprovals,
     printreport:  loadPrintReport,
+    store:        loadStore,
     dba:          loadDBA,
   };
   if (loaders[id]) loaders[id]();
