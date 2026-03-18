@@ -62,21 +62,137 @@
 /* ── BRANCH CARDS ───────────────────────────────────────── */
 .bc {
   background:var(--white); border:1px solid var(--sb); border-radius:18px;
-  padding:22px; transition:all .25s; box-shadow:var(--shadow);
+  padding:20px; transition:all .25s; box-shadow:var(--shadow);
 }
 .bc:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
-.bchead { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.bcbadge { width:36px; height:36px; border-radius:10px;
+.bchead { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.bcbadge {
+  width:44px; height:44px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
-  font-size:15px; font-weight:800; flex-shrink:0; }
-.bcn { font-size:14px; font-weight:700; color:var(--tx); }
-.bcs { font-size:11px; color:var(--t2); margin-top:1px; }
-.bca { margin-left:auto; display:flex; gap:5px; }
+  font-size:13px; font-weight:800; flex-shrink:0;
+}
+.bcn { font-size:15px; font-weight:700; color:var(--tx); }
+.bcs { font-size:11px; color:var(--t2); margin-top:2px; }
+.bca { margin-left:auto; display:flex; gap:6px; }
+
+/* Summary strip */
+.bc-summary-strip {
+  display:flex;
+  align-items:center;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:12px 16px;
+  margin-bottom:14px;
+  gap:0;
+}
+.bc-summary-stat {
+  flex:1;
+  text-align:center;
+}
+.bc-summary-num {
+  font-family:var(--m);
+  font-size:20px;
+  font-weight:800;
+  line-height:1;
+}
+.bc-summary-lbl {
+  font-size:10px;
+  color:var(--t3);
+  margin-top:3px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.bc-summary-divider {
+  width:1px;
+  height:32px;
+  background:var(--sb);
+  margin:0 4px;
+}
+
+/* Printer list */
+.bc-printer-list {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.bc-printer-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:9px 12px;
+  border-radius:10px;
+  background:#fafbfc;
+  border:1px solid var(--sb);
+  transition:all .15s;
+}
+.bc-printer-row:hover {
+  background:#fff;
+  border-color:#cbd5e1;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.bc-pr-left {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.bc-pr-dot {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(0,0,0,.06);
+}
+.bc-pr-code {
+  font-family:var(--m);
+  font-size:13px;
+  font-weight:700;
+  color:var(--tx);
+}
+.bc-pr-model {
+  font-size:10px;
+  color:var(--t3);
+  margin-top:1px;
+}
+.bc-pr-right {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.bc-pr-pct {
+  font-family:var(--m);
+  font-size:15px;
+  font-weight:800;
+  min-width:40px;
+  text-align:right;
+}
+.bc-pr-badge {
+  font-size:10px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:20px;
+}
+.bc-pr-days {
+  font-size:11px;
+  color:var(--t3);
+  font-family:var(--m);
+  min-width:30px;
+  text-align:right;
+}
+
+/* Legacy kept for other pages */
 .prl { display:flex; flex-direction:column; gap:9px; }
 .pr  { display:flex; align-items:center; gap:9px; }
-.prid   { font-family:var(--m); font-size:11px; font-weight:600; width:26px; color:var(--t3); flex-shrink:0; }
+.prid   { font-family:var(--m); font-size:11px; font-weight:600; color:var(--t3); flex-shrink:0; }
 .prpct  { font-family:var(--m); font-size:11px; font-weight:700; width:34px; text-align:right; flex-shrink:0; }
 .prdays { font-size:10px; color:var(--t3); width:50px; text-align:right; flex-shrink:0; }
+
+/* Kept for bc-gauge references */
+.bc-gauge-wrap { flex-shrink:0; }
+.bc-printer-code { font-family:var(--m); font-size:12px; font-weight:700; color:var(--tx); }
+.bc-alert-pill { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; }
+.bc-crit { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+.bc-warn { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
 
 /* ── STOCK TUBES ────────────────────────────────────────── */
 .stgrid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }

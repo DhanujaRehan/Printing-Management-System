@@ -1,11 +1,12 @@
 /* ============================================================
-   TonerPro Ultra — Branches Module
+   SoftWave — Branches Module
    File: js/branches.js
    ============================================================ */
 
-const BR_COLORS = ['#0ea5e9','#6366f1','#10b981','#f59e0b','#ec4899',
-                   '#14b8a6','#8b5cf6','#22c55e','#f97316','#06b6d4'];
-
+const BR_COLORS = [
+  '#0ea5e9','#6366f1','#10b981','#f59e0b','#ec4899',
+  '#14b8a6','#8b5cf6','#22c55e','#f97316','#06b6d4'
+];
 
 async function loadBranches() {
   const grid = document.getElementById('branch-grid');
@@ -13,8 +14,8 @@ async function loadBranches() {
 
   try {
     const [branches, printers] = await Promise.all([
-      silentApi('GET', '/branches').then(function(r){return r||[];}),
-      silentApi('GET', '/printers').then(function(r){return r||[];}),
+      silentApi('GET', '/branches').then(r => r || []),
+      silentApi('GET', '/printers').then(r => r || []),
     ]);
 
     const canEdit = APP.user.role === 'manager' || APP.user.role === 'dba';
@@ -25,13 +26,21 @@ async function loadBranches() {
       const col = BR_COLORS[bi % BR_COLORS.length];
       const bJson = JSON.stringify(b).replace(/'/g, "&#39;");
 
+      const critCount = bp.filter(p => (p.current_pct || 0) <= 10).length;
+      const lowCount  = bp.filter(p => (p.current_pct || 0) > 10 && (p.current_pct || 0) <= 25).length;
+      const goodCount = bp.filter(p => (p.current_pct || 0) > 25).length;
+
+      const avgCol = avg <= 10 ? '#ef4444' : avg <= 25 ? '#f59e0b' : col;
+
       return `
-        <div class="bc" style="border-top:3px solid ${col}">
+        <div class="bc" style="border-top:4px solid ${col}">
+
+          <!-- Branch Header -->
           <div class="bchead">
             <div class="bcbadge" style="background:${col}18;color:${col}">${b.code}</div>
-            <div>
+            <div style="flex:1;min-width:0">
               <div class="bcn">${b.name}</div>
-              <div class="bcs">${b.location || '—'} · ${b.printer_count || bp.length} printers</div>
+              <div class="bcs">${b.location || b.name + ' Branch'} · ${bp.length} printer${bp.length !== 1 ? 's' : ''}</div>
             </div>
             <div class="bca">
               ${canEdit ? `<button class="btn btn-g btn-sm" onclick='editBranch(${bJson})'>✏️ Edit</button>` : ''}
@@ -39,31 +48,61 @@ async function loadBranches() {
             </div>
           </div>
 
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-            <span style="font-size:11px;color:var(--t2)">Avg toner:</span>
-            <div style="flex:1;height:5px;border-radius:3px;background:#f1f5f9;overflow:hidden">
-              <div style="height:100%;width:${avg}%;background:${avg<=15?'var(--er)':avg<=30?'var(--wr)':col};border-radius:3px;transition:width 1s"></div>
+          <!-- Branch summary strip -->
+          <div class="bc-summary-strip">
+            <div class="bc-summary-stat">
+              <div class="bc-summary-num" style="color:${avgCol}">${avg}%</div>
+              <div class="bc-summary-lbl">Avg Toner</div>
             </div>
-            <span style="font-size:11px;font-weight:700;font-family:var(--m);color:${pColor(avg)}">${avg}%</span>
-            ${statusTag(avg, 99)}
+            <div class="bc-summary-divider"></div>
+            <div class="bc-summary-stat">
+              <div class="bc-summary-num" style="color:#10b981">${goodCount}</div>
+              <div class="bc-summary-lbl">Good</div>
+            </div>
+            <div class="bc-summary-stat">
+              <div class="bc-summary-num" style="color:#f59e0b">${lowCount}</div>
+              <div class="bc-summary-lbl">Low</div>
+            </div>
+            <div class="bc-summary-stat">
+              <div class="bc-summary-num" style="color:#ef4444">${critCount}</div>
+              <div class="bc-summary-lbl">Critical</div>
+            </div>
           </div>
 
-          <div class="prl">
-            ${bp.map(p => `
-              <div class="pr">
-                <div class="prid">${p.printer_code}</div>
-                <div class="pb"><div class="pf ${pfClass(p.current_pct || 0)}" style="width:${p.current_pct || 0}%"></div></div>
-                <div class="prpct" style="color:${pColor(p.current_pct || 0)}">${p.current_pct || 0}%</div>
-                <div class="prdays">${p.days_remaining ?? '—'}d left</div>
-              </div>`).join('')}
+          <!-- Printer cards -->
+          <div class="bc-printer-list">
+            ${bp.map(p => {
+              const pct  = Math.round(p.current_pct || 0);
+              const days = p.days_remaining ?? null;
+              const fillCol = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+              const statusLabel = pct <= 10 ? 'Critical' : pct <= 25 ? 'Low' : pct <= 60 ? 'Good' : 'Full';
+              const statusBg    = pct <= 10 ? '#fef2f2'  : pct <= 25 ? '#fffbeb' : '#f0fdf4';
+
+              return `
+              <div class="bc-printer-row">
+                <div class="bc-pr-left">
+                  <div class="bc-pr-dot" style="background:${fillCol}"></div>
+                  <div>
+                    <div class="bc-pr-code">${p.printer_code}</div>
+                    <div class="bc-pr-model">${p.toner_model || '—'}</div>
+                  </div>
+                </div>
+                <div class="bc-pr-right">
+                  <div class="bc-pr-pct" style="color:${fillCol}">${pct}%</div>
+                  <div class="bc-pr-badge" style="background:${statusBg};color:${fillCol}">${statusLabel}</div>
+                  <div class="bc-pr-days">${days !== null ? days + 'd' : '—'}</div>
+                </div>
+              </div>`;
+            }).join('')}
           </div>
+
         </div>`;
     }).join('');
 
     if (!branches.length) {
-      grid.innerHTML = '<div class="emptys">No branches found. Click "Add Branch" to get started.</div>';
+      grid.innerHTML = '<div class="emptys">No branches found.</div>';
     }
-  } catch (e) {
+  } catch(e) {
     grid.innerHTML = '<div class="emptys">Error loading branches.</div>';
   }
 }
@@ -95,14 +134,13 @@ async function saveBranch() {
     contact:  document.getElementById('abr-contact').value,
   };
   if (!body.code || !body.name) { toast('❌', 'Code and name are required', ''); return; }
-
   try {
     if (id) await api('PUT', `/branches/${id}`, body);
     else    await api('POST', '/branches', body);
     closeModal('m-addBranch');
     toast('✅', id ? 'Branch updated' : 'Branch created!', body.name);
     loadBranches();
-  } catch (e) {}
+  } catch(e) {}
 }
 
 async function deleteBranch(id, name) {
@@ -111,5 +149,5 @@ async function deleteBranch(id, name) {
     await api('DELETE', `/branches/${id}`);
     toast('✅', 'Branch deactivated', name);
     loadBranches();
-  } catch (e) {}
+  } catch(e) {}
 }
