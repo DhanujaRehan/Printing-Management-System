@@ -1,5 +1,5 @@
 """
-TonerPro Ultra v4.2 — FastAPI Backend
+SoftWave Print Management System — FastAPI Backend
 Entry point: python main.py
 """
 
@@ -23,9 +23,9 @@ from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
 
 app = FastAPI(
-    title="TonerPro Ultra API",
-    description="Enterprise Toner Management System — v4.2",
-    version="4.2.0",
+    title="SoftWave Print Management API",
+    description="SoftWave Enterprise Print Management System",
+    version="1.0.0",
 )
 
 @app.exception_handler(Exception)
@@ -58,8 +58,9 @@ def health():
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "public"
 
 if FRONTEND_DIR.exists():
-    app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
-    app.mount("/js",  StaticFiles(directory=str(FRONTEND_DIR / "js")),  name="js")
+    app.mount("/css",    StaticFiles(directory=str(FRONTEND_DIR / "css")),    name="css")
+    app.mount("/js",     StaticFiles(directory=str(FRONTEND_DIR / "js")),     name="js")
+    app.mount("/images", StaticFiles(directory=str(FRONTEND_DIR / "images")), name="images")
 
     @app.get("/", response_class=FileResponse)
     def serve_index():
@@ -77,6 +78,6 @@ if FRONTEND_DIR.exists():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 4000))
-    print(f"\n  TonerPro Ultra API starting on http://localhost:{port}")
+    print(f"\n  SoftWave Print Management System starting on http://localhost:{port}")
     print(f"  API Docs: http://localhost:{port}/docs\n")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
