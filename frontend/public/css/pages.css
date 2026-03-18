@@ -1182,7 +1182,6 @@
 .appr-kpi-approved::after { background: linear-gradient(180deg, #34d399, #10b981); }
 .appr-kpi-rejected::after { background: linear-gradient(180deg, #f87171, #ef4444); }
 .appr-kpi:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-.appr-kpi-left  {}
 .appr-kpi-num {
   font-family: var(--m);
   font-size: 38px;
