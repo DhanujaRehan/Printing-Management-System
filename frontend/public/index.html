@@ -29,7 +29,7 @@
     <!-- Brand header -->
     <div class="login-brand">
       <div class="login-logo-ring"><img src="/images/logo.png" style="width:110px;height:110px;object-fit:contain"></div>
-      <div class="login-title">SoftWave<span> Print Management</span></div>
+      <div class="login-title">Soft<span>Wave</span></div>
       <div class="login-subtitle">Print Management System · Enterprise Edition</div>
     </div>
 
@@ -85,7 +85,7 @@
       <div class="sbm"><img src="/images/logo.png" style="width:46px;height:46px;object-fit:contain"></div>
       <div>
         <div class="sblt">Soft<b>Wave</b></div>
-        <div class="sblv">PRINT MANAGEMENT</div>
+        <div class="sblv">PRINT MGMT</div>
       </div>
     </div>
 
@@ -166,7 +166,13 @@
           <div class="pgt">Branches</div>
           <div class="pgs">Manage all branches and view toner status</div>
         </div>
-        <button class="btn btn-p" id="addbr-btn" onclick="openAddBranch()" style="display:none">+ Add Branch</button>
+        <div class="pgact">
+          <div class="branch-search-wrap">
+            <span class="branch-search-icon">🔍</span>
+            <input class="branch-search-input" id="branch-search" placeholder="Search branch..." oninput="filterBranches(this.value)">
+          </div>
+          <button class="btn btn-p" id="addbr-btn" onclick="openAddBranch()" style="display:none">+ Add Branch</button>
+        </div>
       </div>
       <div class="bgrid" id="branch-grid"></div>
     </div>

@@ -1349,3 +1349,33 @@
 .lpc-input       { width:100%;padding:8px 10px;border:1.5px solid var(--sb);border-radius:8px;font-family:var(--f);font-size:13px;font-weight:600;color:var(--tx);background:#f8fafc; }
 .lpc-input:focus { outline:none;border-color:var(--c1); }
 .lpc-submit      { width:100%;margin-top:4px;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font-family:var(--f);font-size:12px;font-weight:700;cursor:pointer; }
+
+/* ── Branch Search Bar ──────────────────────────────────── */
+.branch-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1.5px solid var(--sb);
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 40px;
+  box-shadow: var(--shadow);
+  transition: border-color .2s;
+  min-width: 220px;
+}
+.branch-search-wrap:focus-within {
+  border-color: var(--c1);
+  box-shadow: 0 0 0 3px rgba(14,165,233,.1);
+}
+.branch-search-icon { font-size: 14px; flex-shrink: 0; }
+.branch-search-input {
+  border: none;
+  outline: none;
+  font-family: var(--f);
+  font-size: 13px;
+  color: var(--tx);
+  background: transparent;
+  width: 100%;
+}
+.branch-search-input::placeholder { color: var(--t3); }

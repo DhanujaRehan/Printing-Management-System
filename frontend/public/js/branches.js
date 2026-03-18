@@ -10,6 +10,8 @@ const BR_COLORS = [
 
 async function loadBranches() {
   const grid = document.getElementById('branch-grid');
+  const searchEl = document.getElementById('branch-search');
+  if (searchEl) searchEl.value = '';
   grid.innerHTML = '<div class="loading"><div class="spin"></div>Loading branches...</div>';
 
   try {
@@ -105,6 +107,15 @@ async function loadBranches() {
   } catch(e) {
     grid.innerHTML = '<div class="emptys">Error loading branches.</div>';
   }
+}
+
+
+function filterBranches(q) {
+  const term = q.trim().toLowerCase();
+  document.querySelectorAll('#branch-grid .bc').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = (!term || text.includes(term)) ? '' : 'none';
+  });
 }
 
 
