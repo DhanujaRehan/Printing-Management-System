@@ -34,7 +34,16 @@ async function api(method, path, body) {
       throw new Error('Server returned non-JSON response');
     }
     if (!r.ok) {
-      var msg = (d && (d.detail || d.error)) ? (d.detail || d.error) : ('HTTP ' + r.status);
+      var detail = d && (d.detail || d.error);
+      var msg;
+      if (Array.isArray(detail)) {
+        /* FastAPI validation error — extract the first message */
+        msg = detail.map(function(e) { return (e.loc ? e.loc.join('.') + ': ' : '') + e.msg; }).join(', ');
+      } else if (detail && typeof detail === 'object') {
+        msg = JSON.stringify(detail);
+      } else {
+        msg = detail || ('HTTP ' + r.status);
+      }
       toast('❌', msg, '');
       throw new Error(msg);
     }

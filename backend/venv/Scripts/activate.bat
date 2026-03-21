@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\Rehan\Downloads\tonerpro_v2_updated\tonerpro_updated\backend\venv
+set VIRTUAL_ENV=C:\Users\Rehan\Desktop\SoftWave MGMT\Printing-Management-System\backend\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

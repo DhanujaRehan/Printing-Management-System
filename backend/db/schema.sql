@@ -262,3 +262,17 @@ UNION ALL SELECT 'paper_types',       COUNT(*) FROM paper_types
 UNION ALL SELECT 'replacement_requests', COUNT(*) FROM replacement_requests
 UNION ALL SELECT 'print_logs',        COUNT(*) FROM print_logs
 ORDER BY tbl;
+
+-- ============================================================
+-- SoftWave — Print Log Paper Breakdown Migration
+-- Run this ONCE in pgAdmin on your tonerpro database
+-- ============================================================
+ALTER TABLE print_logs
+  ADD COLUMN IF NOT EXISTS a4_single    INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS a4_double    INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS b4_single    INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS b4_double    INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS letter_single INT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS letter_double INT DEFAULT 0;
+ 
+SELECT 'Migration done — paper breakdown columns added to print_logs' AS result;

@@ -21,12 +21,21 @@ from routes.toner    import router as toner_router
 from routes.users    import router as users_router
 from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
+from routes.imports  import router as imports_router
+from scheduler import start_scheduler
 
 app = FastAPI(
     title="SoftWave Print Management API",
     description="SoftWave Enterprise Print Management System",
     version="1.0.0",
 )
+
+@app.on_event("startup")
+async def on_startup():
+    start_scheduler()
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("softwave.scheduler").setLevel(logging.INFO)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -50,6 +59,7 @@ app.include_router(toner_router)
 app.include_router(users_router)
 app.include_router(paper_router)
 app.include_router(requests_router)
+app.include_router(imports_router)
 
 @app.get("/api/health")
 def health():

@@ -23,10 +23,16 @@ class ReviewRequestBody(BaseModel):
 
 
 class PrintLogBody(BaseModel):
-    printer_id: int
-    print_count: int
-    log_date: Optional[str] = None
-    notes: Optional[str] = None
+    printer_id:     int
+    print_count:    int
+    log_date:       Optional[str] = None
+    notes:          Optional[str] = None
+    a4_single:      Optional[int] = 0
+    a4_double:      Optional[int] = 0
+    b4_single:      Optional[int] = 0
+    b4_double:      Optional[int] = 0
+    letter_single:  Optional[int] = 0
+    letter_double:  Optional[int] = 0
 
 
 @router.get("/pending-count")
@@ -242,22 +248,34 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
 
     if body.log_date:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, log_date, notes) "
-            "VALUES (%s, %s, %s, %s::date, %s) "
+            "INSERT INTO print_logs (printer_id, logged_by, print_count, log_date, notes, "
+            "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
+            "VALUES (%s, %s, %s, %s::date, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
             "print_count = EXCLUDED.print_count, logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, created_at = NOW() RETURNING id",
-            (body.printer_id, int(current_user["sub"]), body.print_count, body.log_date, body.notes),
+            "notes = EXCLUDED.notes, a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
+            "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
+            "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
+            "created_at = NOW() RETURNING id",
+            (body.printer_id, int(current_user['sub']), body.print_count, body.log_date, body.notes,
+             body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
+             body.b4_double or 0, body.letter_single or 0, body.letter_double or 0),
             fetch="one"
         )
     else:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, notes) "
-            "VALUES (%s, %s, %s, %s) "
+            "INSERT INTO print_logs (printer_id, logged_by, print_count, notes, "
+            "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
             "print_count = EXCLUDED.print_count, logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, created_at = NOW() RETURNING id",
-            (body.printer_id, int(current_user["sub"]), body.print_count, body.notes),
+            "notes = EXCLUDED.notes, a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
+            "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
+            "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
+            "created_at = NOW() RETURNING id",
+            (body.printer_id, int(current_user['sub']), body.print_count, body.notes,
+             body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
+             body.b4_double or 0, body.letter_single or 0, body.letter_double or 0),
             fetch="one"
         )
 

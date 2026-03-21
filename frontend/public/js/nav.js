@@ -1,5 +1,5 @@
 /* ============================================================
-   TonerPro Ultra — Navigation & Layout Module
+   SoftWave — Navigation & Layout Module
    File: js/nav.js
    ============================================================ */
 
@@ -15,40 +15,36 @@ var NAVS = {
       { i: '📄', l: 'Paper Stock', p: 'paper' },
     ]},
     { s: 'Management', items: [
-      { i: '✅', l: 'Approvals',      p: 'approvals',    badge: 'approvals-badge' },
-      { i: '📊', l: 'Print Report',   p: 'printreport' },
+      { i: '✅', l: 'Approvals',    p: 'approvals',   badge: 'approvals-badge' },
+      { i: '📊', l: 'Print Report', p: 'printreport' },
     ]},
   ],
 
+  /* ── SERVICE: ONE page only — End of Day Log ── */
   service: [
     { s: 'My Work', items: [
-      { i: '📋', l: 'My Dashboard',   p: 'service'     },
-      { i: '➕', l: 'New Request',     p: 'service-new' },
-      { i: '📊', l: 'End of Day Log', p: 'service-log' },
-    ]},
-    { s: 'View', items: [
-      { i: '🏢', l: 'Branch Status',  p: 'branches' },
+      { i: '📊', l: 'End of Day Log', p: 'eodlog' },
     ]},
   ],
 
   store: [
     { s: 'Warehouse', items: [
-      { i: '📊', l: 'Overview',         p: 'store'   },
-      { i: '🖨️', l: 'Toner Stock',      p: 'store-toner'  },
-      { i: '📄', l: 'Paper Stock',       p: 'store-paper'  },
-      { i: '📋', l: 'Movement History',  p: 'store-history'},
+      { i: '📊', l: 'Overview',        p: 'store'         },
+      { i: '🖨️', l: 'Toner Stock',     p: 'store-toner'   },
+      { i: '📄', l: 'Paper Stock',      p: 'store-paper'   },
+      { i: '📋', l: 'Movement History', p: 'store-history' },
     ]},
   ],
 
   dba: [
     { s: 'Admin', items: [
-      { i: '🗄️', l: 'Administration', p: 'dba'       },
-      { i: '📊', l: 'Dashboard',       p: 'dashboard' },
-      { i: '📦', l: 'Toner Stock',     p: 'stock'     },
-      { i: '📄', l: 'Paper Stock',     p: 'paper'     },
-      { i: '🖨️', l: 'Printers',        p: 'printers'  },
-      { i: '✅', l: 'Approvals',        p: 'approvals', badge: 'approvals-badge' },
-      { i: '📊', l: 'Print Report',     p: 'printreport' },
+      { i: '🗄️', l: 'Administration', p: 'dba'          },
+      { i: '📊', l: 'Dashboard',       p: 'dashboard'    },
+      { i: '📦', l: 'Toner Stock',     p: 'stock'        },
+      { i: '📄', l: 'Paper Stock',     p: 'paper'        },
+      { i: '🖨️', l: 'Printers',        p: 'printers'     },
+      { i: '✅', l: 'Approvals',        p: 'approvals',   badge: 'approvals-badge' },
+      { i: '📊', l: 'Print Report',     p: 'printreport'  },
     ]},
   ],
 };
@@ -86,13 +82,14 @@ function buildNav() {
     showPage(sections[0].items[0].p, first);
   }
 
-  /* Add Branch button */
+  /* Add Branch button — manager & dba only */
   var addBrBtn = document.getElementById('addbr-btn');
-  if (addBrBtn && (APP.user.role === 'manager' || APP.user.role === 'dba')) {
-    addBrBtn.style.display = '';
+  if (addBrBtn) {
+    addBrBtn.style.display =
+      (APP.user.role === 'manager' || APP.user.role === 'dba') ? '' : 'none';
   }
 
-  /* Poll pending badge after short delay */
+  /* Poll pending badge after short delay — manager & dba only */
   if (APP.user.role === 'manager' || APP.user.role === 'dba') {
     setTimeout(function() {
       if (typeof refreshPendingBadge === 'function') {
@@ -105,12 +102,12 @@ function buildNav() {
 
 
 function showPage(id, btn) {
-  /* Hide all pages */
+  /* Hide all pages & deactivate all nav buttons */
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('act'); });
   document.querySelectorAll('.nb').forEach(function(b)   { b.classList.remove('act'); });
   if (btn) btn.classList.add('act');
 
-  /* Service sub-pages */
+  /* ── Service sub-pages (manager/dba can still access page-service via URL) ── */
   if (id === 'service-new') {
     var pg = document.getElementById('page-service');
     if (pg) pg.classList.add('act');
@@ -129,62 +126,50 @@ function showPage(id, btn) {
     }, 150);
     return;
   }
-
-  /* For 'service' main page — always reset to requests tab */
   if (id === 'service') {
     var pg = document.getElementById('page-service');
     if (pg) pg.classList.add('act');
-    /* Reset all panels to correct state */
     ['requests','new','log'].forEach(function(t) {
-      var tab = document.getElementById('svc-tab-' + t);
+      var tab   = document.getElementById('svc-tab-'   + t);
       var panel = document.getElementById('svc-panel-' + t);
-      if (tab)   tab.className   = 'svc-tab' + (t === 'requests' ? ' svc-tab-act' : '');
+      if (tab)   tab.className       = 'svc-tab' + (t === 'requests' ? ' svc-tab-act' : '');
       if (panel) panel.style.display = t === 'requests' ? '' : 'none';
     });
     if (typeof loadService === 'function') loadService();
     return;
   }
 
-  /* Store sub-pages */
-  if (id === 'store-toner') {
-    var pg = document.getElementById('page-store');
+  /* ── Store sub-pages ── */
+  if (id === 'store-toner' || id === 'store-paper' || id === 'store-history') {
+    var tab = id.replace('store-','');
+    var pg  = document.getElementById('page-store');
     if (pg) pg.classList.add('act');
     if (typeof loadStore === 'function') loadStore();
-    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('toner'); }, 150);
-    return;
-  }
-  if (id === 'store-paper') {
-    var pg = document.getElementById('page-store');
-    if (pg) pg.classList.add('act');
-    if (typeof loadStore === 'function') loadStore();
-    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('paper'); }, 150);
-    return;
-  }
-  if (id === 'store-history') {
-    var pg = document.getElementById('page-store');
-    if (pg) pg.classList.add('act');
-    if (typeof loadStore === 'function') loadStore();
-    setTimeout(function() { if (typeof switchStoreTab === 'function') switchStoreTab('history'); }, 150);
+    setTimeout(function() {
+      if (typeof switchStoreTab === 'function') switchStoreTab(tab);
+    }, 150);
     return;
   }
 
-  /* Normal page */
+  /* ── Normal page — show page-{id} and call its loader ── */
   var pg = document.getElementById('page-' + id);
   if (pg) pg.classList.add('act');
 
   var loaders = {
-    dashboard: loadDashboard,
-    branches:  loadBranches,
-    printers:  loadPrinters,
-    stock:     loadStock,
-    paper:     loadPaper,
-    replace:   loadService,
-    printlog:  loadService,
-    approvals:    loadApprovals,
-    printreport:  loadPrintReport,
-    store:        loadStore,
-    dba:          loadDBA,
+    dashboard:   loadDashboard,
+    branches:    loadBranches,
+    printers:    loadPrinters,
+    stock:       loadStock,
+    paper:       loadPaper,
+    replace:     loadService,
+    printlog:    loadService,
+    approvals:   loadApprovals,
+    printreport: loadPrintReport,
+    store:       loadStore,
+    dba:         loadDBA,
+    eodlog:      loadEOD,      /* ← End of Day Log — service person only */
   };
+
   if (loaders[id]) loaders[id]();
 }
 
