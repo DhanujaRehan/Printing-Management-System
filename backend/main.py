@@ -21,7 +21,6 @@ from routes.toner    import router as toner_router
 from routes.users    import router as users_router
 from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
-from routes.imports  import router as imports_router
 from scheduler import start_scheduler
 
 app = FastAPI(
@@ -59,7 +58,6 @@ app.include_router(toner_router)
 app.include_router(users_router)
 app.include_router(paper_router)
 app.include_router(requests_router)
-app.include_router(imports_router)
 
 @app.get("/api/health")
 def health():
