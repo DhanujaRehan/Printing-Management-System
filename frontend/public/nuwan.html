@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoftWave — Branch Monitor</title>
+<link rel="icon" type="image/png" href="/images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/nuwan.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     LOGIN
+     ════════════════════════════════════════════ -->
+<div id="nw-login">
+  <div class="nw-login-card">
+    <div class="nw-login-logo">
+      <img src="/images/logo.png" alt="SoftWave">
+      <div class="nw-login-title">SoftWave</div>
+      <div class="nw-login-sub">Branch Monitor · Management View</div>
+    </div>
+    <div class="nw-login-err" id="nw-err"></div>
+    <div class="nw-login-field">
+      <label class="nw-login-label">Username</label>
+      <input class="nw-login-input" id="nw-lu" type="text" placeholder="Enter username" autocomplete="off">
+    </div>
+    <div class="nw-login-field">
+      <label class="nw-login-label">Password</label>
+      <input class="nw-login-input" id="nw-lp" type="password" placeholder="••••••••">
+    </div>
+    <button class="nw-login-btn" onclick="nwLogin()">Sign In →</button>
+    <div class="nw-login-back">Staff login? <a href="/">Go to main system</a></div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     APP
+     ════════════════════════════════════════════ -->
+<div id="nw-app">
+
+  <!-- Top nav -->
+  <nav class="nw-topnav">
+    <div class="nw-topnav-left">
+      <img src="/images/logo.png" class="nw-topnav-logo" alt="SoftWave">
+      <div class="nw-topnav-brand">
+        SoftWave
+        <span>Branch Monitor</span>
+      </div>
+    </div>
+    <div class="nw-topnav-right">
+      <span class="nw-topnav-user" id="nw-uname">—</span>
+      <button class="nw-logout-btn" onclick="nwLogout()">⬅ Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- Tab bar -->
+  <div class="nw-tabs">
+    <button class="nw-tab act" id="tab-yesterday" onclick="nwTab('yesterday')">
+      <span class="nw-tab-icon">📊</span> Yesterday's Prints
+    </button>
+    <button class="nw-tab" id="tab-toner" onclick="nwTab('toner')">
+      <span class="nw-tab-icon">🖨️</span> Toner Levels
+    </button>
+    <button class="nw-tab" id="tab-monthly" onclick="nwTab('monthly')">
+      <span class="nw-tab-icon">📅</span> Monthly Report
+    </button>
+  </div>
+
+  <!-- ── YESTERDAY PANEL ─────────────────────── -->
+  <div class="nw-main">
+
+    <div class="nw-panel act" id="panel-yesterday">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">Yesterday's Print Log</div>
+          <div class="nw-section-sub" id="yd-date-label">Loading...</div>
+        </div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadYesterday()">
+          ↺ Refresh
+        </button>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="nw-stat-row">
+        <div class="nw-stat-card nw-stat-c1">
+          <span class="nw-stat-icon">🖨️</span>
+          <div class="nw-stat-num" id="yd-total">—</div>
+          <div class="nw-stat-lbl">Total Prints</div>
+        </div>
+        <div class="nw-stat-card nw-stat-c2">
+          <span class="nw-stat-icon">✅</span>
+          <div class="nw-stat-num" id="yd-submitted">—</div>
+          <div class="nw-stat-lbl">Branches Submitted</div>
+        </div>
+        <div class="nw-stat-card nw-stat-c3">
+          <span class="nw-stat-icon">⚠️</span>
+          <div class="nw-stat-num" id="yd-missing">—</div>
+          <div class="nw-stat-lbl">Missing Reports</div>
+        </div>
+      </div>
+
+      <!-- Missing alert -->
+      <div class="nw-missing-banner" id="yd-missing-banner">
+        <span class="nw-missing-icon">⚠️</span>
+        <div class="nw-missing-text">
+          <div class="nw-missing-title" id="yd-missing-title">Loading...</div>
+          <div class="nw-missing-sub" id="yd-missing-sub"></div>
+          <div class="nw-missing-chips" id="yd-missing-chips"></div>
+        </div>
+      </div>
+
+      <!-- Branch table -->
+      <div class="nw-card">
+        <div class="nw-card-hdr">
+          <div class="nw-card-title">All Branches</div>
+        </div>
+        <div id="yd-list">
+          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TONER PANEL ───────────────────────── -->
+    <div class="nw-panel" id="panel-toner">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">Toner Levels</div>
+          <div class="nw-section-sub">Current toner % for all printers across all branches</div>
+        </div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadToner()">
+          ↺ Refresh
+        </button>
+      </div>
+
+      <!-- Toner summary -->
+      <div class="nw-stat-row" style="margin-bottom:16px">
+        <div class="nw-stat-card nw-stat-c1">
+          <span class="nw-stat-icon">🖨️</span>
+          <div class="nw-stat-num" id="tn-total">—</div>
+          <div class="nw-stat-lbl">Total Printers</div>
+        </div>
+        <div class="nw-stat-card nw-stat-c2">
+          <span class="nw-stat-icon">⚠️</span>
+          <div class="nw-stat-num" id="tn-low">—</div>
+          <div class="nw-stat-lbl">Low (≤25%)</div>
+        </div>
+        <div class="nw-stat-card nw-stat-c3">
+          <span class="nw-stat-icon">🚨</span>
+          <div class="nw-stat-num" id="tn-crit">—</div>
+          <div class="nw-stat-lbl">Critical (≤5%)</div>
+        </div>
+      </div>
+
+      <div id="tn-branches">
+        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── MONTHLY PANEL ─────────────────────── -->
+    <div class="nw-panel" id="panel-monthly">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">Monthly Print Report</div>
+          <div class="nw-section-sub">Total prints per branch for any month</div>
+        </div>
+        <div class="nw-month-controls">
+          <select class="nw-month-sel" id="mo-month" onchange="nwLoadMonthly()"></select>
+          <select class="nw-month-sel" id="mo-year"  onchange="nwLoadMonthly()"></select>
+          <button class="nw-download-btn" onclick="nwDownloadExcel()">
+            📥 Download Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Monthly grand total -->
+      <div class="nw-monthly-total">
+        <div>
+          <div class="nw-monthly-total-num" id="mo-total">—</div>
+          <div class="nw-monthly-total-lbl" id="mo-total-lbl">Total prints this month</div>
+        </div>
+        <div class="nw-monthly-total-icon">📊</div>
+      </div>
+
+      <div class="nw-card">
+        <div class="nw-card-hdr">
+          <div class="nw-card-title">Print Count by Branch</div>
+        </div>
+        <div id="mo-list">
+          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /nw-main -->
+</div><!-- /nw-app -->
+
+<!-- Toast -->
+<div class="nw-toast" id="nw-toast">
+  <span class="nw-toast-ico" id="nw-t-ico">✅</span>
+  <span class="nw-toast-txt" id="nw-t-txt"></span>
+</div>
+
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ════════════════════════════════════════════
+   NUWAN DASHBOARD — Standalone JS
+   ════════════════════════════════════════════ */
+
+var NW = {
+  token: localStorage.getItem('nw_token') || '',
+  user:  JSON.parse(localStorage.getItem('nw_user') || 'null'),
+};
+
+var _monthlyData = null; // cached for Excel export
+
+/* ── Bootstrap ─────────────────────────────── */
+window.addEventListener('DOMContentLoaded', function() {
+  buildMonthSelectors();
+  if (NW.token && NW.user) {
+    showApp();
+  }
+  // Enter key on login
+  document.getElementById('nw-lp').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') nwLogin();
+  });
+  document.getElementById('nw-lu').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') nwLogin();
+  });
+});
+
+function buildMonthSelectors() {
+  var months = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  var mSel = document.getElementById('mo-month');
+  months.forEach(function(m, i) {
+    var o = new Option(m, i + 1);
+    mSel.add(o);
+  });
+
+  var now = new Date();
+  mSel.value = now.getMonth() + 1;
+
+  var ySel = document.getElementById('mo-year');
+  for (var y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
+    ySel.add(new Option(y, y));
+  }
+  ySel.value = now.getFullYear();
+}
+
+/* ── Auth ───────────────────────────────────── */
+async function nwLogin() {
+  var u = document.getElementById('nw-lu').value.trim();
+  var p = document.getElementById('nw-lp').value;
+  var errEl = document.getElementById('nw-err');
+  errEl.style.display = 'none';
+
+  if (!u || !p) { showErr('Please enter username and password.'); return; }
+
+  try {
+    var r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: u, password: p})
+    });
+    var d = await r.json();
+    if (!r.ok) { showErr(d.detail || 'Login failed'); return; }
+
+    // Allow nuwan, manager, dba
+    if (!['nuwan','manager','dba'].includes(d.user.role)) {
+      showErr('This portal is for management only. Please use the main system.');
+      return;
+    }
+
+    NW.token = d.token;
+    NW.user  = d.user;
+    localStorage.setItem('nw_token', d.token);
+    localStorage.setItem('nw_user',  JSON.stringify(d.user));
+    showApp();
+  } catch(e) {
+    showErr('Connection error. Is the server running?');
+  }
+}
+
+function showErr(msg) {
+  var el = document.getElementById('nw-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showApp() {
+  document.getElementById('nw-login').style.display = 'none';
+  document.getElementById('nw-app').style.display   = 'block';
+  document.getElementById('nw-uname').textContent = NW.user.full_name || NW.user.username;
+  nwLoadYesterday();
+}
+
+function nwLogout() {
+  NW.token = ''; NW.user = null;
+  localStorage.removeItem('nw_token');
+  localStorage.removeItem('nw_user');
+  location.reload();
+}
+
+/* ── API helper ─────────────────────────────── */
+async function nwApi(path) {
+  var r = await fetch('/api' + path, {
+    headers: {'Authorization': 'Bearer ' + NW.token}
+  });
+  if (r.status === 401) { nwLogout(); return null; }
+  if (!r.ok) { nwToast('❌', 'API error: ' + r.status); return null; }
+  return r.json();
+}
+
+/* ── Tab switching ──────────────────────────── */
+function nwTab(name) {
+  document.querySelectorAll('.nw-tab').forEach(function(t) { t.classList.remove('act'); });
+  document.querySelectorAll('.nw-panel').forEach(function(p) { p.classList.remove('act'); });
+  document.getElementById('tab-' + name).classList.add('act');
+  document.getElementById('panel-' + name).classList.add('act');
+
+  if (name === 'yesterday') nwLoadYesterday();
+  if (name === 'toner')     nwLoadToner();
+  if (name === 'monthly')   nwLoadMonthly();
+}
+
+/* ══════════════════════════════════════════════
+   YESTERDAY'S PRINTS
+   ══════════════════════════════════════════════ */
+async function nwLoadYesterday() {
+  document.getElementById('yd-list').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var d = await nwApi('/nuwan/prints/yesterday');
+  if (!d) return;
+
+  // Date label
+  var dt = new Date(d.date + 'T00:00:00');
+  var pretty = dt.toLocaleDateString('en-GB', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('yd-date-label').textContent = 'Data for ' + pretty;
+
+  // Stats
+  var submitted = d.branches.filter(function(b) { return b.has_submitted; }).length;
+  document.getElementById('yd-total').textContent     = d.grand_total.toLocaleString();
+  document.getElementById('yd-submitted').textContent = submitted + ' / ' + d.branches.length;
+  document.getElementById('yd-missing').textContent   = d.missing_count;
+
+  // Missing banner
+  var banner = document.getElementById('yd-missing-banner');
+  var missing = d.branches.filter(function(b) { return !b.has_submitted; });
+  if (missing.length === 0) {
+    banner.className = 'nw-missing-banner none';
+    document.getElementById('yd-missing-title').textContent = '✅ All branches submitted their print logs!';
+    document.getElementById('yd-missing-sub').textContent   = 'Great — every branch has reported their daily count.';
+    document.getElementById('yd-missing-chips').innerHTML   = '';
+  } else {
+    banner.className = 'nw-missing-banner';
+    document.getElementById('yd-missing-title').textContent =
+      missing.length + ' branch' + (missing.length > 1 ? 'es have' : ' has') + ' not submitted yet';
+    document.getElementById('yd-missing-sub').textContent =
+      'These branches have not logged their print count for ' + pretty + ':';
+    document.getElementById('yd-missing-chips').innerHTML = missing.map(function(b) {
+      return '<span class="nw-chip">' + b.branch_code + ' — ' + b.branch_name + '</span>';
+    }).join('');
+  }
+
+  // Branch list
+  var max = Math.max.apply(null, d.branches.map(function(b) { return b.total_prints; })) || 1;
+  document.getElementById('yd-list').innerHTML = d.branches.map(function(b) {
+    var pct = Math.round((b.total_prints / max) * 100);
+    return '<div class="nw-branch-row">'
+      + '<div class="nw-branch-code">' + b.branch_code + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'
+      +   (b.has_submitted
+          ? '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'
+          : '<div class="nw-branch-sub">No log submitted</div>')
+      + '</div>'
+      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'
+      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'
+      +   (b.has_submitted ? '✓ Done' : '✗ Missing')
+      + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════
+   TONER LEVELS
+   ══════════════════════════════════════════════ */
+async function nwLoadToner() {
+  document.getElementById('tn-branches').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var rows = await nwApi('/nuwan/toner');
+  if (!rows) return;
+
+  // Stats
+  document.getElementById('tn-total').textContent = rows.length;
+  document.getElementById('tn-low').textContent   = rows.filter(function(r) { return r.status === 'low' || r.status === 'critical'; }).length;
+  document.getElementById('tn-crit').textContent  = rows.filter(function(r) { return r.status === 'critical'; }).length;
+
+  // Group by branch
+  var branches = {};
+  rows.forEach(function(r) {
+    if (!branches[r.branch_id]) {
+      branches[r.branch_id] = {
+        code: r.branch_code, name: r.branch_name, printers: []
+      };
+    }
+    branches[r.branch_id].printers.push(r);
+  });
+
+  var html = '';
+  Object.values(branches).forEach(function(b) {
+    var critCount = b.printers.filter(function(p) { return p.status === 'critical'; }).length;
+    var lowCount  = b.printers.filter(function(p) { return p.status === 'low'; }).length;
+    var statsStr  = '';
+    if (critCount) statsStr += '<span style="color:#ef4444;font-weight:700">🚨 ' + critCount + ' Critical</span> ';
+    if (lowCount)  statsStr += '<span style="color:#f59e0b;font-weight:700">⚠️ ' + lowCount + ' Low</span>';
+    if (!statsStr) statsStr = '<span style="color:#10b981;font-weight:600">✓ All Good</span>';
+
+    html += '<div class="nw-branch-block" id="bb-' + b.code + '">';
+    html += '<div class="nw-branch-block-hdr" onclick="nwToggleBranch(\'' + b.code + '\')">';
+    html += '<div class="nw-branch-block-code">' + b.code + '</div>';
+    html += '<div class="nw-branch-block-name">' + b.name + '</div>';
+    html += '<div class="nw-branch-block-stats">' + statsStr + '</div>';
+    html += '<span class="nw-branch-block-arrow">▶</span>';
+    html += '</div>';
+    html += '<div class="nw-printers-grid" id="bg-' + b.code + '" style="display:none">';
+
+    b.printers.forEach(function(p) {
+      var pct = p.toner_pct != null ? p.toner_pct : null;
+      var barCls = pct == null ? 'bar-unk' : pct <= 5 ? 'bar-low' : pct <= 25 ? 'bar-med' : 'bar-good';
+      var badgeCls = 'badge-' + p.status;
+      var badgeTxt = p.status.charAt(0).toUpperCase() + p.status.slice(1);
+      var pctTxt   = pct != null ? pct + '%' : '?';
+      var pctColor = pct == null ? 'var(--t3)' : pct <= 5 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+
+      html += '<div class="nw-printer-card">';
+      html += '<div class="nw-pc-top">';
+      html += '<div class="nw-pc-code">' + p.printer_code + '</div>';
+      html += '<div class="nw-pc-pct" style="color:' + pctColor + '">' + pctTxt + '</div>';
+      html += '</div>';
+      html += '<div class="nw-pc-model">' + (p.model || '—') + '</div>';
+      html += '<div class="nw-bar"><div class="nw-bar-fill ' + barCls + '" style="width:' + (pct || 0) + '%"></div></div>';
+      html += '<div class="nw-pc-status">';
+      html += '<div class="nw-pc-days">' + (p.days_remaining != null ? p.days_remaining + ' days left' : 'No estimate') + '</div>';
+      html += '<span class="nw-pc-badge ' + badgeCls + '">' + badgeTxt + '</span>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  document.getElementById('tn-branches').innerHTML = html || '<div class="nw-spin-wrap">No data found.</div>';
+
+  // Auto-open branches with critical printers
+  Object.values(branches).forEach(function(b) {
+    if (b.printers.some(function(p) { return p.status === 'critical'; })) {
+      nwToggleBranch(b.code);
+    }
+  });
+}
+
+function nwToggleBranch(code) {
+  var block = document.getElementById('bb-' + code);
+  var grid  = document.getElementById('bg-' + code);
+  if (!block || !grid) return;
+  var isOpen = block.classList.contains('open');
+  block.classList.toggle('open', !isOpen);
+  grid.style.display = isOpen ? 'none' : 'grid';
+}
+
+/* ══════════════════════════════════════════════
+   MONTHLY REPORT
+   ══════════════════════════════════════════════ */
+async function nwLoadMonthly() {
+  document.getElementById('mo-list').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var m = document.getElementById('mo-month').value;
+  var y = document.getElementById('mo-year').value;
+  var d = await nwApi('/nuwan/prints/monthly?year=' + y + '&month=' + m);
+  if (!d) return;
+
+  _monthlyData = d;
+
+  var months = ['','January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  document.getElementById('mo-total').textContent    = d.grand_total.toLocaleString();
+  document.getElementById('mo-total-lbl').textContent = 'Total prints — ' + months[d.month] + ' ' + d.year;
+
+  var max = Math.max.apply(null, d.branches.map(function(b) { return b.total; })) || 1;
+  var sorted = d.branches.slice().sort(function(a, b) { return b.total - a.total; });
+
+  document.getElementById('mo-list').innerHTML = sorted.length
+    ? sorted.map(function(b) {
+        var w = Math.round((b.total / max) * 100);
+        return '<div class="nw-monthly-branch-row">'
+          + '<div class="nw-branch-code">' + b.branch_code + '</div>'
+          + '<div style="flex:1;min-width:0">'
+          +   '<div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px">' + b.branch_name + '</div>'
+          +   '<div class="nw-monthly-bar-track"><div class="nw-monthly-bar-fill" style="width:' + w + '%"></div></div>'
+          + '</div>'
+          + '<div class="nw-monthly-num">' + b.total.toLocaleString() + '</div>'
+          + '</div>';
+      }).join('')
+    : '<div class="nw-spin-wrap">No print logs found for this month.</div>';
+}
+
+/* ══════════════════════════════════════════════
+   EXCEL EXPORT
+   ══════════════════════════════════════════════ */
+async function nwDownloadExcel() {
+  var m = document.getElementById('mo-month').value;
+  var y = document.getElementById('mo-year').value;
+
+  nwToast('⏳', 'Preparing Excel file...');
+
+  var d = await nwApi('/nuwan/prints/export?year=' + y + '&month=' + m);
+  if (!d || !d.rows) { nwToast('❌', 'No data to export'); return; }
+
+  var months = ['','January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  var monthName = months[parseInt(m)];
+
+  // Build sheet data
+  var wsData = [
+    ['SoftWave Print Management System'],
+    ['Monthly Print Report — ' + monthName + ' ' + y],
+    ['Generated: ' + new Date().toLocaleString('en-GB')],
+    [],
+    ['Branch Code', 'Branch Name', 'Printer Code', 'Printer Model', 'Date', 'Print Count', 'Logged By'],
+  ];
+
+  d.rows.forEach(function(r) {
+    wsData.push([
+      r.branch_code,
+      r.branch_name,
+      r.printer_code,
+      r.model || '',
+      r.log_date,
+      r.print_count,
+      r.logged_by || '',
+    ]);
+  });
+
+  // Branch totals
+  var totals = {};
+  d.rows.forEach(function(r) {
+    var k = r.branch_code + '|' + r.branch_name;
+    totals[k] = (totals[k] || 0) + r.print_count;
+  });
+  wsData.push([]);
+  wsData.push(['', '', '', '', 'BRANCH TOTALS', '', '']);
+  Object.keys(totals).forEach(function(k) {
+    var parts = k.split('|');
+    wsData.push([parts[0], parts[1], '', '', '', totals[k], '']);
+  });
+  wsData.push([]);
+  wsData.push(['', '', '', '', 'GRAND TOTAL', d.rows.reduce(function(s, r) { return s + r.print_count; }, 0), '']);
+
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:12},{wch:28},{wch:14},{wch:24},{wch:14},{wch:12},{wch:22}
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, monthName + ' ' + y);
+  XLSX.writeFile(wb, 'SoftWave_PrintReport_' + monthName + '_' + y + '.xlsx');
+  nwToast('✅', 'Excel downloaded!');
+}
+
+/* ── Toast ──────────────────────────────────── */
+var _toastTimer;
+function nwToast(ico, txt) {
+  var el = document.getElementById('nw-toast');
+  document.getElementById('nw-t-ico').textContent = ico;
+  document.getElementById('nw-t-txt').textContent = txt;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>

@@ -63,7 +63,7 @@ def get_audit_log(limit: int = 50, current_user: dict = Depends(require_role("ma
 
 @router.post("")
 def create_user(body: UserBody, current_user: dict = Depends(require_role("dba"))):
-    if body.role not in ("manager", "service", "dba", "store"):
+    if body.role not in ("manager", "service", "dba", "store", "nuwan"):
         raise HTTPException(status_code=400, detail="Invalid role")
     existing = query("SELECT id FROM users WHERE username=%s", (body.username,), fetch="one")
     if existing:
@@ -85,11 +85,19 @@ def create_user(body: UserBody, current_user: dict = Depends(require_role("dba")
 
 @router.put("/{user_id}")
 def update_user(user_id: int, body: UserBody, current_user: dict = Depends(require_role("dba"))):
-    hashed = hash_password(body.password)
-    user = query("""
-        UPDATE users SET full_name=%s, username=%s, password=%s, role=%s, branch_access=%s
-        WHERE id=%s RETURNING id, full_name, username, role
-    """, (body.full_name, body.username, hashed, body.role, body.branch_access, user_id), fetch="one")
+    if body.password and body.password.strip():
+        # Update with new password
+        hashed = hash_password(body.password)
+        user = query("""
+            UPDATE users SET full_name=%s, username=%s, password=%s, role=%s, branch_access=%s
+            WHERE id=%s RETURNING id, full_name, username, role, branch_access
+        """, (body.full_name, body.username, hashed, body.role, body.branch_access, user_id), fetch="one")
+    else:
+        # Keep existing password unchanged
+        user = query("""
+            UPDATE users SET full_name=%s, username=%s, role=%s, branch_access=%s
+            WHERE id=%s RETURNING id, full_name, username, role, branch_access
+        """, (body.full_name, body.username, body.role, body.branch_access, user_id), fetch="one")
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

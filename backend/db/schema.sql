@@ -276,3 +276,8 @@ ALTER TABLE print_logs
   ADD COLUMN IF NOT EXISTS letter_double INT DEFAULT 0;
  
 SELECT 'Migration done — paper breakdown columns added to print_logs' AS result;
+
+-- Add 'nuwan' role to users table constraint
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check 
+  CHECK (role IN ('manager','service','dba','store','nuwan'));

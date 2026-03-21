@@ -21,6 +21,7 @@ from routes.toner    import router as toner_router
 from routes.users    import router as users_router
 from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
+from routes.nuwan    import router as nuwan_router
 from scheduler import start_scheduler
 
 app = FastAPI(
@@ -58,6 +59,7 @@ app.include_router(toner_router)
 app.include_router(users_router)
 app.include_router(paper_router)
 app.include_router(requests_router)
+app.include_router(nuwan_router)
 
 @app.get("/api/health")
 def health():
@@ -73,6 +75,10 @@ if FRONTEND_DIR.exists():
     @app.get("/", response_class=FileResponse)
     def serve_index():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
+
+    @app.get("/monitor", response_class=FileResponse)
+    def serve_nuwan():
+        return FileResponse(str(FRONTEND_DIR / "nuwan.html"))
 
     # SPA fallback — only serve index.html for GET requests to non-API paths
     # All methods allowed so POST/PATCH/DELETE to /api/* don't get 405
