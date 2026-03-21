@@ -143,37 +143,9 @@ def review_request(
     )
 
     if body.status == "approved":
-        if req["request_type"] == "toner" and req["tm_id"]:
-            stock = query(
-                "SELECT quantity FROM toner_stock WHERE toner_model_id=%s",
-                (req["tm_id"],), fetch="one"
-            )
-            if stock and stock["quantity"] >= req["quantity"]:
-                query(
-                    "UPDATE toner_stock SET quantity = quantity - %s, updated_at=NOW() WHERE toner_model_id=%s",
-                    (req["quantity"], req["tm_id"]), fetch="none"
-                )
-                query(
-                    "UPDATE toner_installations SET is_current=FALSE WHERE printer_id=%s AND is_current=TRUE",
-                    (req["printer_id"],), fetch="none"
-                )
-                install = query(
-                    "INSERT INTO toner_installations "
-                    "(printer_id, toner_model_id, installed_by, yield_copies, avg_daily_copies, current_pct, current_copies, is_current) "
-                    "VALUES (%s,%s,%s,3000,150,100,3000,TRUE) RETURNING id",
-                    (req["printer_id"], req["tm_id"], int(current_user["sub"])),
-                    fetch="one"
-                )
-                query(
-                    "INSERT INTO stock_movements "
-                    "(toner_model_id, movement_type, quantity, branch_id, printer_id, installation_id, performed_by, notes) "
-                    "VALUES (%s,'OUT',-1,%s,%s,%s,%s,%s)",
-                    (req["tm_id"], req["branch_id"], req["printer_id"],
-                     install["id"], int(current_user["sub"]), "Auto: approved request #" + str(request_id)),
-                    fetch="none"
-                )
-
-        elif req["request_type"] == "paper" and req["pt_id"]:
+        # NOTE: Toner stock deduction happens at DISPATCH time (store keeper),
+        # not at approval time. Approval just signals the store to prepare.
+        if req["request_type"] == "paper" and req["pt_id"]:
             try:
                 branch_stock = query(
                     "SELECT quantity FROM paper_branch_stock WHERE paper_type_id=%s AND branch_id=%s",
@@ -286,3 +258,103 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
     )
 
     return {"message": "Print count logged", "id": result["id"]}
+
+
+class DispatchBody(BaseModel):
+    dispatch_note: Optional[str] = None
+
+
+@router.patch("/{request_id}/dispatch")
+def dispatch_request(
+    request_id: int,
+    body: DispatchBody,
+    current_user: dict = Depends(require_role("store", "manager", "dba"))
+):
+    """Store keeper dispatches toner — deducts stock and updates printer installation."""
+    req = query(
+        "SELECT rr.*, p.branch_id "
+        "FROM replacement_requests rr "
+        "JOIN printers p ON p.id = rr.printer_id "
+        "WHERE rr.id = %s",
+        (request_id,), fetch="one"
+    )
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if req["status"] != "approved":
+        raise HTTPException(status_code=400, detail="Only approved requests can be dispatched")
+
+    # ── Deduct toner stock ────────────────────────────────────
+    if req["toner_model_id"]:
+        stock = query(
+            "SELECT quantity FROM toner_stock WHERE toner_model_id=%s",
+            (req["toner_model_id"],), fetch="one"
+        )
+        if not stock or stock["quantity"] < req["quantity"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient stock. Available: {stock['quantity'] if stock else 0}"
+            )
+
+        # Deduct from warehouse
+        query(
+            "UPDATE toner_stock SET quantity = quantity - %s, updated_at=NOW() "
+            "WHERE toner_model_id=%s",
+            (req["quantity"], req["toner_model_id"]), fetch="none"
+        )
+
+        # Update printer toner installation — mark old as not current
+        query(
+            "UPDATE toner_installations SET is_current=FALSE "
+            "WHERE printer_id=%s AND is_current=TRUE",
+            (req["printer_id"],), fetch="none"
+        )
+
+        # Create new installation record (full toner = 100%)
+        install = query(
+            "INSERT INTO toner_installations "
+            "(printer_id, toner_model_id, installed_by, yield_copies, avg_daily_copies, current_pct, current_copies, is_current) "
+            "VALUES (%s,%s,%s,3000,150,100,3000,TRUE) RETURNING id",
+            (req["printer_id"], req["toner_model_id"], int(current_user["sub"])),
+            fetch="one"
+        )
+
+        # Log stock movement
+        query(
+            "INSERT INTO stock_movements "
+            "(toner_model_id, movement_type, quantity, branch_id, printer_id, installation_id, performed_by, notes) "
+            "VALUES (%s,'OUT',-1,%s,%s,%s,%s,%s)",
+            (req["toner_model_id"], req["branch_id"], req["printer_id"],
+             install["id"], int(current_user["sub"]),
+             f"Dispatched for request #{request_id}"),
+            fetch="none"
+        )
+
+    # ── Mark as dispatched ────────────────────────────────────
+    query(
+        "UPDATE replacement_requests SET status='dispatched', dispatched_by=%s, "
+        "dispatched_at=NOW(), dispatch_note=%s WHERE id=%s",
+        (int(current_user["sub"]), body.dispatch_note, request_id),
+        fetch="none"
+    )
+    return {"message": "Toner dispatched successfully — stock deducted and printer updated"}
+
+
+@router.get("/approved-toner")
+def get_approved_toner_requests(current_user: dict = Depends(require_role("store", "manager", "dba"))):
+    """Returns approved toner requests awaiting dispatch — for store keeper."""
+    return query(
+        "SELECT rr.*, p.printer_code, b.code AS branch_code, b.name AS branch_name, "
+        "tm.model_code AS toner_model_code, "
+        "u.full_name AS requested_by_name, rv.full_name AS reviewed_by_name, "
+        "ds.full_name AS dispatched_by_name "
+        "FROM replacement_requests rr "
+        "JOIN printers p ON p.id = rr.printer_id "
+        "JOIN branches b ON b.id = p.branch_id "
+        "LEFT JOIN toner_models tm ON tm.id = rr.toner_model_id "
+        "LEFT JOIN users u  ON u.id  = rr.requested_by "
+        "LEFT JOIN users rv ON rv.id = rr.reviewed_by "
+        "LEFT JOIN users ds ON ds.id = rr.dispatched_by "
+        "WHERE rr.request_type = 'toner' AND rr.status IN ('approved','dispatched') "
+        "ORDER BY CASE rr.status WHEN 'approved' THEN 0 ELSE 1 END, rr.reviewed_at DESC "
+        "LIMIT 100"
+    ) or []

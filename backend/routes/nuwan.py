@@ -4,6 +4,7 @@ Role: 'nuwan' — read-only executive dashboard for branch print monitoring.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel
 from db.database import query
 from middleware.auth import get_current_user, require_role
 from datetime import date, timedelta
@@ -194,3 +195,52 @@ def get_export_data(
         "month":  m,
         "rows":   rows or [],
     }
+
+
+# ── Toner models (for request modal) ────────────────────────────────────────
+@router.get("/toner-models")
+def get_toner_models_for_request(current_user: dict = Depends(require_nuwan)):
+    return query("SELECT id, model_code, brand, yield_copies FROM toner_models ORDER BY model_code") or []
+
+
+# ── Submit toner request from Nuwan dashboard ────────────────────────────────
+class NuwanTonerRequestBody(BaseModel):
+    printer_id:     int
+    toner_model_id: int
+    priority:       str = "urgent"
+    notes:          str = ""
+
+
+@router.post("/request-toner")
+def nuwan_request_toner(body: NuwanTonerRequestBody, current_user: dict = Depends(require_nuwan)):
+    if body.priority not in ("normal", "urgent", "critical"):
+        raise HTTPException(status_code=400, detail="Invalid priority")
+    req = query(
+        "INSERT INTO replacement_requests "
+        "(request_type, printer_id, toner_model_id, quantity, priority, notes, requested_by) "
+        "VALUES ('toner', %s, %s, 1, %s, %s, %s) RETURNING id",
+        (body.printer_id, body.toner_model_id, body.priority, body.notes, int(current_user["sub"])),
+        fetch="one"
+    )
+    return {"message": "Toner request submitted", "id": req["id"]}
+
+
+# ── Nuwan's own requests ─────────────────────────────────────────────────────
+@router.get("/my-requests")
+def get_nuwan_requests(current_user: dict = Depends(require_nuwan)):
+    return query(
+        "SELECT rr.*, p.printer_code, b.code AS branch_code, b.name AS branch_name, "
+        "tm.model_code AS toner_model_code, "
+        "u.full_name AS requested_by_name, rv.full_name AS reviewed_by_name, "
+        "ds.full_name AS dispatched_by_name "
+        "FROM replacement_requests rr "
+        "JOIN printers p  ON p.id  = rr.printer_id "
+        "JOIN branches b  ON b.id  = p.branch_id "
+        "LEFT JOIN toner_models tm ON tm.id  = rr.toner_model_id "
+        "LEFT JOIN users u  ON u.id  = rr.requested_by "
+        "LEFT JOIN users rv ON rv.id = rr.reviewed_by "
+        "LEFT JOIN users ds ON ds.id = rr.dispatched_by "
+        "WHERE rr.requested_by = %s AND rr.request_type = 'toner' "
+        "ORDER BY rr.requested_at DESC LIMIT 50",
+        (int(current_user["sub"]),)
+    ) or []

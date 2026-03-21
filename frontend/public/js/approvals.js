@@ -1,5 +1,5 @@
 /* ============================================================
-   TonerPro Ultra — Manager Approvals Module
+   SoftWave — Manager Approvals Module
    File: js/approvals.js
    ============================================================ */
 
@@ -39,12 +39,13 @@ function filterApprovals(status) {
 function renderApprovals(requests) {
   var container = document.getElementById('approvals-container');
 
-  var pending  = _allRequests.filter(function(r){ return r.status === 'pending';  }).length;
-  var approved = _allRequests.filter(function(r){ return r.status === 'approved'; }).length;
-  var rejected = _allRequests.filter(function(r){ return r.status === 'rejected'; }).length;
+  var pending    = _allRequests.filter(function(r){ return r.status === 'pending';    }).length;
+  var approved   = _allRequests.filter(function(r){ return r.status === 'approved';   }).length;
+  var rejected   = _allRequests.filter(function(r){ return r.status === 'rejected';   }).length;
+  var dispatched = _allRequests.filter(function(r){ return r.status === 'dispatched'; }).length;
 
   document.getElementById('appr-kpi-pending').textContent  = pending;
-  document.getElementById('appr-kpi-approved').textContent = approved;
+  document.getElementById('appr-kpi-approved').textContent = approved + (dispatched ? ' (+' + dispatched + ' dispatched)' : '');
   document.getElementById('appr-kpi-rejected').textContent = rejected;
 
   if (!requests.length) {
@@ -57,12 +58,15 @@ function renderApprovals(requests) {
   }
 
   container.innerHTML = requests.map(function(r) {
-    var isPending = r.status === 'pending';
+    var isPending    = r.status === 'pending';
+    var isApproved   = r.status === 'approved';
+    var isDispatched = r.status === 'dispatched';
 
     var statusCfg = {
-      pending:  { col:'#f59e0b', bg:'#fffbeb', label:'⏳ Pending Review', accent:'#f59e0b' },
-      approved: { col:'#10b981', bg:'#f0fdf4', label:'✅ Approved',        accent:'#10b981' },
-      rejected: { col:'#ef4444', bg:'#fef2f2', label:'❌ Rejected',        accent:'#ef4444' },
+      pending:    { col:'#f59e0b', bg:'#fffbeb', label:'⏳ Pending Review',         accent:'#f59e0b' },
+      approved:   { col:'#3b82f6', bg:'#eff6ff', label:'✅ Approved — Awaiting Store', accent:'#3b82f6' },
+      rejected:   { col:'#ef4444', bg:'#fef2f2', label:'❌ Rejected',               accent:'#ef4444' },
+      dispatched: { col:'#10b981', bg:'#f0fdf4', label:'📦 Dispatched & Stock Updated', accent:'#10b981' },
     }[r.status] || { col:'#94a3b8', bg:'#f8fafc', label:r.status, accent:'#94a3b8' };
 
     var priCfg = {
@@ -72,44 +76,67 @@ function renderApprovals(requests) {
     }[r.priority] || { col:'#94a3b8', bg:'#f8fafc', label:r.priority };
 
     var what = r.request_type === 'toner'
-      ? (r.toner_model_code || 'Toner')
-      : ((r.paper_name || 'Paper') + (r.size ? ' ' + r.size + ' ' + r.gsm + 'gsm' : ''));
+      ? '🖨 ' + (r.toner_model_code || 'Toner')
+      : '📄 ' + ((r.paper_name || 'Paper') + (r.size ? ' ' + r.size + ' ' + r.gsm + 'gsm' : ''));
 
-    var isToner = r.request_type === 'toner';
-    var dt = new Date(r.requested_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-    var dtReviewed = r.reviewed_at ? new Date(r.reviewed_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : null;
+    var dt         = new Date(r.requested_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    var dtReviewed = r.reviewed_at   ? new Date(r.reviewed_at).toLocaleString('en-GB',   { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : null;
+    var dtDispatch = r.dispatched_at ? new Date(r.dispatched_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : null;
+
+    // Right-side action/info panel
+    var rightPanel = '';
+    if (isPending) {
+      rightPanel = '<div class="appr-actions">'
+        + '<input class="appr-note-input" id="rn-' + r.id + '" placeholder="Review note (optional)...">'
+        + '<button class="appr-approve-btn" onclick="reviewRequest(' + r.id + ',\'approved\')">✅ Approve Request</button>'
+        + '<button class="appr-reject-btn"  onclick="reviewRequest(' + r.id + ',\'rejected\')">❌ Reject Request</button>'
+        + '</div>';
+    } else if (isApproved) {
+      rightPanel = '<div style="width:100%;display:flex;flex-direction:column;gap:8px">'
+        + '<div style="padding:12px;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;text-align:center">'
+        +   '<div style="font-size:20px;margin-bottom:4px">📋</div>'
+        +   '<div style="font-size:12px;font-weight:700;color:#1d4ed8">Awaiting Store Dispatch</div>'
+        +   '<div style="font-size:11px;color:#3b82f6;margin-top:3px">Stock will be deducted when store dispatches</div>'
+        + '</div>'
+        + (dtReviewed ? '<div style="font-size:11px;color:var(--t3)">Approved by <strong>' + (r.reviewed_by_name||'—') + '</strong> · ' + dtReviewed + '</div>' : '')
+        + '</div>';
+    } else if (isDispatched) {
+      rightPanel = '<div style="width:100%;display:flex;flex-direction:column;gap:8px">'
+        + '<div style="padding:12px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;text-align:center">'
+        +   '<div style="font-size:20px;margin-bottom:4px">✅</div>'
+        +   '<div style="font-size:12px;font-weight:700;color:#15803d">Stock Deducted &amp; Updated</div>'
+        +   (r.dispatch_note ? '<div style="font-size:11px;color:#166534;margin-top:3px">' + r.dispatch_note + '</div>' : '')
+        + '</div>'
+        + (dtDispatch ? '<div style="font-size:11px;color:var(--t3)">Dispatched by <strong>' + (r.dispatched_by_name||'—') + '</strong> · ' + dtDispatch + '</div>' : '')
+        + '</div>';
+    } else {
+      rightPanel = '<div style="width:100%">'
+        + (r.review_note ? '<div class="appr-review-note">💬 ' + r.review_note + '</div>' : '')
+        + (dtReviewed ? '<div class="appr-reviewer" style="margin-top:5px">Reviewed by <strong>' + (r.reviewed_by_name||'—') + '</strong> · ' + dtReviewed + '</div>' : '')
+        + '</div>';
+    }
 
     return '<div class="appr-card">'
       + '<div class="appr-card-accent" style="background:' + statusCfg.accent + '"></div>'
       + '<div class="appr-card-content">'
-      + '<div class="appr-card-left">'
-      + '<div class="appr-type-row">'
-      + '<div class="req-type-badge ' + (isToner ? 'badge-toner' : 'badge-paper') + '">' + (isToner ? '🖨 Toner' : '📄 Paper') + '</div>'
-      + '<span class="appr-pri-pill" style="background:' + priCfg.bg + ';color:' + priCfg.col + ';border:1px solid ' + priCfg.col + '33">' + priCfg.label + '</span>'
-      + '</div>'
-      + '<div class="appr-what">' + what + '</div>'
-      + '<div class="appr-meta">'
-      + '<span class="appr-printer">🖨 ' + r.printer_code + '</span>'
-      + '<span class="appr-branch">🏢 Branch ' + r.branch_code + '</span>'
-      + '<span class="appr-qty">× ' + r.quantity + (r.request_type === 'paper' ? ' reams' : ' unit') + '</span>'
-      + '</div>'
-      + (r.notes ? '<div class="appr-notes">💬 "' + r.notes + '"</div>' : '')
-      + '<div class="appr-by">Requested by <strong>' + (r.requested_by_name || '—') + '</strong> · ' + dt + '</div>'
-      + '</div>'
-      + '<div class="appr-card-right">'
-      + '<div class="appr-status-pill" style="background:' + statusCfg.bg + ';color:' + statusCfg.col + ';border:1px solid ' + statusCfg.col + '33">' + statusCfg.label + '</div>'
-      + (isPending
-          ? '<div class="appr-actions">'
-              + '<input class="appr-note-input" id="rn-' + r.id + '" placeholder="Review note (optional)...">'
-              + '<button class="appr-approve-btn" onclick="reviewRequest(' + r.id + ',\'approved\')">✅ Approve &amp; Deduct Stock</button>'
-              + '<button class="appr-reject-btn"  onclick="reviewRequest(' + r.id + ',\'rejected\')">❌ Reject Request</button>'
-            + '</div>'
-          : '<div style="width:100%">'
-              + (r.review_note ? '<div class="appr-review-note">💬 ' + r.review_note + '</div>' : '')
-              + '<div class="appr-reviewer" style="margin-top:5px">Reviewed by <strong>' + (r.reviewed_by_name || '—') + '</strong>' + (dtReviewed ? ' · ' + dtReviewed : '') + '</div>'
-            + '</div>'
-        )
-      + '</div>'
+      +   '<div class="appr-card-left">'
+      +     '<div class="appr-type-row">'
+      +       '<div class="req-type-badge ' + (r.request_type==='toner' ? 'badge-toner' : 'badge-paper') + '">' + (r.request_type==='toner' ? 'Toner' : 'Paper') + '</div>'
+      +       '<span class="appr-pri-pill" style="background:' + priCfg.bg + ';color:' + priCfg.col + ';border:1px solid ' + priCfg.col + '33">' + priCfg.label + '</span>'
+      +     '</div>'
+      +     '<div class="appr-what">' + what + '</div>'
+      +     '<div class="appr-meta">'
+      +       '<span class="appr-printer">🖨 ' + r.printer_code + '</span>'
+      +       '<span class="appr-branch">🏢 ' + r.branch_name + ' (' + r.branch_code + ')</span>'
+      +       '<span class="appr-qty">× ' + r.quantity + (r.request_type==='paper' ? ' reams' : ' unit') + '</span>'
+      +     '</div>'
+      +     (r.notes ? '<div class="appr-notes">💬 ' + r.notes + '</div>' : '')
+      +     '<div class="appr-by">By <strong>' + (r.requested_by_name||'—') + '</strong> · ' + dt + '</div>'
+      +   '</div>'
+      +   '<div class="appr-card-right">'
+      +     '<div class="appr-status-pill" style="background:' + statusCfg.bg + ';color:' + statusCfg.col + ';border:1px solid ' + statusCfg.col + '33">' + statusCfg.label + '</div>'
+      +     rightPanel
+      +   '</div>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -117,14 +144,22 @@ function renderApprovals(requests) {
 
 async function reviewRequest(id, status) {
   var noteEl = document.getElementById('rn-' + id);
-  var note   = noteEl ? noteEl.value : '';
+  var note   = noteEl ? noteEl.value.trim() : '';
+  var btn    = document.querySelector('[onclick="reviewRequest(' + id + ',\'' + status + '\')"]');
+  if (btn) { btn.disabled = true; btn.textContent = status === 'approved' ? 'Approving...' : 'Rejecting...'; }
+
   try {
     await api('PATCH', '/requests/' + id + '/review', { status: status, review_note: note || null });
-    toast(status === 'approved' ? '✅' : '❌', 'Request ' + status + '!',
-      status === 'approved' ? 'Stock auto-deducted and logged.' : '');
+    toast(
+      status === 'approved' ? '✅' : '❌',
+      'Request ' + status + '!',
+      status === 'approved' ? 'Store keeper will be notified to dispatch.' : ''
+    );
     loadApprovals();
     refreshPendingBadge();
-  } catch(e) {}
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = status === 'approved' ? '✅ Approve Request' : '❌ Reject Request'; }
+  }
 }
 
 async function refreshPendingBadge() {

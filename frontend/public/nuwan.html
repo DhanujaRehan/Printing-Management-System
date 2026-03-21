@@ -63,6 +63,9 @@
     <button class="nw-tab" id="tab-toner" onclick="nwTab('toner')">
       <span class="nw-tab-icon">🖨️</span> Toner Levels
     </button>
+    <button class="nw-tab" id="tab-requests" onclick="nwTab('requests')">
+      <span class="nw-tab-icon">📋</span> My Requests
+    </button>
     <button class="nw-tab" id="tab-monthly" onclick="nwTab('monthly')">
       <span class="nw-tab-icon">📅</span> Monthly Report
     </button>
@@ -150,15 +153,15 @@
           <div class="nw-stat-num" id="tn-total">—</div>
           <div class="nw-stat-lbl">Total Printers</div>
         </div>
-        <div class="nw-stat-card nw-stat-c2">
+        <div class="nw-stat-card nw-stat-c2" style="cursor:pointer" onclick="nwFilterToner('low')" title="Show only Low toner printers">
           <span class="nw-stat-icon">⚠️</span>
           <div class="nw-stat-num" id="tn-low">—</div>
-          <div class="nw-stat-lbl">Low (≤25%)</div>
+          <div class="nw-stat-lbl">LOW (≤25%) · tap to filter</div>
         </div>
-        <div class="nw-stat-card nw-stat-c3">
+        <div class="nw-stat-card nw-stat-c3" style="cursor:pointer" onclick="nwFilterToner('critical')" title="Show only Critical printers">
           <span class="nw-stat-icon">🚨</span>
           <div class="nw-stat-num" id="tn-crit">—</div>
-          <div class="nw-stat-lbl">Critical (≤5%)</div>
+          <div class="nw-stat-lbl">CRITICAL (≤5%) · tap to filter</div>
         </div>
       </div>
 
@@ -202,7 +205,79 @@
       </div>
     </div>
 
+    <!-- ── MY REQUESTS PANEL ──────────────────── -->
+    <div class="nw-panel" id="panel-requests">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">My Toner Requests</div>
+          <div class="nw-section-sub">Requests you submitted for manager approval</div>
+        </div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadMyRequests()">
+          ↺ Refresh
+        </button>
+      </div>
+      <div id="nw-req-list">
+        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+      </div>
+    </div>
+
   </div><!-- /nw-main -->
+
+  <!-- ══════════════════════════════════════════
+       TONER REQUEST MODAL
+       ══════════════════════════════════════════ -->
+  <div class="nw-modal-bg" id="nw-req-modal" onclick="nwCloseModal(event)">
+    <div class="nw-modal">
+      <div class="nw-modal-hdr">
+        <div class="nw-modal-icon">🖨️</div>
+        <div>
+          <div class="nw-modal-title">Request Toner Refill</div>
+          <div class="nw-modal-sub" id="nw-modal-printer-info">—</div>
+        </div>
+        <button class="nw-modal-close" onclick="document.getElementById('nw-req-modal').style.display='none'">✕</button>
+      </div>
+
+      <input type="hidden" id="nw-req-printer-id">
+
+      <!-- Toner model -->
+      <div class="nw-modal-field">
+        <label class="nw-modal-label">Toner Model</label>
+        <select class="nw-modal-select" id="nw-req-model">
+          <option value="">— Select Toner Model —</option>
+        </select>
+      </div>
+
+      <!-- Priority -->
+      <div class="nw-modal-field">
+        <label class="nw-modal-label">Priority</label>
+        <div class="nw-pri-grid">
+          <label class="nw-pri-opt">
+            <input type="radio" name="nw-pri" value="normal">
+            <div class="nw-pri-card nw-pri-normal">🟢<span>Normal</span></div>
+          </label>
+          <label class="nw-pri-opt">
+            <input type="radio" name="nw-pri" value="urgent" checked>
+            <div class="nw-pri-card nw-pri-urgent">🟡<span>Urgent</span></div>
+          </label>
+          <label class="nw-pri-opt">
+            <input type="radio" name="nw-pri" value="critical">
+            <div class="nw-pri-card nw-pri-critical">🔴<span>Critical</span></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="nw-modal-field">
+        <label class="nw-modal-label">Notes for Manager <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
+        <textarea class="nw-modal-textarea" id="nw-req-notes" rows="3"
+          placeholder="e.g. Printer completely out, urgent replacement needed..."></textarea>
+      </div>
+
+      <button class="nw-modal-submit" id="nw-modal-submit-btn" onclick="nwSubmitTonerRequest()">
+        📤 Submit Request to Manager
+      </button>
+    </div>
+  </div>
 </div><!-- /nw-app -->
 
 <!-- Toast -->
@@ -333,6 +408,7 @@ function nwTab(name) {
   if (name === 'yesterday') nwLoadYesterday();
   if (name === 'toner')     nwLoadToner();
   if (name === 'monthly')   nwLoadMonthly();
+  if (name === 'requests')  nwLoadMyRequests();
 }
 
 /* ══════════════════════════════════════════════
@@ -397,147 +473,137 @@ async function nwLoadYesterday() {
 /* ══════════════════════════════════════════════
    TONER LEVELS
    ══════════════════════════════════════════════ */
-async function nwLoadToner() {
-  document.getElementById('tn-branches').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  var si = document.getElementById('tn-search'); if (si) si.value = '';
-  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
-  _tonerRawHTML = '';
+var _tonerData = []; // raw data cache
 
-  var rows = await nwApi('/nuwan/toner');
-  if (!rows) return;
-
-  // Stats
-  document.getElementById('tn-total').textContent = rows.length;
-  document.getElementById('tn-low').textContent   = rows.filter(function(r) { return r.status === 'low' || r.status === 'critical'; }).length;
-  document.getElementById('tn-crit').textContent  = rows.filter(function(r) { return r.status === 'critical'; }).length;
-
-  // Group by branch
+function nwBuildTonerHTML(filterStatus, filterText) {
+  // Build branches from _tonerData, applying filters
   var branches = {};
-  rows.forEach(function(r) {
+  _tonerData.forEach(function(r) {
     if (!branches[r.branch_id]) {
-      branches[r.branch_id] = {
-        code: r.branch_code, name: r.branch_name, printers: []
-      };
+      branches[r.branch_id] = { code: r.branch_code, name: r.branch_name, printers: [] };
     }
     branches[r.branch_id].printers.push(r);
   });
 
   var html = '';
-  Object.values(branches).forEach(function(b) {
-    var critCount = b.printers.filter(function(p) { return p.status === 'critical'; }).length;
-    var lowCount  = b.printers.filter(function(p) { return p.status === 'low'; }).length;
+  var branchList = Object.values(branches);
+  var totalVisible = 0;
+
+  branchList.forEach(function(b) {
+    // Apply filter
+    var filteredPrinters = b.printers;
+    if (filterStatus === 'low') {
+      filteredPrinters = b.printers.filter(function(p) { return p.status === 'low' || p.status === 'critical'; });
+    } else if (filterStatus === 'critical') {
+      filteredPrinters = b.printers.filter(function(p) { return p.status === 'critical'; });
+    } else if (filterText) {
+      var t = filterText.toLowerCase();
+      var branchMatch = b.code.toLowerCase().includes(t) || b.name.toLowerCase().includes(t);
+      filteredPrinters = branchMatch ? b.printers : b.printers.filter(function(p) {
+        return p.printer_code.toLowerCase().includes(t) || (p.model||'').toLowerCase().includes(t);
+      });
+    }
+
+    if (!filteredPrinters.length) return;
+    totalVisible += filteredPrinters.length;
+
+    // Should this branch be open?
+    var shouldOpen = filterStatus || filterText ||
+      filteredPrinters.some(function(p) { return p.status === 'critical'; });
+
+    var critCount = filteredPrinters.filter(function(p) { return p.status === 'critical'; }).length;
+    var lowCount  = filteredPrinters.filter(function(p) { return p.status === 'low'; }).length;
     var statsStr  = '';
     if (critCount) statsStr += '<span style="color:#ef4444;font-weight:700">🚨 ' + critCount + ' Critical</span> ';
     if (lowCount)  statsStr += '<span style="color:#f59e0b;font-weight:700">⚠️ ' + lowCount + ' Low</span>';
     if (!statsStr) statsStr = '<span style="color:#10b981;font-weight:600">✓ All Good</span>';
 
-    html += '<div class="nw-branch-block" id="bb-' + b.code + '">';
+    html += '<div class="nw-branch-block' + (shouldOpen ? ' open' : '') + '" id="bb-' + b.code + '">';
     html += '<div class="nw-branch-block-hdr" onclick="nwToggleBranch(\'' + b.code + '\')">';
     html += '<div class="nw-branch-block-code">' + b.code + '</div>';
     html += '<div class="nw-branch-block-name">' + b.name + '</div>';
     html += '<div class="nw-branch-block-stats">' + statsStr + '</div>';
-    html += '<span class="nw-branch-block-arrow">▶</span>';
+    html += '<span class="nw-branch-block-arrow' + (shouldOpen ? ' open' : '') + '">▶</span>';
     html += '</div>';
-    html += '<div class="nw-printers-grid" id="bg-' + b.code + '" style="display:none">';
+    html += '<div class="nw-printers-grid" id="bg-' + b.code + '" style="' + (shouldOpen ? '' : 'display:none') + '">';
 
-    b.printers.forEach(function(p) {
+    filteredPrinters.forEach(function(p) {
       var pct = p.toner_pct != null ? p.toner_pct : null;
-      var barCls = pct == null ? 'bar-unk' : pct <= 5 ? 'bar-low' : pct <= 25 ? 'bar-med' : 'bar-good';
+      var barCls   = pct == null ? 'bar-unk' : pct <= 5 ? 'bar-low' : pct <= 25 ? 'bar-med' : 'bar-good';
       var badgeCls = 'badge-' + p.status;
       var badgeTxt = p.status.charAt(0).toUpperCase() + p.status.slice(1);
       var pctTxt   = pct != null ? pct + '%' : '?';
       var pctColor = pct == null ? 'var(--t3)' : pct <= 5 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+      var safeModel = (p.model||'—').replace(/'/g, "\'");
+      var safeName  = b.name.replace(/'/g, "\'");
 
       html += '<div class="nw-printer-card">';
-      html += '<div class="nw-pc-top">';
-      html += '<div class="nw-pc-code">' + p.printer_code + '</div>';
-      html += '<div class="nw-pc-pct" style="color:' + pctColor + '">' + pctTxt + '</div>';
-      html += '</div>';
-      html += '<div class="nw-pc-model">' + (p.model || '—') + '</div>';
-      html += '<div class="nw-bar"><div class="nw-bar-fill ' + barCls + '" style="width:' + (pct || 0) + '%"></div></div>';
+      html += '<div class="nw-pc-top"><div class="nw-pc-code">' + p.printer_code + '</div>';
+      html += '<div class="nw-pc-pct" style="color:' + pctColor + '">' + pctTxt + '</div></div>';
+      html += '<div class="nw-pc-model">' + (p.model||'—') + '</div>';
+      html += '<div class="nw-bar"><div class="nw-bar-fill ' + barCls + '" style="width:' + (pct||0) + '%"></div></div>';
       html += '<div class="nw-pc-status">';
       html += '<div class="nw-pc-days">' + (p.days_remaining != null ? p.days_remaining + ' days left' : 'No estimate') + '</div>';
       html += '<span class="nw-pc-badge ' + badgeCls + '">' + badgeTxt + '</span>';
       html += '</div>';
+      if (p.status === 'low' || p.status === 'critical') {
+        html += '<button class="nw-req-btn" onclick="nwOpenRequestModal(' + p.printer_id + ',\'' + p.printer_code + '\',\'' + safeName + '\',\'' + p.status + '\')">📤 Request Toner Refill</button>';
+      }
       html += '</div>';
     });
-
     html += '</div></div>';
   });
 
-  _tonerRawHTML = html || '<div class="nw-spin-wrap">No data found.</div>';
-  document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
-
-  // Auto-open branches with critical printers
-  Object.values(branches).forEach(function(b) {
-    if (b.printers.some(function(p) { return p.status === 'critical'; })) {
-      nwToggleBranch(b.code);
-    }
-  });
+  if (!totalVisible) {
+    var msg = filterStatus === 'critical' ? '🎉 No critical printers!'
+            : filterStatus === 'low'      ? '✅ No low toner printers!'
+            : filterText ? '🔍 No results for "' + filterText + '"'
+            : 'No printer data found.';
+    return '<div class="nw-spin-wrap" style="flex-direction:column;gap:10px"><div style="font-size:36px">' +
+           (filterStatus==='critical'?'🎉':filterStatus==='low'?'✅':'🔍') +
+           '</div><div style="font-size:14px;font-weight:600;color:var(--tx)">' + msg + '</div></div>';
+  }
+  return html;
 }
 
-/* ── Toner search filter ────────────────────── */
-var _tonerRawHTML = '';
+async function nwLoadToner() {
+  document.getElementById('tn-branches').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var si = document.getElementById('tn-search'); if (si) si.value = '';
+  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
+  _tonerData = [];
+
+  var rows = await nwApi('/nuwan/toner');
+  if (!rows) return;
+  _tonerData = rows;
+
+  document.getElementById('tn-total').textContent = rows.length;
+  document.getElementById('tn-low').textContent   = rows.filter(function(r){ return r.status==='low'||r.status==='critical'; }).length;
+  document.getElementById('tn-crit').textContent  = rows.filter(function(r){ return r.status==='critical'; }).length;
+
+  document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, null);
+}
 
 function nwFilterToner(q) {
+  if (!_tonerData.length) return; // not loaded yet
   var clearBtn = document.getElementById('tn-clear');
-  clearBtn.style.display = q ? 'flex' : 'none';
-  
-  if (!q.trim()) {
-    document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
-    return;
+  var searchEl = document.getElementById('tn-search');
+
+  var statusFilter = (q === 'low' || q === 'critical') ? q : null;
+
+  if (statusFilter) {
+    if (searchEl) { searchEl.value = q === 'low' ? 'Low toner' : 'Critical'; }
+    if (clearBtn) clearBtn.style.display = 'flex';
+    document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(statusFilter, null);
+  } else {
+    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+    document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, q || null);
   }
-  
-  var lower = q.toLowerCase();
-  var container = document.createElement('div');
-  container.innerHTML = _tonerRawHTML;
-  
-  // Show only matching branches/printers
-  var blocks = container.querySelectorAll('.nw-branch-block');
-  var anyVisible = false;
-  
-  blocks.forEach(function(block) {
-    var code = (block.querySelector('.nw-branch-block-code') || {}).textContent || '';
-    var name = (block.querySelector('.nw-branch-block-name') || {}).textContent || '';
-    var branchMatch = code.toLowerCase().includes(lower) || name.toLowerCase().includes(lower);
-    
-    // Check individual printer cards
-    var cards = block.querySelectorAll('.nw-printer-card');
-    var matchingCards = [];
-    cards.forEach(function(card) {
-      var pcCode  = (card.querySelector('.nw-pc-code')  || {}).textContent || '';
-      var pcModel = (card.querySelector('.nw-pc-model') || {}).textContent || '';
-      if (branchMatch || pcCode.toLowerCase().includes(lower) || pcModel.toLowerCase().includes(lower)) {
-        matchingCards.push(card.outerHTML);
-      }
-    });
-    
-    if (matchingCards.length > 0) {
-      // Show this branch, open it, show only matching printers
-      block.style.display = 'block';
-      block.classList.add('open');
-      var grid = block.querySelector('[id^="bg-"]');
-      if (grid) {
-        grid.style.display = 'grid';
-        grid.innerHTML = matchingCards.join('');
-      }
-      anyVisible = true;
-    } else {
-      block.style.display = 'none';
-    }
-  });
-  
-  if (!anyVisible) {
-    container.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">🔍</div><div>No results for "<strong>' + q + '</strong>"</div></div>';
-  }
-  
-  document.getElementById('tn-branches').innerHTML = container.innerHTML;
 }
 
 function nwClearTonerSearch() {
-  document.getElementById('tn-search').value = '';
-  document.getElementById('tn-clear').style.display = 'none';
-  document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
+  var si = document.getElementById('tn-search'); if (si) si.value = '';
+  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
+  document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, null);
 }
 
 function nwToggleBranch(code) {
@@ -650,6 +716,169 @@ async function nwDownloadExcel() {
   nwToast('✅', 'Excel downloaded!');
 }
 
+/* ══════════════════════════════════════════════
+   TONER REQUEST FLOW
+   ══════════════════════════════════════════════ */
+
+var _tonerModels = [];
+
+/* Load toner models once */
+async function nwLoadTonerModels() {
+  if (_tonerModels.length) return;
+  var d = await nwApi('/nuwan/toner-models');
+  if (!d) return;
+  _tonerModels = d;
+  var sel = document.getElementById('nw-req-model');
+  sel.innerHTML = '<option value="">— Select Toner Model —</option>';
+  d.forEach(function(m) {
+    sel.add(new Option(m.model_code + (m.brand ? ' (' + m.brand + ')' : ''), m.id));
+  });
+}
+
+/* Open request modal from a printer card click */
+function nwOpenRequestModal(printerId, printerCode, branchName, status) {
+  document.getElementById('nw-req-printer-id').value = printerId;
+  document.getElementById('nw-modal-printer-info').textContent =
+    printerCode + ' — ' + branchName;
+
+  // Pre-select priority based on toner status
+  var pri = status === 'critical' ? 'critical' : 'urgent';
+  document.querySelectorAll('input[name="nw-pri"]').forEach(function(r) {
+    r.checked = (r.value === pri);
+  });
+
+  document.getElementById('nw-req-notes').value = '';
+  document.getElementById('nw-modal-submit-btn').textContent = '📤 Submit Request to Manager';
+  document.getElementById('nw-modal-submit-btn').disabled = false;
+
+  nwLoadTonerModels();
+  document.getElementById('nw-req-modal').style.display = 'flex';
+}
+
+function nwCloseModal(e) {
+  if (e.target.id === 'nw-req-modal') {
+    document.getElementById('nw-req-modal').style.display = 'none';
+  }
+}
+
+async function nwSubmitTonerRequest() {
+  var printerId = document.getElementById('nw-req-printer-id').value;
+  var modelId   = document.getElementById('nw-req-model').value;
+  var notes     = document.getElementById('nw-req-notes').value.trim();
+  var priority  = (document.querySelector('input[name="nw-pri"]:checked') || {}).value || 'urgent';
+
+  if (!modelId) { nwToast('⚠️', 'Please select a toner model'); return; }
+
+  var btn = document.getElementById('nw-modal-submit-btn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  try {
+    var r = await fetch('/api/nuwan/request-toner', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + NW.token,
+      },
+      body: JSON.stringify({
+        printer_id:     parseInt(printerId),
+        toner_model_id: parseInt(modelId),
+        priority:       priority,
+        notes:          notes,
+      })
+    });
+    var d = await r.json();
+    if (!r.ok) { nwToast('❌', d.detail || 'Submit failed'); btn.textContent = '📤 Submit Request to Manager'; btn.disabled = false; return; }
+
+    document.getElementById('nw-req-modal').style.display = 'none';
+    nwToast('✅', 'Request sent to manager!');
+    // Refresh requests tab count
+  } catch(e) {
+    nwToast('❌', 'Network error');
+    btn.textContent = '📤 Submit Request to Manager';
+    btn.disabled = false;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   MY REQUESTS
+   ══════════════════════════════════════════════ */
+async function nwLoadMyRequests() {
+  document.getElementById('nw-req-list').innerHTML =
+    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var rows = await nwApi('/nuwan/my-requests');
+  if (!rows) return;
+
+  if (!rows.length) {
+    document.getElementById('nw-req-list').innerHTML =
+      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">' +
+      '<div style="font-size:36px">📭</div>' +
+      '<div style="font-size:14px;font-weight:600;color:var(--tx)">No requests yet</div>' +
+      '<div style="font-size:12px;color:var(--t3)">Tap a low/critical printer to request a toner refill</div>' +
+      '</div>';
+    return;
+  }
+
+  var priMap = { critical:'🔴 Critical', urgent:'🟡 Urgent', normal:'🟢 Normal' };
+
+  document.getElementById('nw-req-list').innerHTML = rows.map(function(r) {
+    var dt = new Date(r.requested_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+
+    // Build workflow steps
+    var steps = [
+      { done: true,               icon:'📤', label:'You submitted',    sub: dt },
+      { done: r.status !== 'pending' && r.status !== 'rejected',
+                                  icon:'✅', label:'Manager approved',
+        sub: r.reviewed_by_name ? 'by ' + r.reviewed_by_name : '' },
+      { done: r.status === 'dispatched',
+                                  icon:'📦', label:'Store dispatched',
+        sub: r.dispatched_by_name ? 'by ' + r.dispatched_by_name + (r.dispatch_note ? ' · ' + r.dispatch_note : '') : 'Awaiting store action' },
+    ];
+    if (r.status === 'rejected') {
+      steps[1] = { done: true, icon:'❌', label:'Manager rejected', sub: r.review_note || '', col:'#ef4444' };
+      steps[2] = { done: false, icon:'📦', label:'Store dispatch', sub: 'N/A' };
+    }
+
+    var statusInfo = {
+      pending:    { col:'#f59e0b', bg:'#fffbeb', label:'⏳ Awaiting Manager' },
+      approved:   { col:'#3b82f6', bg:'#eff6ff', label:'📋 Awaiting Store Dispatch' },
+      rejected:   { col:'#ef4444', bg:'#fef2f2', label:'❌ Rejected' },
+      dispatched: { col:'#10b981', bg:'#f0fdf4', label:'✅ Toner Dispatched & Stock Updated' },
+    }[r.status] || { col:'#94a3b8', bg:'#f8fafc', label:r.status };
+
+    return '<div class="nw-req-card">'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div class="nw-req-card-top">'
+      +     '<div>'
+      +       '<div class="nw-req-what">🖨 ' + (r.toner_model_code || 'Toner Request') + '</div>'
+      +       '<div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">'
+      +         '<span class="nw-branch-code" style="font-size:10px">' + r.branch_code + '</span>'
+      +         '<span style="font-size:12px;color:var(--t2)">' + r.printer_code + '</span>'
+      +         '<span style="font-size:11px;color:var(--t3)">' + (priMap[r.priority]||r.priority) + '</span>'
+      +       '</div>'
+      +     '</div>'
+      +     '<div class="nw-req-status-pill" style="background:' + statusInfo.bg + ';color:' + statusInfo.col + ';border:1px solid ' + statusInfo.col + '33">' + statusInfo.label + '</div>'
+      +   '</div>'
+      +   (r.notes ? '<div class="nw-req-note">💬 ' + r.notes + '</div>' : '')
+      +   '<div class="nw-req-timeline">'
+      +     steps.map(function(s, i) {
+               return '<div class="nw-tl-step">'
+                 + (i > 0 ? '<div class="nw-tl-line ' + (steps[i-1].done ? 'done' : '') + '"></div>' : '')
+                 + '<div class="nw-tl-dot ' + (s.done ? 'done' : '') + (s.col ? '" style="background:' + s.col : '') + '">' + s.icon + '</div>'
+                 + '<div class="nw-tl-info">'
+                 +   '<div class="nw-tl-label ' + (s.done ? 'done' : '') + '">' + s.label + '</div>'
+                 +   (s.sub ? '<div class="nw-tl-sub">' + s.sub + '</div>' : '')
+                 + '</div>'
+                 + '</div>';
+             }).join('')
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/* Update tab routing to include requests */
 /* ── Toast ──────────────────────────────────── */
 var _toastTimer;
 function nwToast(ico, txt) {

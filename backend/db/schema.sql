@@ -281,3 +281,13 @@ SELECT 'Migration done — paper breakdown columns added to print_logs' AS resul
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users ADD CONSTRAINT users_role_check 
   CHECK (role IN ('manager','service','dba','store','nuwan'));
+
+  -- Add 'dispatched' status to replacement_requests
+ALTER TABLE replacement_requests DROP CONSTRAINT IF EXISTS replacement_requests_status_check;
+ALTER TABLE replacement_requests ADD CONSTRAINT replacement_requests_status_check
+  CHECK (status IN ('pending','approved','rejected','dispatched'));
+ 
+-- Add dispatched_by and dispatched_at columns
+ALTER TABLE replacement_requests ADD COLUMN IF NOT EXISTS dispatched_by  INT REFERENCES users(id);
+ALTER TABLE replacement_requests ADD COLUMN IF NOT EXISTS dispatched_at  TIMESTAMPTZ;
+ALTER TABLE replacement_requests ADD COLUMN IF NOT EXISTS dispatch_note  TEXT;
