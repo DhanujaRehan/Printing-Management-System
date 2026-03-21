@@ -134,6 +134,15 @@
         </button>
       </div>
 
+      <!-- Search bar -->
+      <div class="nw-search-wrap">
+        <span class="nw-search-icon">🔍</span>
+        <input class="nw-search-input" id="tn-search"
+          placeholder="Search branch name or printer code..."
+          oninput="nwFilterToner(this.value)">
+        <button class="nw-search-clear" id="tn-clear" onclick="nwClearTonerSearch()" style="display:none">✕</button>
+      </div>
+
       <!-- Toner summary -->
       <div class="nw-stat-row" style="margin-bottom:16px">
         <div class="nw-stat-card nw-stat-c1">
@@ -390,6 +399,9 @@ async function nwLoadYesterday() {
    ══════════════════════════════════════════════ */
 async function nwLoadToner() {
   document.getElementById('tn-branches').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var si = document.getElementById('tn-search'); if (si) si.value = '';
+  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
+  _tonerRawHTML = '';
 
   var rows = await nwApi('/nuwan/toner');
   if (!rows) return;
@@ -453,7 +465,8 @@ async function nwLoadToner() {
     html += '</div></div>';
   });
 
-  document.getElementById('tn-branches').innerHTML = html || '<div class="nw-spin-wrap">No data found.</div>';
+  _tonerRawHTML = html || '<div class="nw-spin-wrap">No data found.</div>';
+  document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
 
   // Auto-open branches with critical printers
   Object.values(branches).forEach(function(b) {
@@ -461,6 +474,70 @@ async function nwLoadToner() {
       nwToggleBranch(b.code);
     }
   });
+}
+
+/* ── Toner search filter ────────────────────── */
+var _tonerRawHTML = '';
+
+function nwFilterToner(q) {
+  var clearBtn = document.getElementById('tn-clear');
+  clearBtn.style.display = q ? 'flex' : 'none';
+  
+  if (!q.trim()) {
+    document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
+    return;
+  }
+  
+  var lower = q.toLowerCase();
+  var container = document.createElement('div');
+  container.innerHTML = _tonerRawHTML;
+  
+  // Show only matching branches/printers
+  var blocks = container.querySelectorAll('.nw-branch-block');
+  var anyVisible = false;
+  
+  blocks.forEach(function(block) {
+    var code = (block.querySelector('.nw-branch-block-code') || {}).textContent || '';
+    var name = (block.querySelector('.nw-branch-block-name') || {}).textContent || '';
+    var branchMatch = code.toLowerCase().includes(lower) || name.toLowerCase().includes(lower);
+    
+    // Check individual printer cards
+    var cards = block.querySelectorAll('.nw-printer-card');
+    var matchingCards = [];
+    cards.forEach(function(card) {
+      var pcCode  = (card.querySelector('.nw-pc-code')  || {}).textContent || '';
+      var pcModel = (card.querySelector('.nw-pc-model') || {}).textContent || '';
+      if (branchMatch || pcCode.toLowerCase().includes(lower) || pcModel.toLowerCase().includes(lower)) {
+        matchingCards.push(card.outerHTML);
+      }
+    });
+    
+    if (matchingCards.length > 0) {
+      // Show this branch, open it, show only matching printers
+      block.style.display = 'block';
+      block.classList.add('open');
+      var grid = block.querySelector('[id^="bg-"]');
+      if (grid) {
+        grid.style.display = 'grid';
+        grid.innerHTML = matchingCards.join('');
+      }
+      anyVisible = true;
+    } else {
+      block.style.display = 'none';
+    }
+  });
+  
+  if (!anyVisible) {
+    container.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">🔍</div><div>No results for "<strong>' + q + '</strong>"</div></div>';
+  }
+  
+  document.getElementById('tn-branches').innerHTML = container.innerHTML;
+}
+
+function nwClearTonerSearch() {
+  document.getElementById('tn-search').value = '';
+  document.getElementById('tn-clear').style.display = 'none';
+  document.getElementById('tn-branches').innerHTML = _tonerRawHTML;
 }
 
 function nwToggleBranch(code) {

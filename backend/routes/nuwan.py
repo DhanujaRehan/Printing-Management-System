@@ -23,20 +23,20 @@ def get_toner_levels(current_user: dict = Depends(require_nuwan)):
     """Toner % for every active printer, grouped by branch."""
     return query("""
         SELECT
-            b.id        AS branch_id,
-            b.code      AS branch_code,
-            b.name      AS branch_name,
+            b.id                AS branch_id,
+            b.code              AS branch_code,
+            b.name              AS branch_name,
             p.printer_id,
             p.printer_code,
-            p.model,
-            p.toner_pct,
+            p.printer_model     AS model,
+            p.current_pct       AS toner_pct,
             p.days_remaining,
-            p.toner_model_code,
+            p.toner_model       AS toner_model_code,
             CASE
-                WHEN p.toner_pct IS NULL  THEN 'unknown'
-                WHEN p.toner_pct <= 5     THEN 'critical'
-                WHEN p.toner_pct <= 25    THEN 'low'
-                WHEN p.toner_pct <= 50    THEN 'medium'
+                WHEN p.current_pct IS NULL  THEN 'unknown'
+                WHEN p.current_pct <= 5     THEN 'critical'
+                WHEN p.current_pct <= 25    THEN 'low'
+                WHEN p.current_pct <= 50    THEN 'medium'
                 ELSE 'good'
             END AS status
         FROM v_printer_status p
