@@ -6,6 +6,8 @@
 <title>SoftWave — Print Management System</title>
 <link rel="icon" type="image/png" href="/images/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Separated CSS files -->
 <link rel="stylesheet" href="/css/main.css">
 <link rel="stylesheet" href="/css/login.css">
 <link rel="stylesheet" href="/css/pages.css">
@@ -13,7 +15,7 @@
 <body>
 
 <!-- ════════════════════════════════════════════════════════
-     LOGIN PAGE
+     LOGIN PAGE — Animated White Background
      ════════════════════════════════════════════════════════ -->
 <div id="login">
   <div class="login-bg">
@@ -71,14 +73,16 @@
 
 
 <!-- ════════════════════════════════════════════════════════
-     APP SHELL
+     APP SHELL (shown after login)
      ════════════════════════════════════════════════════════ -->
 <div id="app" style="display:none">
 
-  <!-- Mobile hamburger -->
+  <!-- Mobile hamburger toggle -->
   <button class="sb-toggle" id="sb-toggle" onclick="toggleSidebar()" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
+
+  <!-- Mobile overlay (tap to close) -->
   <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
   <!-- SIDEBAR -->
@@ -113,10 +117,10 @@
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN CONTENT AREA -->
   <div class="main">
 
-    <!-- ── DASHBOARD ─────────────────────────────────────── -->
+    <!-- ── DASHBOARD PAGE ──────────────────────────────── -->
     <div class="page" id="page-dashboard">
       <div class="pgh">
         <div>
@@ -127,18 +131,23 @@
           <button class="btn btn-g" onclick="loadDashboard()">🔄 Refresh</button>
         </div>
       </div>
+
       <div class="krow">
         <div class="kpi k1"><span class="kico">🏢</span><div class="knum" id="k-branches">—</div><div class="klbl">Active Branches</div><div class="ktr" id="k-branches-s"></div><div class="kbg">🏢</div></div>
         <div class="kpi k2"><span class="kico">📦</span><div class="knum" id="k-stock">—</div><div class="klbl">Stock Units</div><div class="ktr" id="k-stock-s"></div><div class="kbg">📦</div></div>
         <div class="kpi k3"><span class="kico">⚠️</span><div class="knum" id="k-low">—</div><div class="klbl">Low Toner (≤25%)</div><div class="ktr" id="k-low-s"></div><div class="kbg">⚠️</div></div>
         <div class="kpi k4"><span class="kico">🚨</span><div class="knum" id="k-crit">—</div><div class="klbl">Critical (≤5 days)</div><div class="ktr" id="k-crit-s"></div><div class="kbg">🚨</div></div>
       </div>
+
       <div class="as" id="dash-alerts"></div>
+
       <div class="twocol mb20">
         <div class="card">
           <div class="ch">
             <h3>All Printer Toner Status</h3>
-            <div class="chr"><input class="searchi" placeholder="🔍 Search printers..." oninput="filterPrTable(this.value)"></div>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search printers..." oninput="filterPrTable(this.value)">
+            </div>
           </div>
           <div class="scx scy">
             <table class="tbl">
@@ -156,7 +165,7 @@
       </div>
     </div>
 
-    <!-- ── BRANCHES ──────────────────────────────────────── -->
+    <!-- ── BRANCHES PAGE ───────────────────────────────── -->
     <div class="page" id="page-branches">
       <div class="pgh">
         <div>
@@ -174,8 +183,10 @@
       <div class="bgrid" id="branch-grid"></div>
     </div>
 
-    <!-- ── PRINTERS ──────────────────────────────────────── -->
+    <!-- ── PRINTERS PAGE ───────────────────────────────── -->
     <div class="page" id="page-printers">
+
+      <!-- ── PAGE HEADER ─────────────────────────────── -->
       <div class="pgh">
         <div>
           <div class="pgt">Printer Management</div>
@@ -191,15 +202,25 @@
           <button class="btn btn-g" onclick="loadPaperLevels()" style="font-size:12px">↺ Refresh</button>
         </div>
       </div>
+
+      <!-- ── TABS ────────────────────────────────────── -->
       <div class="pr-tabs">
-        <button class="pr-tab pr-tab-act" id="tab-printers" onclick="switchPrTab('printers')">🖨️ Printers</button>
-        <button class="pr-tab" id="tab-paper" onclick="switchPrTab('paper')">📄 Paper Levels</button>
+        <button class="pr-tab pr-tab-act" id="tab-printers" onclick="switchPrTab('printers')">
+          🖨️ Printers
+        </button>
+        <button class="pr-tab" id="tab-paper" onclick="switchPrTab('paper')">
+          📄 Paper Levels
+        </button>
       </div>
+
+      <!-- ── TAB: PRINTERS ───────────────────────────── -->
       <div id="pr-panel-printers">
         <div class="card">
           <div class="ch">
             <h3>All Printers</h3>
-            <div class="chr"><input class="searchi" placeholder="🔍 Search..." oninput="filterPrMgmt(this.value)"></div>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search..." oninput="filterPrMgmt(this.value)">
+            </div>
           </div>
           <div class="scx">
             <table class="tbl">
@@ -209,6 +230,8 @@
           </div>
         </div>
       </div>
+
+      <!-- ── TAB: PAPER LEVELS ───────────────────────── -->
       <div id="pr-panel-paper" style="display:none">
         <div id="paper-levels-container">
           <div style="padding:40px;text-align:center;color:var(--t3)">
@@ -216,9 +239,10 @@
           </div>
         </div>
       </div>
+
     </div>
 
-    <!-- ── STOCK ─────────────────────────────────────────── -->
+    <!-- ── STOCK PAGE ──────────────────────────────────── -->
     <div class="page" id="page-stock">
       <div class="pgh">
         <div>
@@ -245,8 +269,14 @@
       </div>
     </div>
 
-    <!-- ── SERVICE DASHBOARD (used by manager/dba for requests) -->
+    <!-- ── REPLACE PAGE ────────────────────────────────── -->
+    <!-- ── SERVICE DASHBOARD ────────────────────────────── -->
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE PERSON — UNIFIED DASHBOARD
+         ══════════════════════════════════════════════════════ -->
     <div class="page" id="page-service">
+
+      <!-- ══ HEADER ══════════════════════════════════════ -->
       <div class="svc-hero">
         <div class="svc-hero-left">
           <div class="svc-hero-icon">🛠️</div>
@@ -257,130 +287,294 @@
         </div>
         <button class="btn btn-g" onclick="loadService()" style="font-size:12px;flex-shrink:0">↺ Refresh</button>
       </div>
+
+      <!-- ══ KPI STRIP ════════════════════════════════════ -->
       <div class="svc-kpi-row">
         <div class="svc-kpi svc-kpi-warn" onclick="switchSvcTab('requests')" style="cursor:pointer">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><span>⏳</span></div>
-          <div class="svc-kpi-body"><div class="svc-kpi-num" id="svc-kpi-pending">—</div><div class="svc-kpi-lbl">Pending Requests</div></div>
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)">
+            <span>⏳</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-pending">—</div>
+            <div class="svc-kpi-lbl">Pending Requests</div>
+          </div>
           <div class="svc-kpi-arrow">→</div>
         </div>
         <div class="svc-kpi svc-kpi-ok" onclick="switchSvcTab('requests')" style="cursor:pointer">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)"><span>✅</span></div>
-          <div class="svc-kpi-body"><div class="svc-kpi-num" id="svc-kpi-approved">—</div><div class="svc-kpi-lbl">Approved</div></div>
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)">
+            <span>✅</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-approved">—</div>
+            <div class="svc-kpi-lbl">Approved</div>
+          </div>
           <div class="svc-kpi-arrow">→</div>
         </div>
         <div class="svc-kpi svc-kpi-err" onclick="switchSvcTab('requests')" style="cursor:pointer">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)"><span>❌</span></div>
-          <div class="svc-kpi-body"><div class="svc-kpi-num" id="svc-kpi-rejected">—</div><div class="svc-kpi-lbl">Rejected</div></div>
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)">
+            <span>❌</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-rejected">—</div>
+            <div class="svc-kpi-lbl">Rejected</div>
+          </div>
           <div class="svc-kpi-arrow">→</div>
         </div>
         <div class="svc-kpi svc-kpi-crit" onclick="switchSvcTab('requests')" style="cursor:pointer">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fed7aa)"><span>🚨</span></div>
-          <div class="svc-kpi-body"><div class="svc-kpi-num" id="svc-kpi-urgent" style="color:#ef4444">—</div><div class="svc-kpi-lbl">Critical Printers</div></div>
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fed7aa)">
+            <span>🚨</span>
+          </div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="svc-kpi-urgent" style="color:#ef4444">—</div>
+            <div class="svc-kpi-lbl">Critical Printers</div>
+          </div>
           <div class="svc-kpi-arrow">→</div>
         </div>
       </div>
+
+      <!-- ══ TAB BAR ══════════════════════════════════════ -->
       <div class="svc-main-tabs">
-        <button class="svc-tab svc-tab-act" id="svc-tab-requests" onclick="switchSvcTab('requests')"><span class="svc-tab-icon">📋</span> My Requests</button>
-        <button class="svc-tab" id="svc-tab-new" onclick="switchSvcTab('new')"><span class="svc-tab-icon">➕</span> New Request</button>
-        <button class="svc-tab" id="svc-tab-log" onclick="switchSvcTab('log')"><span class="svc-tab-icon">📊</span> End of Day Log</button>
+        <button class="svc-tab svc-tab-act" id="svc-tab-requests" onclick="switchSvcTab('requests')">
+          <span class="svc-tab-icon">📋</span> My Requests
+        </button>
+        <button class="svc-tab" id="svc-tab-new" onclick="switchSvcTab('new')">
+          <span class="svc-tab-icon">➕</span> New Request
+        </button>
+        <button class="svc-tab" id="svc-tab-log" onclick="switchSvcTab('log')">
+          <span class="svc-tab-icon">📊</span> End of Day Log
+        </button>
       </div>
+
+      <!-- ══ PANEL: MY REQUESTS ═══════════════════════════ -->
       <div id="svc-panel-requests">
         <div class="svc-twocol">
+
+          <!-- Left: Urgent alerts -->
           <div class="svc-alerts-panel">
             <div class="svc-panel-hdr">
               <div class="svc-panel-hdr-icon" style="background:#fef2f2;color:#ef4444">🚨</div>
-              <div><div class="svc-panel-hdr-title">Needs Attention</div><div class="svc-panel-hdr-sub">Printers with ≤7 days toner remaining</div></div>
+              <div>
+                <div class="svc-panel-hdr-title">Needs Attention</div>
+                <div class="svc-panel-hdr-sub">Printers with ≤7 days toner remaining</div>
+              </div>
             </div>
-            <div class="svc-alerts-body" id="svc-urgent-list"><div class="svc-empty">Loading...</div></div>
+            <div class="svc-alerts-body" id="svc-urgent-list">
+              <div class="svc-empty">Loading...</div>
+            </div>
           </div>
+
+          <!-- Right: My requests -->
           <div class="svc-requests-panel">
             <div class="svc-panel-hdr">
               <div class="svc-panel-hdr-icon" style="background:#eff6ff;color:#1d4ed8">📋</div>
-              <div><div class="svc-panel-hdr-title">My Requests</div><div class="svc-panel-hdr-sub">Latest toner &amp; paper replacement requests</div></div>
+              <div>
+                <div class="svc-panel-hdr-title">My Requests</div>
+                <div class="svc-panel-hdr-sub">Latest toner &amp; paper replacement requests</div>
+              </div>
               <button class="svc-new-req-btn" onclick="switchSvcTab('new')">+ New Request</button>
             </div>
-            <div class="svc-requests-body" id="svc-my-requests"><div class="svc-empty">Loading...</div></div>
+            <div class="svc-requests-body" id="svc-my-requests">
+              <div class="svc-empty">Loading...</div>
+            </div>
           </div>
+
         </div>
       </div>
+
+      <!-- ══ PANEL: NEW REQUEST ═══════════════════════════ -->
       <div id="svc-panel-new" style="display:none">
         <div class="nreq-shell">
+
+          <!-- Type selector header -->
           <div class="nreq-type-toggle">
             <button class="nreq-type-tab nreq-type-act" id="nreq-tab-toner" onclick="switchNReqType('toner')">
               <span style="font-size:22px">🖨️</span>
-              <div><div style="font-size:14px;font-weight:700">Toner Replacement</div><div style="font-size:11px;opacity:.7;margin-top:2px">Request new toner cartridge</div></div>
+              <div>
+                <div style="font-size:14px;font-weight:700">Toner Replacement</div>
+                <div style="font-size:11px;opacity:.7;margin-top:2px">Request new toner cartridge</div>
+              </div>
             </button>
             <button class="nreq-type-tab" id="nreq-tab-paper" onclick="switchNReqType('paper')">
               <span style="font-size:22px">📄</span>
-              <div><div style="font-size:14px;font-weight:700">Paper Refill</div><div style="font-size:11px;opacity:.7;margin-top:2px">Request paper reams for printer</div></div>
+              <div>
+                <div style="font-size:14px;font-weight:700">Paper Refill</div>
+                <div style="font-size:11px;opacity:.7;margin-top:2px">Request paper reams for printer</div>
+              </div>
             </button>
           </div>
+
           <div class="nreq-body">
+            <!-- Left: Form -->
             <div class="nreq-form">
-              <div class="nreq-section-hdr"><div class="nreq-section-dot" style="background:#0ea5e9"></div><span>Location</span></div>
+
+              <div class="nreq-section-hdr">
+                <div class="nreq-section-dot" style="background:#0ea5e9"></div>
+                <span>Location</span>
+              </div>
               <div class="nreq-row">
-                <div class="nreq-field"><label class="nreq-label">Branch</label><select class="fs" id="nreq-branch" onchange="nreqLoadPrinters()"><option value="">— Select Branch —</option></select></div>
-                <div class="nreq-field"><label class="nreq-label">Printer</label><select class="fs" id="nreq-printer"><option value="">— Select Branch First —</option></select></div>
-              </div>
-              <div id="nreq-toner-fields">
-                <div class="nreq-section-hdr"><div class="nreq-section-dot" style="background:#6366f1"></div><span>Toner Details</span></div>
-                <div class="nreq-field"><label class="nreq-label">Toner Model</label><select class="fs" id="nreq-toner-model"><option value="">— Select Toner Model —</option></select></div>
-              </div>
-              <div id="nreq-paper-fields" style="display:none">
-                <div class="nreq-section-hdr"><div class="nreq-section-dot" style="background:#10b981"></div><span>Paper Details</span></div>
-                <div class="nreq-row">
-                  <div class="nreq-field" style="flex:2"><label class="nreq-label">Paper Type</label><select class="fs" id="nreq-paper-type"><option value="">— Select Paper Type —</option></select></div>
-                  <div class="nreq-field" style="flex:1"><label class="nreq-label">Reams Needed</label><input class="fi2" id="nreq-qty" type="number" value="1" min="1" max="50"></div>
+                <div class="nreq-field">
+                  <label class="nreq-label">Branch</label>
+                  <select class="fs" id="nreq-branch" onchange="nreqLoadPrinters()">
+                    <option value="">— Select Branch —</option>
+                  </select>
+                </div>
+                <div class="nreq-field">
+                  <label class="nreq-label">Printer</label>
+                  <select class="fs" id="nreq-printer">
+                    <option value="">— Select Branch First —</option>
+                  </select>
                 </div>
               </div>
-              <div class="nreq-section-hdr"><div class="nreq-section-dot" style="background:#f59e0b"></div><span>Priority &amp; Notes</span></div>
-              <div class="nreq-priority-grid">
-                <label class="nreq-pri-opt"><input type="radio" name="nreq-priority-radio" value="normal" checked onchange="document.getElementById('nreq-priority').value=this.value"><div class="nreq-pri-card" style="--pc:#10b981;--pb:#f0fdf4"><span style="font-size:18px">🟢</span><span class="nreq-pri-lbl">Normal</span></div></label>
-                <label class="nreq-pri-opt"><input type="radio" name="nreq-priority-radio" value="urgent" onchange="document.getElementById('nreq-priority').value=this.value"><div class="nreq-pri-card" style="--pc:#f59e0b;--pb:#fffbeb"><span style="font-size:18px">🟡</span><span class="nreq-pri-lbl">Urgent</span></div></label>
-                <label class="nreq-pri-opt"><input type="radio" name="nreq-priority-radio" value="critical" onchange="document.getElementById('nreq-priority').value=this.value"><div class="nreq-pri-card" style="--pc:#ef4444;--pb:#fef2f2"><span style="font-size:18px">🔴</span><span class="nreq-pri-lbl">Critical</span></div></label>
+
+              <!-- Toner fields -->
+              <div id="nreq-toner-fields">
+                <div class="nreq-section-hdr">
+                  <div class="nreq-section-dot" style="background:#6366f1"></div>
+                  <span>Toner Details</span>
+                </div>
+                <div class="nreq-field">
+                  <label class="nreq-label">Toner Model</label>
+                  <select class="fs" id="nreq-toner-model">
+                    <option value="">— Select Toner Model —</option>
+                  </select>
+                </div>
               </div>
-              <select id="nreq-priority" style="display:none"><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select>
-              <div class="nreq-field" style="margin-top:14px"><label class="nreq-label">Notes for Manager</label><textarea class="nreq-textarea" id="nreq-notes" rows="3" placeholder="e.g. Printer is completely out and unable to print..."></textarea></div>
-              <button class="nreq-submit-btn" id="nreq-submit-btn" onclick="submitNewRequest()"><span>📤</span> Submit Request to Manager</button>
+
+              <!-- Paper fields -->
+              <div id="nreq-paper-fields" style="display:none">
+                <div class="nreq-section-hdr">
+                  <div class="nreq-section-dot" style="background:#10b981"></div>
+                  <span>Paper Details</span>
+                </div>
+                <div class="nreq-row">
+                  <div class="nreq-field" style="flex:2">
+                    <label class="nreq-label">Paper Type</label>
+                    <select class="fs" id="nreq-paper-type">
+                      <option value="">— Select Paper Type —</option>
+                    </select>
+                  </div>
+                  <div class="nreq-field" style="flex:1">
+                    <label class="nreq-label">Reams Needed</label>
+                    <input class="fi2" id="nreq-qty" type="number" value="1" min="1" max="50">
+                  </div>
+                </div>
+              </div>
+
+              <div class="nreq-section-hdr">
+                <div class="nreq-section-dot" style="background:#f59e0b"></div>
+                <span>Priority &amp; Notes</span>
+              </div>
+              <div class="nreq-priority-grid">
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="normal" checked onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#10b981;--pb:#f0fdf4">
+                    <span style="font-size:18px">🟢</span>
+                    <span class="nreq-pri-lbl">Normal</span>
+                  </div>
+                </label>
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="urgent" onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#f59e0b;--pb:#fffbeb">
+                    <span style="font-size:18px">🟡</span>
+                    <span class="nreq-pri-lbl">Urgent</span>
+                  </div>
+                </label>
+                <label class="nreq-pri-opt">
+                  <input type="radio" name="nreq-priority-radio" value="critical" onchange="document.getElementById('nreq-priority').value=this.value">
+                  <div class="nreq-pri-card" style="--pc:#ef4444;--pb:#fef2f2">
+                    <span style="font-size:18px">🔴</span>
+                    <span class="nreq-pri-lbl">Critical</span>
+                  </div>
+                </label>
+              </div>
+              <!-- Hidden select to keep JS working -->
+              <select id="nreq-priority" style="display:none">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
+              </select>
+
+              <div class="nreq-field" style="margin-top:14px">
+                <label class="nreq-label">Notes for Manager</label>
+                <textarea class="nreq-textarea" id="nreq-notes" rows="3" placeholder="e.g. Printer is completely out and unable to print. Needed urgently before 9am shift..."></textarea>
+              </div>
+
+              <button class="nreq-submit-btn" id="nreq-submit-btn" onclick="submitNewRequest()">
+                <span>📤</span> Submit Request to Manager
+              </button>
             </div>
+
+            <!-- Right: Info sidebar -->
             <div class="nreq-info">
               <div class="nreq-workflow-card">
                 <div class="nreq-wf-title">How It Works</div>
-                <div class="nreq-wf-step"><div class="nreq-wf-num">1</div><div class="nreq-wf-text">Fill the form and submit — takes under 30 seconds</div></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">1</div>
+                  <div class="nreq-wf-text">Fill the form and submit — takes under 30 seconds</div>
+                </div>
                 <div class="nreq-wf-line"></div>
-                <div class="nreq-wf-step"><div class="nreq-wf-num">2</div><div class="nreq-wf-text">Manager reviews &amp; approves or rejects your request</div></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">2</div>
+                  <div class="nreq-wf-text">Manager reviews &amp; approves or rejects your request</div>
+                </div>
                 <div class="nreq-wf-line"></div>
-                <div class="nreq-wf-step"><div class="nreq-wf-num">3</div><div class="nreq-wf-text">On approval, stock is auto-deducted &amp; logged instantly</div></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">3</div>
+                  <div class="nreq-wf-text">On approval, stock is auto-deducted &amp; logged instantly</div>
+                </div>
                 <div class="nreq-wf-line"></div>
-                <div class="nreq-wf-step"><div class="nreq-wf-num">4</div><div class="nreq-wf-text">Status updates appear live in My Requests tab</div></div>
+                <div class="nreq-wf-step">
+                  <div class="nreq-wf-num">4</div>
+                  <div class="nreq-wf-text">Status updates appear live in My Requests tab</div>
+                </div>
               </div>
               <div class="nreq-crit-banner">
                 <div style="font-size:20px">🔴</div>
-                <div><div style="font-weight:700;font-size:13px;color:#dc2626">Use Critical for emergencies</div><div style="font-size:12px;color:#b91c1c;margin-top:3px;line-height:1.5">Printer completely down, blocking operations, or customer-facing service affected.</div></div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:#dc2626">Use Critical for emergencies</div>
+                  <div style="font-size:12px;color:#b91c1c;margin-top:3px;line-height:1.5">Printer completely down, blocking operations, or customer-facing service affected.</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- ══ PANEL: END OF DAY LOG ════════════════════════ -->
       <div id="svc-panel-log" style="display:none">
+
+        <!-- Top bar -->
         <div class="log2-topbar">
           <div class="log2-topbar-left">
             <div class="log2-topbar-icon">📊</div>
-            <div><div class="log2-topbar-title">End of Day Print Log</div><div class="log2-topbar-date" id="log2-date-label"></div></div>
+            <div>
+              <div class="log2-topbar-title">End of Day Print Log</div>
+              <div class="log2-topbar-date" id="log2-date-label"></div>
+            </div>
           </div>
           <div class="log2-topbar-right">
-            <select class="fs" id="log2-branch" style="background:#fff;min-width:240px" onchange="loadLogPrinters2()"><option value="">— Select Branch —</option></select>
+            <select class="fs" id="log2-branch" style="background:#fff;min-width:240px" onchange="loadLogPrinters2()">
+              <option value="">— Select Branch —</option>
+            </select>
             <button class="btn btn-p" id="log2-submit-all-btn" onclick="submitAllLogs()">✓ Submit All</button>
           </div>
         </div>
+
+        <!-- Printer grid -->
         <div class="log2-grid" id="log2-grid">
           <div class="svc-empty" style="grid-column:1/-1;padding:50px 20px">
             <div style="font-size:40px;margin-bottom:12px">🏢</div>
             <div style="font-weight:600;color:var(--tx);font-size:15px">Select a branch above</div>
+            <div style="color:var(--t3);margin-top:6px;font-size:13px">Printer cards will appear here for you to fill in today's print counts</div>
           </div>
         </div>
+
+        <!-- History -->
         <div class="card" style="margin-top:22px">
-          <div class="ch"><h3>📅 My Print Log History</h3><div class="chr"><span style="font-size:11px;color:var(--t3)">Last 30 entries</span></div></div>
+          <div class="ch">
+            <h3>📅 My Print Log History</h3>
+            <div class="chr"><span style="font-size:11px;color:var(--t3)">Last 30 entries</span></div>
+          </div>
           <div class="scx">
             <table class="tbl">
               <thead><tr><th>Date</th><th>Printer</th><th>Branch</th><th>Total Prints</th><th>Notes</th></tr></thead>
@@ -388,32 +582,51 @@
             </table>
           </div>
         </div>
+
       </div>
     </div>
 
-    <!-- ── APPROVALS ─────────────────────────────────────── -->
+    <!-- ── MANAGER APPROVALS PAGE ────────────────────────── -->
     <div class="page" id="page-approvals">
+
+      <!-- ══ HERO HEADER ══════════════════════════════════ -->
       <div class="appr-hero">
         <div class="appr-hero-left">
           <div class="appr-hero-icon">✅</div>
-          <div><div class="appr-hero-title">Replacement Requests</div><div class="appr-hero-sub">Review, approve or reject toner &amp; paper requests from the service team</div></div>
+          <div>
+            <div class="appr-hero-title">Replacement Requests</div>
+            <div class="appr-hero-sub">Review, approve or reject toner &amp; paper requests from the service team</div>
+          </div>
         </div>
         <button class="btn btn-g" onclick="loadApprovals()" style="font-size:12px;flex-shrink:0">↺ Refresh</button>
       </div>
+
+      <!-- ══ KPI STRIP ════════════════════════════════════ -->
       <div class="appr-kpi-row">
         <div class="appr-kpi appr-kpi-pending" onclick="filterApprovals('pending')" style="cursor:pointer">
-          <div class="appr-kpi-left"><div class="appr-kpi-num" id="appr-kpi-pending">—</div><div class="appr-kpi-lbl">Awaiting Review</div></div>
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-pending">—</div>
+            <div class="appr-kpi-lbl">Awaiting Review</div>
+          </div>
           <div class="appr-kpi-icon-big">⏳</div>
         </div>
         <div class="appr-kpi appr-kpi-approved" onclick="filterApprovals('approved')" style="cursor:pointer">
-          <div class="appr-kpi-left"><div class="appr-kpi-num" id="appr-kpi-approved">—</div><div class="appr-kpi-lbl">Approved</div></div>
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-approved">—</div>
+            <div class="appr-kpi-lbl">Approved</div>
+          </div>
           <div class="appr-kpi-icon-big">✅</div>
         </div>
         <div class="appr-kpi appr-kpi-rejected" onclick="filterApprovals('rejected')" style="cursor:pointer">
-          <div class="appr-kpi-left"><div class="appr-kpi-num" id="appr-kpi-rejected">—</div><div class="appr-kpi-lbl">Rejected</div></div>
+          <div class="appr-kpi-left">
+            <div class="appr-kpi-num" id="appr-kpi-rejected">—</div>
+            <div class="appr-kpi-lbl">Rejected</div>
+          </div>
           <div class="appr-kpi-icon-big">❌</div>
         </div>
       </div>
+
+      <!-- ══ FILTER BAR ═══════════════════════════════════ -->
       <div class="appr-filter-bar">
         <div class="appr-filter-row">
           <button class="appr-filter-btn af-act" onclick="filterApprovals('all')">All Requests</button>
@@ -421,21 +634,27 @@
           <button class="appr-filter-btn" onclick="filterApprovals('toner')">🖨 Toner</button>
           <button class="appr-filter-btn" onclick="filterApprovals('paper')">📄 Paper</button>
           <button class="appr-filter-btn" onclick="filterApprovals('approved')">✅ Approved</button>
+          <button class="appr-filter-btn" onclick="filterApprovals('dispatched')">📦 Dispatched</button>
           <button class="appr-filter-btn" onclick="filterApprovals('rejected')">❌ Rejected</button>
         </div>
       </div>
-      <div id="approvals-container"><div class="loading"><div class="spin"></div>Loading...</div></div>
+
+      <!-- ══ REQUESTS LIST ════════════════════════════════ -->
+      <div id="approvals-container">
+        <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
+
     </div>
 
-    <!-- ── PRINTLOG legacy alias ─────────────────────────── -->
+    <!-- ── PRINTLOG (legacy alias) ────────────────────────── -->
     <div class="page" id="page-printlog" style="display:none"></div>
 
-    <!-- ════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════
          END OF DAY LOG — Service Person Only
-         ════════════════════════════════════════════════════ -->
+         ═══════════════════════════════════════════════════════ -->
     <div class="page" id="page-eodlog">
 
-      <!-- Hero -->
+      <!-- Hero banner -->
       <div class="eod-hero">
         <div class="eod-hero-left">
           <div class="eod-hero-icon">📊</div>
@@ -447,9 +666,9 @@
         <button class="eod-refresh-btn" onclick="loadEOD()">↺ Refresh</button>
       </div>
 
-      <!-- Branch selector — only shown when branch_access = ALL -->
+      <!-- Branch selector (only shown when no fixed branch) -->
       <div class="eod-branch-row" id="eod-branch-row" style="display:none">
-        <span style="font-size:20px;flex-shrink:0">🏢</span>
+        <span style="font-size:18px">🏢</span>
         <select class="fs" id="eod-branch-sel" onchange="eodBranchChanged()" style="flex:1">
           <option value="">— Select Branch —</option>
         </select>
@@ -474,7 +693,7 @@
         <button class="eod-save-all-btn" id="eod-save-all-btn" onclick="eodSaveAll()">✓ Save All</button>
       </div>
 
-      <!-- Printer cards injected by JS -->
+      <!-- Printer cards -->
       <div id="eod-printers">
         <div class="eod-loading"><div class="spin"></div> Loading…</div>
       </div>
@@ -484,115 +703,300 @@
         <div class="eod-history-hdr">📅 Recent Logs</div>
         <div class="scx">
           <table class="tbl">
-            <thead><tr><th>Date</th><th>Printer</th><th>Branch</th><th>Total</th><th>Breakdown</th></tr></thead>
-            <tbody id="eod-history-tbody"><tr><td colspan="5" class="emptys">No logs yet.</td></tr></tbody>
+            <thead>
+              <tr><th>Date</th><th>Printer</th><th>Branch</th><th>Total</th><th>Breakdown</th></tr>
+            </thead>
+            <tbody id="eod-history-tbody">
+              <tr><td colspan="5" class="emptys">No logs yet.</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
 
     </div><!-- /page-eodlog -->
 
-    <!-- ── PRINT REPORT ──────────────────────────────────── -->
+    <!-- ── PRINT ACTIVITY REPORT (Manager / DBA) ─────────── -->
     <div class="page" id="page-printreport">
       <div class="pgh">
-        <div><div class="pgt">Print Activity Report</div><div class="pgs">Daily print counts by branch and printer — logged by service team</div></div>
+        <div>
+          <div class="pgt">Print Activity Report</div>
+          <div class="pgs">Daily print counts by branch and printer — logged by service team</div>
+        </div>
         <div class="pgact">
-          <select class="fs" id="pr-filter-branch-sel" style="background:#fff;min-width:160px" onchange="prFilterBranch(this.value)"><option value="">All Branches</option></select>
-          <select class="fs" id="pr-filter-date-sel" style="background:#fff;min-width:180px" onchange="prFilterDate(this.value)"><option value="">All Dates</option></select>
+          <select class="fs" id="pr-filter-branch-sel" style="background:#fff;min-width:160px" onchange="prFilterBranch(this.value)">
+            <option value="">All Branches</option>
+          </select>
+          <select class="fs" id="pr-filter-date-sel" style="background:#fff;min-width:180px" onchange="prFilterDate(this.value)">
+            <option value="">All Dates</option>
+          </select>
           <button class="btn btn-g" onclick="loadPrintReport()" style="font-size:12px">↺ Refresh</button>
         </div>
       </div>
+
+      <!-- KPI Strip -->
       <div class="pr-kpi-row">
-        <div class="pr-kpi-card"><div class="pr-kpi-icon" style="background:#eff6ff">🖨️</div><div><div class="pr-kpi-num" id="pr-kpi-total">—</div><div class="pr-kpi-lbl">Total Prints</div></div></div>
-        <div class="pr-kpi-card"><div class="pr-kpi-icon" style="background:#f0fdf4">🏢</div><div><div class="pr-kpi-num" id="pr-kpi-branches">—</div><div class="pr-kpi-lbl">Active Branches</div></div></div>
-        <div class="pr-kpi-card"><div class="pr-kpi-icon" style="background:#faf5ff">🖥️</div><div><div class="pr-kpi-num" id="pr-kpi-printers">—</div><div class="pr-kpi-lbl">Printers Logged</div></div></div>
-        <div class="pr-kpi-card"><div class="pr-kpi-icon" style="background:#fffbeb">📊</div><div><div class="pr-kpi-num" id="pr-kpi-avg">—</div><div class="pr-kpi-lbl">Avg per Printer</div></div></div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#eff6ff">🖨️</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-total">—</div>
+            <div class="pr-kpi-lbl">Total Prints</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#f0fdf4">🏢</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-branches">—</div>
+            <div class="pr-kpi-lbl">Active Branches</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#faf5ff">🖥️</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-printers">—</div>
+            <div class="pr-kpi-lbl">Printers Logged</div>
+          </div>
+        </div>
+        <div class="pr-kpi-card">
+          <div class="pr-kpi-icon" style="background:#fffbeb">📊</div>
+          <div>
+            <div class="pr-kpi-num" id="pr-kpi-avg">—</div>
+            <div class="pr-kpi-lbl">Avg per Printer</div>
+          </div>
+        </div>
       </div>
-      <div id="pr-report-container"><div class="loading"><div class="spin"></div>Loading...</div></div>
+
+      <!-- Report body -->
+      <div id="pr-report-container">
+        <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
     </div>
 
-    <!-- ── STORE ─────────────────────────────────────────── -->
+    <!-- ── STORE PERSON PAGE ─────────────────────────────── -->
     <div class="page" id="page-store">
+
+      <!-- Hero -->
       <div class="svc-hero" style="background:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);box-shadow:0 8px 32px rgba(16,185,129,.22)">
         <div class="svc-hero-left">
           <div class="svc-hero-icon">🏪</div>
-          <div><div class="svc-hero-title">Store Dashboard</div><div class="svc-hero-sub">Manage warehouse stock — receive, dispatch and track toner &amp; paper</div></div>
+          <div>
+            <div class="svc-hero-title">Store Dashboard</div>
+            <div class="svc-hero-sub">Manage warehouse stock — receive, dispatch and track toner &amp; paper</div>
+          </div>
         </div>
         <button class="btn" style="background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);font-size:12px" onclick="loadStore()">↺ Refresh</button>
       </div>
+
+      <!-- KPI strip -->
       <div class="svc-kpi-row" style="grid-template-columns:repeat(4,1fr)">
-        <div class="svc-kpi svc-kpi-ok"><div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)"><span>🖨️</span></div><div class="svc-kpi-body"><div class="svc-kpi-num" id="st-kpi-toner">—</div><div class="svc-kpi-lbl">Toner Units</div></div></div>
-        <div class="svc-kpi svc-kpi-warn"><div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)"><span>📄</span></div><div class="svc-kpi-body"><div class="svc-kpi-num" id="st-kpi-paper">—</div><div class="svc-kpi-lbl">Paper Stock</div></div></div>
-        <div class="svc-kpi svc-kpi-err"><div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)"><span>⚠️</span></div><div class="svc-kpi-body"><div class="svc-kpi-num" id="st-kpi-low-t">—</div><div class="svc-kpi-lbl">Low Toner Models</div></div></div>
-        <div class="svc-kpi svc-kpi-crit"><div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><span>📋</span></div><div class="svc-kpi-body"><div class="svc-kpi-num" id="st-kpi-low-p">—</div><div class="svc-kpi-lbl">Low Paper Types</div></div></div>
+        <div class="svc-kpi svc-kpi-ok">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)"><span>🖨️</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-toner">—</div>
+            <div class="svc-kpi-lbl">Toner Units</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-warn" style="--pc:#3b82f6">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)"><span>📄</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-paper">—</div>
+            <div class="svc-kpi-lbl">Paper Stock</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-err">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)"><span>⚠️</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-low-t">—</div>
+            <div class="svc-kpi-lbl">Low Toner Models</div>
+          </div>
+        </div>
+        <div class="svc-kpi svc-kpi-crit">
+          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><span>📋</span></div>
+          <div class="svc-kpi-body">
+            <div class="svc-kpi-num" id="st-kpi-low-p">—</div>
+            <div class="svc-kpi-lbl">Low Paper Types</div>
+          </div>
+        </div>
       </div>
+
+      <!-- Tabs -->
       <div class="svc-main-tabs">
-        <button class="svc-tab svc-tab-act" id="store-tab-overview" onclick="switchStoreTab('overview')"><span class="svc-tab-icon">📊</span> Overview</button>
-        <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')"><span class="svc-tab-icon">🖨️</span> Toner Stock</button>
-        <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')"><span class="svc-tab-icon">📄</span> Paper Stock</button>
-        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')"><span class="svc-tab-icon">📋</span> Movement History</button>
+        <button class="svc-tab svc-tab-act" id="store-tab-dispatch" onclick="switchStoreTab('dispatch')">
+          <span class="svc-tab-icon">📦</span> Dispatch Queue
+        </button>
+        <button class="svc-tab" id="store-tab-overview" onclick="switchStoreTab('overview')">
+          <span class="svc-tab-icon">📊</span> Overview
+        </button>
+        <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')">
+          <span class="svc-tab-icon">🖨️</span> Toner Stock
+        </button>
+        <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')">
+          <span class="svc-tab-icon">📄</span> Paper Stock
+        </button>
+        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">
+          <span class="svc-tab-icon">📋</span> Movement History
+        </button>
       </div>
-      <div id="store-panel-overview">
+
+      <!-- ── PANEL: OVERVIEW ──────────────────────────── -->
+      <!-- ── DISPATCH QUEUE PANEL ─────────────────────── -->
+      <div id="store-panel-dispatch" style="display:none">
+        <div id="store-panel-dispatch-inner">
+          <div class="loading"><div class="spin"></div>Loading dispatch queue...</div>
+        </div>
+      </div>
+
+      <div id="store-panel-overview" style="display:none">
         <div class="st-section-title">🖨️ Toner Warehouse</div>
         <div class="st-stock-grid" id="st-toner-overview"></div>
         <div class="st-section-title" style="margin-top:20px">📄 Paper Warehouse</div>
         <div class="st-stock-grid" id="st-paper-overview"></div>
       </div>
+
+      <!-- ── PANEL: TONER ─────────────────────────────── -->
       <div id="store-panel-toner" style="display:none">
         <div class="st-action-layout">
+
+          <!-- Receive form -->
           <div class="st-action-card">
-            <div class="st-action-hdr"><div class="st-action-icon" style="background:#f0fdf4;color:#16a34a">📦</div><div><div class="st-action-title">Receive Toner Stock</div><div class="st-action-sub">Add toner cartridges into warehouse</div></div></div>
-            <div class="ff"><label class="ffl">Toner Model</label><select class="fs" id="st-recv-toner-model"><option value="">— Select —</option></select></div>
-            <div class="ff" style="margin-top:10px"><label class="ffl">Quantity (units)</label><input class="fi2" id="st-recv-toner-qty" type="number" min="1" placeholder="e.g. 10"></div>
-            <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label><input class="fi2" id="st-recv-toner-notes" placeholder="e.g. PO #12345"></div>
-            <button class="st-action-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="storeReceiveToner()">✓ Receive into Warehouse</button>
+            <div class="st-action-hdr">
+              <div class="st-action-icon" style="background:#f0fdf4;color:#16a34a">📦</div>
+              <div>
+                <div class="st-action-title">Receive Toner Stock</div>
+                <div class="st-action-sub">Add toner cartridges into warehouse</div>
+              </div>
+            </div>
+            <div class="ff"><label class="ffl">Toner Model</label>
+              <select class="fs" id="st-recv-toner-model"><option value="">— Select —</option></select>
+            </div>
+            <div class="ff" style="margin-top:10px"><label class="ffl">Quantity (units)</label>
+              <input class="fi2" id="st-recv-toner-qty" type="number" min="1" placeholder="e.g. 10">
+            </div>
+            <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+              <input class="fi2" id="st-recv-toner-notes" placeholder="e.g. PO #12345">
+            </div>
+            <button class="st-action-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="storeReceiveToner()">
+              ✓ Receive into Warehouse
+            </button>
           </div>
+
+          <!-- Stock table -->
           <div class="card" style="flex:1">
             <div class="ch"><h3>Current Toner Stock</h3></div>
-            <div class="scx"><table class="tbl"><thead><tr><th>Model</th><th>Brand</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead><tbody id="st-toner-tbody"></tbody></table></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Model</th><th>Brand</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
+                <tbody id="st-toner-tbody"></tbody>
+              </table>
+            </div>
           </div>
+
         </div>
       </div>
+
+      <!-- ── PANEL: PAPER ─────────────────────────────── -->
       <div id="store-panel-paper" style="display:none">
         <div class="st-action-layout">
+
+          <!-- Left column: receive + dispatch -->
           <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Receive -->
             <div class="st-action-card">
-              <div class="st-action-hdr"><div class="st-action-icon" style="background:#eff6ff;color:#1d4ed8">📥</div><div><div class="st-action-title">Receive Paper</div><div class="st-action-sub">Add reams into warehouse</div></div></div>
-              <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="st-recv-paper-type"><option value="">— Select —</option></select></div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Reams</label><input class="fi2" id="st-recv-paper-qty" type="number" min="1" placeholder="e.g. 50"></div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label><input class="fi2" id="st-recv-paper-notes" placeholder="e.g. Supplier delivery"></div>
-              <button class="st-action-btn" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)" onclick="storeReceivePaper()">✓ Receive into Warehouse</button>
+              <div class="st-action-hdr">
+                <div class="st-action-icon" style="background:#eff6ff;color:#1d4ed8">📥</div>
+                <div>
+                  <div class="st-action-title">Receive Paper</div>
+                  <div class="st-action-sub">Add reams into warehouse</div>
+                </div>
+              </div>
+              <div class="ff"><label class="ffl">Paper Type</label>
+                <select class="fs" id="st-recv-paper-type"><option value="">— Select —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Reams</label>
+                <input class="fi2" id="st-recv-paper-qty" type="number" min="1" placeholder="e.g. 50">
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+                <input class="fi2" id="st-recv-paper-notes" placeholder="e.g. Supplier delivery">
+              </div>
+              <button class="st-action-btn" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)" onclick="storeReceivePaper()">
+                ✓ Receive into Warehouse
+              </button>
             </div>
+
+            <!-- Dispatch -->
             <div class="st-action-card">
-              <div class="st-action-hdr"><div class="st-action-icon" style="background:#fef9c3;color:#a16207">📤</div><div><div class="st-action-title">Dispatch to Branch</div><div class="st-action-sub">Send paper reams to a branch</div></div></div>
-              <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="st-disp-paper-type"><option value="">— Select —</option></select></div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Branch</label><select class="fs" id="st-disp-branch"><option value="">— Select Branch —</option></select></div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Reams to Send</label><input class="fi2" id="st-disp-qty" type="number" min="1" placeholder="e.g. 20"></div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label><input class="fi2" id="st-disp-notes" placeholder="e.g. Weekly replenishment"></div>
-              <button class="st-action-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="storeDispatchPaper()">✓ Dispatch to Branch</button>
+              <div class="st-action-hdr">
+                <div class="st-action-icon" style="background:#fef9c3;color:#a16207">📤</div>
+                <div>
+                  <div class="st-action-title">Dispatch to Branch</div>
+                  <div class="st-action-sub">Send paper reams to a branch</div>
+                </div>
+              </div>
+              <div class="ff"><label class="ffl">Paper Type</label>
+                <select class="fs" id="st-disp-paper-type"><option value="">— Select —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Branch</label>
+                <select class="fs" id="st-disp-branch"><option value="">— Select Branch —</option></select>
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Reams to Send</label>
+                <input class="fi2" id="st-disp-qty" type="number" min="1" placeholder="e.g. 20">
+              </div>
+              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
+                <input class="fi2" id="st-disp-notes" placeholder="e.g. Weekly replenishment">
+              </div>
+              <button class="st-action-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="storeDispatchPaper()">
+                ✓ Dispatch to Branch
+              </button>
             </div>
+
           </div>
+
+          <!-- Paper stock table -->
           <div class="card" style="flex:1">
             <div class="ch"><h3>Current Paper Stock</h3></div>
-            <div class="scx"><table class="tbl"><thead><tr><th>Name</th><th>Size/GSM</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead><tbody id="st-paper-tbody"></tbody></table></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Name</th><th>Size/GSM</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
+                <tbody id="st-paper-tbody"></tbody>
+              </table>
+            </div>
           </div>
+
         </div>
       </div>
+
+      <!-- ── PANEL: HISTORY ───────────────────────────── -->
       <div id="store-panel-history" style="display:none">
         <div class="card" style="margin-bottom:18px">
           <div class="ch"><h3>🖨️ Toner Movement History</h3></div>
-          <div class="scx"><table class="tbl"><thead><tr><th>Date/Time</th><th>Type</th><th>Model</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead><tbody id="st-toner-history-tbody"></tbody></table></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date/Time</th><th>Type</th><th>Model</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
+              <tbody id="st-toner-history-tbody"></tbody>
+            </table>
+          </div>
         </div>
         <div class="card">
           <div class="ch"><h3>📄 Paper Movement History</h3></div>
-          <div class="scx"><table class="tbl"><thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead><tbody id="st-paper-history-tbody"></tbody></table></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
+              <tbody id="st-paper-history-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
+
     </div>
 
-    <!-- ── REPLACE (legacy) ──────────────────────────────── -->
+    <!-- ── OLD REPLACE PAGE (kept for direct installs) ───── -->
     <div class="page" id="page-replace">
-      <div class="pgh"><div><div class="pgt">Toner Replacement</div><div class="pgs">Log installation — stock auto-deducts</div></div></div>
+      <div class="pgh">
+        <div>
+          <div class="pgt">Toner Replacement</div>
+          <div class="pgs">Log installation — stock auto-deducts</div>
+        </div>
+      </div>
       <div class="twocol">
         <div class="fg">
           <div class="fgt">🔄 New Toner Installation</div>
@@ -609,49 +1013,99 @@
           <button class="sbtn" onclick="submitReplacement()">✓ Confirm Toner Replacement</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div class="card" style="padding:18px"><div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--er)">🔴 Urgent — Replace Now</div><div id="urgent-list"></div></div>
-          <div class="card" style="padding:0;overflow:hidden"><div class="ch"><h3>My Recent Replacements</h3></div><div style="padding:10px 18px 14px" id="my-log"></div></div>
-          <div class="card" style="padding:18px"><div style="font-size:13px;font-weight:700;margin-bottom:11px;color:var(--tx)">📦 Available Stock</div><div id="avail-stock"></div></div>
+          <div class="card" style="padding:18px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--er)">🔴 Urgent — Replace Now</div>
+            <div id="urgent-list"></div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div class="ch"><h3>My Recent Replacements</h3></div>
+            <div style="padding:10px 18px 14px" id="my-log"></div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:11px;color:var(--tx)">📦 Available Stock</div>
+            <div id="avail-stock"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── PAPER ─────────────────────────────────────────── -->
+    <!-- ── PAPER PAGE ───────────────────────────────────── -->
     <div class="page" id="page-paper">
       <div class="pgh">
-        <div><div class="pgt">Paper Stock</div><div class="pgs">Warehouse inventory &amp; branch dispatch</div></div>
+        <div>
+          <div class="pgt">Paper Stock</div>
+          <div class="pgs">Warehouse inventory &amp; branch dispatch</div>
+        </div>
         <div class="pgact">
           <button class="btn btn-g" onclick="openModal('m-paper-type')">+ Paper Type</button>
           <button class="btn btn-g" onclick="openModal('m-paper-receive')">📄 Receive Paper</button>
           <button class="btn btn-p" onclick="openModal('m-paper-dispatch')">📦 Dispatch to Branch</button>
         </div>
       </div>
+
+      <!-- Warehouse stock cards -->
       <div class="stgrid" id="paper-grid"></div>
+
+      <!-- Branch stock table -->
       <div class="card mb20">
-        <div class="ch"><h3>📍 Paper at Branches</h3></div>
-        <div class="scx"><table class="tbl"><thead><tr><th>Branch</th><th>Paper Type</th><th>Spec</th><th>Qty (reams)</th><th>Last Updated</th></tr></thead><tbody id="paper-branch-tbody"></tbody></table></div>
+        <div class="ch">
+          <h3>📍 Paper at Branches</h3>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Branch</th><th>Paper Type</th><th>Spec</th><th>Qty (reams)</th><th>Last Updated</th></tr></thead>
+            <tbody id="paper-branch-tbody"></tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- Movement log -->
       <div class="card">
-        <div class="ch"><h3>Paper Movement Log</h3><div class="chr"><span style="font-size:12px;color:var(--t3)" id="paper-log-ct"></span></div></div>
-        <div class="scx"><table class="tbl"><thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead><tbody id="paper-log-tbody"></tbody></table></div>
+        <div class="ch">
+          <h3>Paper Movement Log</h3>
+          <div class="chr"><span style="font-size:12px;color:var(--t3)" id="paper-log-ct"></span></div>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead>
+            <tbody id="paper-log-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- ── IMPORT ─────────────────────────────────────────── -->
+    <!-- ── DBA PAGE ────────────────────────────────────── -->
+    <!-- ── EXCEL IMPORT PAGE (DBA) ──────────────────────── -->
     <div class="page" id="page-import">
       <div class="pgh">
-        <div><div class="pgt">Excel Data Import</div><div class="pgs">Upload Excel files to add branches, printers and stock — requires manager approval</div></div>
+        <div>
+          <div class="pgt">Excel Data Import</div>
+          <div class="pgs">Upload Excel files to add branches, printers and stock — requires manager approval</div>
+        </div>
         <button class="btn btn-g" onclick="loadImport()" style="font-size:12px">↺ Refresh</button>
       </div>
+
+      <!-- Tabs -->
       <div class="svc-main-tabs">
-        <button class="svc-tab svc-tab-act" id="imp-tab-upload" onclick="switchImportTab('upload')"><span class="svc-tab-icon">📤</span> Upload &amp; Preview</button>
-        <button class="svc-tab" id="imp-tab-pending" onclick="switchImportTab('pending')"><span class="svc-tab-icon">⏳</span> Pending Approval</button>
-        <button class="svc-tab" id="imp-tab-history" onclick="switchImportTab('history')"><span class="svc-tab-icon">📋</span> Import History</button>
+        <button class="svc-tab svc-tab-act" id="imp-tab-upload"  onclick="switchImportTab('upload')">
+          <span class="svc-tab-icon">📤</span> Upload & Preview
+        </button>
+        <button class="svc-tab" id="imp-tab-pending" onclick="switchImportTab('pending')">
+          <span class="svc-tab-icon">⏳</span> Pending Approval
+        </button>
+        <button class="svc-tab" id="imp-tab-history" onclick="switchImportTab('history')">
+          <span class="svc-tab-icon">📋</span> Import History
+        </button>
       </div>
+
+      <!-- ── UPLOAD PANEL ───────────────────────────────── -->
       <div id="imp-panel-upload">
         <div class="imp-upload-layout">
+
+          <!-- Left: form -->
           <div class="imp-form-card">
             <div class="imp-form-title">📂 Upload Excel File</div>
+
             <div class="ff" style="margin-bottom:16px">
               <label class="ffl">1. Select Import Type</label>
               <select class="fs" id="imp-type" onchange="importTypeChanged()">
@@ -662,14 +1116,18 @@
                 <option value="toner_stock">📦 Toner Stock Quantities</option>
               </select>
             </div>
+
             <div id="imp-template-hint"></div>
+
             <div class="imp-dropzone" onclick="document.getElementById('imp-file-input').click()">
               <div class="imp-drop-icon">📊</div>
               <div class="imp-drop-title">Click to select Excel file</div>
               <div class="imp-drop-sub">.xlsx or .xls files only</div>
               <div class="imp-drop-fname" id="imp-filename"></div>
-              <input type="file" id="imp-file-input" accept=".xlsx,.xls" style="display:none" onchange="handleImportFile(this)">
+              <input type="file" id="imp-file-input" accept=".xlsx,.xls"
+                style="display:none" onchange="handleImportFile(this)">
             </div>
+
             <div class="imp-rules">
               <div class="imp-rules-title">📌 Rules</div>
               <div class="imp-rule">• First row must be the column headers</div>
@@ -678,6 +1136,8 @@
               <div class="imp-rule">• Manager must approve before data enters the database</div>
             </div>
           </div>
+
+          <!-- Right: preview -->
           <div class="imp-preview-card">
             <div class="imp-form-title">👁️ Data Preview</div>
             <div id="imp-preview">
@@ -688,21 +1148,38 @@
               </div>
             </div>
           </div>
+
         </div>
       </div>
-      <div id="imp-panel-pending" style="display:none"><div id="imp-pending-container"><div class="loading"><div class="spin"></div>Loading...</div></div></div>
+
+      <!-- ── PENDING PANEL ──────────────────────────────── -->
+      <div id="imp-panel-pending" style="display:none">
+        <div id="imp-pending-container">
+          <div class="loading"><div class="spin"></div>Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── HISTORY PANEL ──────────────────────────────── -->
       <div id="imp-panel-history" style="display:none">
         <div class="card">
           <div class="ch"><h3>📋 All Import Requests</h3></div>
-          <div class="scx"><table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>File</th><th>Rows</th><th>Status</th><th>Submitted By</th></tr></thead><tbody id="imp-history-tbody"></tbody></table></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Type</th><th>File</th><th>Rows</th><th>Status</th><th>Submitted By</th></tr></thead>
+              <tbody id="imp-history-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── DBA ────────────────────────────────────────────── -->
+    <!-- ── DBA PAGE ───────────────────────────────────────── -->
     <div class="page" id="page-dba">
       <div class="pgh">
-        <div><div class="pgt">Administration</div><div class="pgs">Users, audit log, system info</div></div>
+        <div>
+          <div class="pgt">Administration</div>
+          <div class="pgs">Users, audit log, system info</div>
+        </div>
         <button class="btn btn-p" onclick="openAddUserModal()">+ Add User</button>
       </div>
       <div class="twocol mb20">
@@ -710,8 +1187,11 @@
           <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
             <h3>👥 User Management</h3>
             <div style="display:flex;gap:6px;align-items:center">
-              <input id="user-search" type="text" placeholder="Search name, username, role…" oninput="searchUsers()" style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
-              <button class="btn btn-sm" onclick="clearSearch()" style="font-size:11px;padding:5px 10px">✕ Clear</button>
+              <input id="user-search" type="text" placeholder="Search name, username, role…"
+                oninput="searchUsers()"
+                style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
+              <button class="btn btn-sm" onclick="clearSearch()"
+                style="font-size:11px;padding:5px 10px">✕ Clear</button>
             </div>
           </div>
           <table class="tbl">
@@ -721,7 +1201,12 @@
         </div>
         <div class="card">
           <div class="ch"><h3>🔍 Audit Log</h3></div>
-          <div class="scy"><table class="tbl"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody id="audit-tbody"></tbody></table></div>
+          <div class="scy">
+            <table class="tbl">
+              <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+              <tbody id="audit-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -770,7 +1255,7 @@
   </div>
 </div>
 
-<!-- Receive Toner Stock -->
+<!-- Receive Stock -->
 <div class="mb" id="m-receive">
   <div class="mx">
     <div class="mt">📦 Receive Stock</div>
@@ -825,14 +1310,20 @@
       </div>
       <div class="ff"><label class="ffl">Password</label><input class="fi2" id="au-pw" type="password" placeholder="Min 4 chars"></div>
     </div>
-    <div class="ff" id="au-branch-field" style="display:none">
+
+    <!-- Branch assignment — always visible -->
+    <div class="ff" id="au-branch-field">
       <label class="ffl">Assigned Branch</label>
       <select class="fs" id="au-branch-sel" onchange="auBranchSelChanged()">
         <option value="ALL">— All Branches (no restriction) —</option>
       </select>
-      <div style="font-size:11px;color:var(--t3);margin-top:5px">📌 Service persons assigned to a branch will only see that branch's printers.</div>
+      <div id="au-branch-hint" style="font-size:11px;color:var(--t3);margin-top:5px">
+        📌 Manager &amp; DBA roles have access to all branches by default.
+      </div>
     </div>
+
     <input type="hidden" id="au-branch" value="ALL">
+
     <div class="mft">
       <button class="mc" onclick="closeModal('m-addUser')">Cancel</button>
       <button class="mok" onclick="saveUser()">Create User</button>
@@ -840,7 +1331,29 @@
   </div>
 </div>
 
-<!-- Edit User -->
+<!-- ── Reset Password Modal ──────────────────────────────── -->
+<div class="mb" id="m-resetPw">
+  <div class="mx" style="max-width:400px">
+    <div class="mt">🔑 Reset Password</div>
+    <p style="font-size:13px;color:var(--t2);margin:-10px 0 18px">
+      Resetting password for: <strong id="rp-username-label">—</strong>
+    </p>
+    <div class="ff">
+      <label class="ffl">New Password</label>
+      <input class="fi2" id="rp-new-pw" type="password" placeholder="Min 6 characters">
+    </div>
+    <div class="ff">
+      <label class="ffl">Confirm Password</label>
+      <input class="fi2" id="rp-confirm-pw" type="password" placeholder="Repeat password">
+    </div>
+    <div class="mft">
+      <button class="mc" onclick="closeModal('m-resetPw')">Cancel</button>
+      <button class="mok" onclick="saveResetPassword()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit User Modal ───────────────────────────────────── -->
 <div class="mb" id="m-editUser">
   <div class="mx">
     <div class="mt">✏️ Edit User</div>
@@ -849,7 +1362,8 @@
       <div class="ff"><label class="ffl">Full Name</label><input class="fi2" id="eu-name" placeholder="Full name"></div>
       <div class="ff"><label class="ffl">Username</label><input class="fi2" id="eu-un" placeholder="Login username"></div>
     </div>
-    <div class="ff"><label class="ffl">Role</label>
+    <div class="ff">
+      <label class="ffl">Role</label>
       <select class="fs" id="eu-role" onchange="euRoleChanged()">
         <option value="manager">Manager</option>
         <option value="service">Service Person</option>
@@ -857,10 +1371,15 @@
         <option value="dba">DBA</option>
       </select>
     </div>
+    <!-- Branch assignment -->
     <div class="ff" id="eu-branch-field">
       <label class="ffl">Assigned Branch</label>
-      <select class="fs" id="eu-branch-sel"><option value="ALL">— All Branches (no restriction) —</option></select>
-      <div style="font-size:11px;color:var(--t3);margin-top:5px">📌 Service persons assigned to a branch will only see that branch's printers.</div>
+      <select class="fs" id="eu-branch-sel">
+        <option value="ALL">— All Branches (no restriction) —</option>
+      </select>
+      <div style="font-size:11px;color:var(--t3);margin-top:5px">
+        📌 Service persons assigned to a branch will only see that branch's printers.
+      </div>
     </div>
     <input type="hidden" id="eu-branch" value="ALL">
     <div class="mft">
@@ -870,42 +1389,56 @@
   </div>
 </div>
 
-<!-- Reset Password -->
-<div class="mb" id="m-resetPw">
-  <div class="mx" style="max-width:400px">
-    <div class="mt">🔑 Reset Password</div>
-    <p style="font-size:13px;color:var(--t2);margin:-10px 0 18px">Resetting password for: <strong id="rp-username-label">—</strong></p>
-    <div class="ff"><label class="ffl">New Password</label><input class="fi2" id="rp-new-pw" type="password" placeholder="Min 6 characters"></div>
-    <div class="ff"><label class="ffl">Confirm Password</label><input class="fi2" id="rp-confirm-pw" type="password" placeholder="Repeat password"></div>
-    <div class="mft">
-      <button class="mc" onclick="closeModal('m-resetPw')">Cancel</button>
-      <button class="mok" onclick="saveResetPassword()">Reset Password</button>
-    </div>
-  </div>
-</div>
-
 <!-- New Replacement Request -->
 <div class="mb" id="m-new-request">
   <div class="mx" style="max-width:500px">
     <div class="mt">📋 New Replacement Request</div>
     <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">Submit a request for manager approval before replacing toner or paper.</p>
+
+    <!-- Type switcher -->
     <div style="display:flex;gap:6px;background:#f1f5f9;border-radius:10px;padding:4px;margin-bottom:16px">
       <button class="req-type-tab req-type-act" id="req-tab-toner" onclick="switchReqType('toner')">🖨 Toner Request</button>
       <button class="req-type-tab" id="req-tab-paper" onclick="switchReqType('paper')">📄 Paper Request</button>
     </div>
+
     <div class="fr">
-      <div class="ff"><label class="ffl">Branch</label><select class="fs" id="req-branch" onchange="loadReqPrinters()"><option value="">— Select Branch —</option></select></div>
-      <div class="ff"><label class="ffl">Printer</label><select class="fs" id="req-printer"><option value="">— Select Branch First —</option></select></div>
-    </div>
-    <div id="req-toner-fields"><div class="ff"><label class="ffl">Toner Model</label><select class="fs" id="req-toner-model"><option value="">— Select Model —</option></select></div></div>
-    <div id="req-paper-fields" style="display:none">
-      <div class="fr">
-        <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="req-paper-type"><option value="">— Select Branch First —</option></select></div>
-        <div class="ff"><label class="ffl">Quantity (reams)</label><input class="fi2" id="req-paper-qty" type="number" value="1" min="1"></div>
+      <div class="ff"><label class="ffl">Branch</label>
+        <select class="fs" id="req-branch" onchange="loadReqPrinters()"><option value="">— Select Branch —</option></select>
+      </div>
+      <div class="ff"><label class="ffl">Printer</label>
+        <select class="fs" id="req-printer"><option value="">— Select Branch First —</option></select>
       </div>
     </div>
-    <div class="ff"><label class="ffl">Priority</label><select class="fs" id="req-priority"><option value="normal">🟢 Normal</option><option value="urgent">🟡 Urgent</option><option value="critical">🔴 Critical</option></select></div>
-    <div class="ff"><label class="ffl">Notes (optional)</label><input class="fi2" id="req-notes" placeholder="Reason or observations..."></div>
+
+    <!-- Toner fields -->
+    <div id="req-toner-fields">
+      <div class="ff"><label class="ffl">Toner Model</label>
+        <select class="fs" id="req-toner-model"><option value="">— Select Model —</option></select>
+      </div>
+    </div>
+
+    <!-- Paper fields -->
+    <div id="req-paper-fields" style="display:none">
+      <div class="fr">
+        <div class="ff"><label class="ffl">Paper Type</label>
+          <select class="fs" id="req-paper-type"><option value="">— Select Branch First —</option></select>
+        </div>
+        <div class="ff"><label class="ffl">Quantity (reams)</label>
+          <input class="fi2" id="req-paper-qty" type="number" value="1" min="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="ff"><label class="ffl">Priority</label>
+      <select class="fs" id="req-priority">
+        <option value="normal">🟢 Normal</option>
+        <option value="urgent">🟡 Urgent</option>
+        <option value="critical">🔴 Critical</option>
+      </select>
+    </div>
+    <div class="ff"><label class="ffl">Notes (optional)</label>
+      <input class="fi2" id="req-notes" placeholder="Reason or observations...">
+    </div>
     <div class="mft">
       <button class="mc" onclick="closeModal('m-new-request')">Cancel</button>
       <button class="mok" onclick="submitRequest()">📋 Submit Request</button>
@@ -917,13 +1450,23 @@
 <div class="mb" id="m-load-printer-paper">
   <div class="mx">
     <div class="mt">📄 Load Paper into Printer</div>
-    <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">Printer: <strong id="lp-printer-label"></strong></p>
-    <div class="ff"><label class="ffl">Paper Type</label><select class="fs" id="lp-paper-type"><option value="">— Select Type —</option></select></div>
-    <div class="fr">
-      <div class="ff"><label class="ffl">Reams to Load</label><input class="fi2" id="lp-qty" type="number" value="1" min="1" max="20"></div>
-      <div class="ff"><label class="ffl">Tray Capacity (reams)</label><input class="fi2" id="lp-capacity" type="number" value="5" min="1" max="50"></div>
+    <p style="font-size:12px;color:var(--t2);margin:0 0 14px 0">
+      Printer: <strong id="lp-printer-label"></strong>
+    </p>
+    <div class="ff"><label class="ffl">Paper Type</label>
+      <select class="fs" id="lp-paper-type"><option value="">— Select Type —</option></select>
     </div>
-    <div class="ff"><label class="ffl">Notes (optional)</label><input class="fi2" id="lp-notes" placeholder="e.g. Refill before Monday"></div>
+    <div class="fr">
+      <div class="ff"><label class="ffl">Reams to Load</label>
+        <input class="fi2" id="lp-qty" type="number" value="1" min="1" max="20">
+      </div>
+      <div class="ff"><label class="ffl">Tray Capacity (reams)</label>
+        <input class="fi2" id="lp-capacity" type="number" value="5" min="1" max="50">
+      </div>
+    </div>
+    <div class="ff"><label class="ffl">Notes (optional)</label>
+      <input class="fi2" id="lp-notes" placeholder="e.g. Refill before Monday">
+    </div>
     <div class="mft">
       <button class="mc" onclick="closeModal('m-load-printer-paper')">Cancel</button>
       <button class="mok" onclick="doLoadPrinterPaper()">✓ Load Paper</button>
@@ -937,7 +1480,14 @@
     <div class="mt">📄 Add Paper Type</div>
     <div class="fr">
       <div class="ff"><label class="ffl">Name</label><input class="fi2" id="pt-name" placeholder="e.g. A4 80gsm"></div>
-      <div class="ff"><label class="ffl">Size</label><select class="fs" id="pt-size"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select></div>
+      <div class="ff"><label class="ffl">Size</label>
+        <select class="fs" id="pt-size">
+          <option value="A4">A4</option>
+          <option value="A3">A3</option>
+          <option value="Letter">Letter</option>
+          <option value="Legal">Legal</option>
+        </select>
+      </div>
     </div>
     <div class="fr">
       <div class="ff"><label class="ffl">GSM (weight)</label><input class="fi2" id="pt-gsm" type="number" value="80" min="60" max="300"></div>
@@ -950,7 +1500,7 @@
   </div>
 </div>
 
-<!-- Receive Paper -->
+<!-- Receive Paper into Warehouse -->
 <div class="mb" id="m-paper-receive">
   <div class="mx">
     <div class="mt">📄 Receive Paper Stock</div>
@@ -966,7 +1516,7 @@
   </div>
 </div>
 
-<!-- Dispatch Paper -->
+<!-- Dispatch Paper to Branch -->
 <div class="mb" id="m-paper-dispatch">
   <div class="mx">
     <div class="mt">📦 Dispatch Paper to Branch</div>
@@ -984,15 +1534,20 @@
   </div>
 </div>
 
-<!-- Toast -->
+
+
+<!-- Toast notification -->
 <div class="toast" id="toast">
   <div class="toico" id="t-ico">✅</div>
-  <div><div class="totx" id="t-tx"></div><div class="tosb" id="t-sb"></div></div>
+  <div>
+    <div class="totx" id="t-tx"></div>
+    <div class="tosb" id="t-sb"></div>
+  </div>
 </div>
 
 
 <!-- ════════════════════════════════════════════════════════
-     SCRIPTS
+     JAVASCRIPT — Separate module files loaded in order
      ════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="/js/api.js"></script>
@@ -1005,24 +1560,43 @@
 <script src="/js/approvals.js"></script>
 <script src="/js/printreport.js"></script>
 <script src="/js/store.js"></script>
-<script src="/js/import.js"></script>
 <script src="/js/eodlog.js"></script>
 <script src="/js/dba.js"></script>
 <script src="/js/paper.js"></script>
 
 <script>
-/* ── Mobile Sidebar ────────────────────────────────────── */
+/* ── Mobile Sidebar Toggle ─────────────────────────────── */
 function toggleSidebar() {
-  var sb = document.querySelector('.sb'), ov = document.getElementById('sb-overlay'), btn = document.getElementById('sb-toggle');
-  if (sb.classList.contains('mob-open')) { closeSidebar(); }
-  else { sb.classList.add('mob-open'); ov.classList.add('vis'); btn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  var sb  = document.querySelector('.sb');
+  var ov  = document.getElementById('sb-overlay');
+  var btn = document.getElementById('sb-toggle');
+  var open = sb.classList.contains('mob-open');
+  if (open) { closeSidebar(); } else {
+    sb.classList.add('mob-open');
+    ov.classList.add('vis');
+    btn.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
 }
 function closeSidebar() {
-  var sb = document.querySelector('.sb'), ov = document.getElementById('sb-overlay'), btn = document.getElementById('sb-toggle');
-  sb.classList.remove('mob-open'); ov.classList.remove('vis'); btn.classList.remove('open'); document.body.style.overflow = '';
+  var sb  = document.querySelector('.sb');
+  var ov  = document.getElementById('sb-overlay');
+  var btn = document.getElementById('sb-toggle');
+  sb.classList.remove('mob-open');
+  ov.classList.remove('vis');
+  btn.classList.remove('open');
+  document.body.style.overflow = '';
 }
-document.addEventListener('click', function(e) { if (window.innerWidth <= 768 && e.target.closest('.nb')) setTimeout(closeSidebar, 200); });
-window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+/* Close sidebar when a nav item is tapped on mobile */
+document.addEventListener('click', function(e) {
+  if (window.innerWidth <= 768 && e.target.closest('.nb')) {
+    setTimeout(closeSidebar, 200);
+  }
+});
+/* Close on resize to desktop */
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) closeSidebar();
+});
 </script>
 </body>
 </html>
