@@ -75,11 +75,7 @@ def get_yesterday_prints(current_user: dict = Depends(require_nuwan)):
             b.code AS branch_code,
             b.name AS branch_name
         FROM branches b
-        JOIN printers p ON p.branch_id = b.id AND p.is_active = TRUE
-        JOIN users u ON (u.branch_access = b.code OR u.branch_access = b.id::text)
-            AND u.role = 'service' AND u.is_active = TRUE
         WHERE b.is_active = TRUE
-        GROUP BY b.id, b.code, b.name
         ORDER BY b.code
     """)
 
