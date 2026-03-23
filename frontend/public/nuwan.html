@@ -556,106 +556,84 @@ function nwBuildTonerHTML(filterStatus, filterText) {
   var branches = {};
   _tonerData.forEach(function(r) {
     if (!branches[r.branch_id]) {
-      branches[r.branch_id] = {
-        branch_code: r.branch_code,
-        branch_name: r.branch_name,
-        printers: []
-      };
+      branches[r.branch_id] = { branch_code: r.branch_code, branch_name: r.branch_name, printers: [] };
     }
-    var pct = r.current_pct != null ? parseFloat(r.current_pct) : null;
     var status = r.status || 'unknown';
-    // Apply status filter
     if (filterStatus && filterStatus !== 'all') {
       if (filterStatus === 'low'      && status !== 'low')      return;
       if (filterStatus === 'critical' && status !== 'critical') return;
       if (filterStatus === 'medium'   && status !== 'medium')   return;
       if (filterStatus === 'good'     && status !== 'good')     return;
     }
-    // Apply text filter
     if (filterText) {
       var q = filterText.toLowerCase();
-      var match = (r.branch_code||'').toLowerCase().includes(q)
-               || (r.branch_name||'').toLowerCase().includes(q)
-               || (r.printer_code||'').toLowerCase().includes(q)
-               || (r.model||'').toLowerCase().includes(q);
-      if (!match) return;
+      if (!(r.branch_code||'').toLowerCase().includes(q) &&
+          !(r.branch_name||'').toLowerCase().includes(q) &&
+          !(r.printer_code||'').toLowerCase().includes(q) &&
+          !(r.model||'').toLowerCase().includes(q)) return;
     }
     branches[r.branch_id].printers.push(r);
   });
 
-  var branchList = Object.values(branches).filter(function(b) { return b.printers.length > 0; });
+  var branchList = Object.values(branches).filter(function(b){ return b.printers.length > 0; });
   if (!branchList.length) {
     document.getElementById('tn-branches').innerHTML =
-      '<div style="padding:40px;text-align:center;color:var(--t3)">No printers match this filter.</div>';
+      '<div class="nw-empty-state"><div class="nw-empty-ico">🔍</div><div class="nw-empty-title">No printers match</div></div>';
     return;
   }
 
+  function pctColor(pct) {
+    if (pct == null) return '#94a3b8';
+    if (pct <= 10)   return '#ef4444';
+    if (pct <= 25)   return '#f59e0b';
+    if (pct <= 50)   return '#f97316';
+    return '#10b981';
+  }
+
   var html = branchList.map(function(b) {
-    var printerCards = b.printers.map(function(r) {
-      var pct     = r.current_pct != null ? parseFloat(r.current_pct) : null;
-      var pctDisp = pct != null ? pct.toFixed(1) + '%' : '—';
-      var col     = pct == null ? '#94a3b8'
-                  : pct <= 10  ? '#ef4444'
-                  : pct <= 25  ? '#f59e0b'
-                  : pct <= 50  ? '#f97316'
-                  : '#10b981';
-      var barW    = pct != null ? Math.max(2, pct) : 0;
-      var bgCol   = pct == null ? '#f8fafc'
-                  : pct <= 10  ? '#fef2f2'
-                  : pct <= 25  ? '#fffbeb'
-                  : pct <= 50  ? '#fff7ed'
-                  : '#f0fdf4';
+    var rows = b.printers.map(function(r) {
+      var pct    = r.current_pct != null ? parseFloat(r.current_pct) : null;
+      var col    = pctColor(pct);
+      var barW   = pct != null ? Math.max(2, Math.min(100, pct)) : 0;
+      var pctTxt = pct != null ? pct.toFixed(1) + '%' : '—';
+      var copies = r.copies_remaining != null ? parseInt(r.copies_remaining).toLocaleString() : '—';
+      var days   = r.days_remaining   != null ? r.days_remaining + 'd left' : '';
 
-      // Remaining copies
-      var copiesLeft = r.copies_remaining != null
-        ? parseInt(r.copies_remaining).toLocaleString() + ' copies left'
-        : '— copies';
+      // Status pill
+      var pillBg  = pct == null ? '#f1f5f9' : pct <= 10 ? '#fef2f2' : pct <= 25 ? '#fffbeb' : pct <= 50 ? '#fff7ed' : '#f0fdf4';
+      var pillTxt = pct == null ? 'Unknown' : pct <= 10 ? '🔴 Critical' : pct <= 25 ? '🟠 Low' : pct <= 50 ? '🟡 Monitor' : '🟢 OK';
 
-      // Days remaining
-      var daysLeft = r.days_remaining != null
-        ? '~' + r.days_remaining + ' days'
-        : '';
-
-      // Alert indicator for < 50%
-      var alertBadge = '';
-      if (pct != null && pct < 50) {
-        var alertTxt = pct <= 10 ? '🔴 Critical' : pct <= 25 ? '🟠 Low' : '🟡 Monitor';
-        var alertCol = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#f97316';
-        alertBadge = '<div class="nw-alert-badge" style="background:' + alertCol + '15;color:' + alertCol + ';border:1px solid ' + alertCol + '40">'
-          + alertTxt + '</div>';
-      }
-
-      var reqBtn = '<button class="nw-req-btn" onclick="nwOpenRequest(' + r.printer_id + ',\'' + (r.toner_model_code||'') + '\')">📤 Request Refill</button>';
-
-      return '<div class="nw-printer-card" style="background:' + bgCol + ';border-left:3px solid ' + col + '">'
-        + '<div class="nw-pc-top">'
-        +   '<div>'
-        +     '<div class="nw-pc-code">' + r.printer_code + '</div>'
-        +     '<div class="nw-pc-model">' + (r.model || '—') + '</div>'
-        +   '</div>'
-        +   '<div style="text-align:right">'
-        +     '<div class="nw-pc-pct" style="color:' + col + '">' + pctDisp + '</div>'
-        +     '<div class="nw-pc-toner">' + (r.toner_model_code || '—') + '</div>'
+      return '<div class="tnr-row">'
+        // Left: code + model
+        + '<div class="tnr-left">'
+        +   '<div class="tnr-code">' + r.printer_code + '</div>'
+        +   '<div class="tnr-model">' + (r.model || r.toner_model_code || '—') + '</div>'
+        + '</div>'
+        // Middle: bar + stats
+        + '<div class="tnr-mid">'
+        +   '<div class="tnr-bar-track"><div class="tnr-bar-fill" style="width:' + barW + '%;background:' + col + '"></div></div>'
+        +   '<div class="tnr-stats">'
+        +     '<span class="tnr-stat">' + copies + ' copies</span>'
+        +     (days ? '<span class="tnr-stat-sep">·</span><span class="tnr-stat">' + days + '</span>' : '')
+        +     '<span class="tnr-stat-sep">·</span><span class="tnr-stat">Yield: ' + (r.yield_copies ? parseInt(r.yield_copies).toLocaleString() : '—') + '</span>'
         +   '</div>'
         + '</div>'
-        + '<div class="nw-bar-wrap"><div class="nw-bar-fill" style="width:' + barW + '%;background:' + col + '"></div></div>'
-        + '<div class="nw-pc-stats">'
-        +   '<div class="nw-pc-stat"><span class="nw-pc-stat-val">' + copiesLeft + '</span></div>'
-        +   (daysLeft ? '<div class="nw-pc-stat"><span class="nw-pc-stat-val">' + daysLeft + '</span></div>' : '')
-        +   '<div class="nw-pc-stat"><span class="nw-pc-stat-val">Yield: ' + (r.yield_copies ? parseInt(r.yield_copies).toLocaleString() : '—') + '</span></div>'
+        // Right: pct + pill + button
+        + '<div class="tnr-right">'
+        +   '<div class="tnr-pct" style="color:' + col + '">' + pctTxt + '</div>'
+        +   '<div class="tnr-pill" style="background:' + pillBg + ';color:' + col + '">' + pillTxt + '</div>'
+        +   '<button class="tnr-req-btn" onclick="nwOpenRequest(' + r.printer_id + ',\'' + (r.toner_model_code||'') + '\')">📤 Request</button>'
         + '</div>'
-        + alertBadge
-        + reqBtn
         + '</div>';
     }).join('');
 
-    return '<div class="nw-branch-block">'
-      + '<div class="nw-branch-hdr">'
-      +   '<div class="nw-branch-code">' + b.branch_code + '</div>'
-      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'
-      +   '<div class="nw-branch-count">' + b.printers.length + ' printer' + (b.printers.length > 1 ? 's' : '') + '</div>'
+    return '<div class="tnr-branch">'
+      + '<div class="tnr-branch-hdr">'
+      +   '<div class="tnr-branch-code">' + b.branch_code + '</div>'
+      +   '<div class="tnr-branch-name">' + b.branch_name + '</div>'
+      +   '<div class="tnr-branch-ct">' + b.printers.length + ' printer' + (b.printers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
-      + '<div class="nw-printer-grid">' + printerCards + '</div>'
+      + '<div class="tnr-rows">' + rows + '</div>'
       + '</div>';
   }).join('');
 
@@ -663,146 +641,6 @@ function nwBuildTonerHTML(filterStatus, filterText) {
 }
 
 
-function nwFilterToner(q) {
-  if (!_tonerData.length) return; // not loaded yet
-  var clearBtn = document.getElementById('tn-clear');
-  var searchEl = document.getElementById('tn-search');
-
-  var statusFilter = (q === 'low' || q === 'critical') ? q : null;
-
-  if (statusFilter) {
-    if (searchEl) { searchEl.value = q === 'low' ? 'Low toner' : 'Critical'; }
-    if (clearBtn) clearBtn.style.display = 'flex';
-    document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(statusFilter, null);
-  } else {
-    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
-    document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, q || null);
-  }
-}
-
-function nwClearTonerSearch() {
-  var si = document.getElementById('tn-search'); if (si) si.value = '';
-  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
-  document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, null);
-}
-
-function nwToggleBranch(code) {
-  var block = document.getElementById('bb-' + code);
-  var grid  = document.getElementById('bg-' + code);
-  if (!block || !grid) return;
-  var isOpen = block.classList.contains('open');
-  block.classList.toggle('open', !isOpen);
-  grid.style.display = isOpen ? 'none' : 'grid';
-}
-
-/* ══════════════════════════════════════════════
-   MONTHLY REPORT
-   ══════════════════════════════════════════════ */
-async function nwLoadMonthly() {
-  document.getElementById('mo-list').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var m = document.getElementById('mo-month').value;
-  var y = document.getElementById('mo-year').value;
-  var d = await nwApi('/nuwan/prints/monthly?year=' + y + '&month=' + m);
-  if (!d) return;
-
-  _monthlyData = d;
-
-  var months = ['','January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
-  document.getElementById('mo-total').textContent    = d.grand_total.toLocaleString();
-  document.getElementById('mo-total-lbl').textContent = 'Total prints — ' + months[d.month] + ' ' + d.year;
-
-  var max = Math.max.apply(null, d.branches.map(function(b) { return b.total; })) || 1;
-  var sorted = d.branches.slice().sort(function(a, b) { return b.total - a.total; });
-
-  document.getElementById('mo-list').innerHTML = sorted.length
-    ? sorted.map(function(b) {
-        var w = Math.round((b.total / max) * 100);
-        return '<div class="nw-monthly-branch-row">'
-          + '<div class="nw-branch-code">' + b.branch_code + '</div>'
-          + '<div style="flex:1;min-width:0">'
-          +   '<div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px">' + b.branch_name + '</div>'
-          +   '<div class="nw-monthly-bar-track"><div class="nw-monthly-bar-fill" style="width:' + w + '%"></div></div>'
-          + '</div>'
-          + '<div class="nw-monthly-num">' + b.total.toLocaleString() + '</div>'
-          + '</div>';
-      }).join('')
-    : '<div class="nw-spin-wrap">No print logs found for this month.</div>';
-}
-
-/* ══════════════════════════════════════════════
-   EXCEL EXPORT
-   ══════════════════════════════════════════════ */
-async function nwDownloadExcel() {
-  var m = document.getElementById('mo-month').value;
-  var y = document.getElementById('mo-year').value;
-
-  nwToast('⏳', 'Preparing Excel file...');
-
-  var d = await nwApi('/nuwan/prints/export?year=' + y + '&month=' + m);
-  if (!d || !d.rows) { nwToast('❌', 'No data to export'); return; }
-
-  var months = ['','January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
-  var monthName = months[parseInt(m)];
-
-  // Build sheet data
-  var wsData = [
-    ['SoftWave Print Management System'],
-    ['Monthly Print Report — ' + monthName + ' ' + y],
-    ['Generated: ' + new Date().toLocaleString('en-GB')],
-    [],
-    ['Branch Code', 'Branch Name', 'Printer Code', 'Printer Model', 'Date', 'Print Count', 'Logged By'],
-  ];
-
-  d.rows.forEach(function(r) {
-    wsData.push([
-      r.branch_code,
-      r.branch_name,
-      r.printer_code,
-      r.model || '',
-      r.log_date,
-      r.print_count,
-      r.logged_by || '',
-    ]);
-  });
-
-  // Branch totals
-  var totals = {};
-  d.rows.forEach(function(r) {
-    var k = r.branch_code + '|' + r.branch_name;
-    totals[k] = (totals[k] || 0) + r.print_count;
-  });
-  wsData.push([]);
-  wsData.push(['', '', '', '', 'BRANCH TOTALS', '', '']);
-  Object.keys(totals).forEach(function(k) {
-    var parts = k.split('|');
-    wsData.push([parts[0], parts[1], '', '', '', totals[k], '']);
-  });
-  wsData.push([]);
-  wsData.push(['', '', '', '', 'GRAND TOTAL', d.rows.reduce(function(s, r) { return s + r.print_count; }, 0), '']);
-
-  var wb = XLSX.utils.book_new();
-  var ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // Column widths
-  ws['!cols'] = [
-    {wch:12},{wch:28},{wch:14},{wch:24},{wch:14},{wch:12},{wch:22}
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, monthName + ' ' + y);
-  XLSX.writeFile(wb, 'SoftWave_PrintReport_' + monthName + '_' + y + '.xlsx');
-  nwToast('✅', 'Excel downloaded!');
-}
-
-/* ══════════════════════════════════════════════
-   TONER REQUEST FLOW
-   ══════════════════════════════════════════════ */
-
-var _tonerModels = [];
-
-/* Load toner models once */
 async function nwLoadTonerModels() {
   if (_tonerModels.length) return;
   var d = await nwApi('/nuwan/toner-models');
