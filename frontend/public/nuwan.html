@@ -408,6 +408,7 @@ function showApp() {
   document.getElementById('nw-app').style.display   = 'block';
   document.getElementById('nw-uname').textContent = NW.user.full_name || NW.user.username;
   nwLoadYesterday();
+  nwInitMonthSelectors();
 }
 
 function nwLogout() {
@@ -431,6 +432,68 @@ async function nwApi(path) {
 var _nwRefreshInterval = null;
 var _nwCurrentTab      = null;
 var NW_AUTO_REFRESH    = { yesterday:60, toner:90, requests:45, replacements:60, monthly:300 };
+
+/* ── Monthly Report ──────────────────────────── */
+function nwInitMonthSelectors() {
+  var months = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  var now = new Date();
+  var mSel = document.getElementById('mo-month');
+  var ySel = document.getElementById('mo-year');
+  if (!mSel || !ySel) return;
+  mSel.innerHTML = months.map(function(m, i) {
+    return '<option value="' + (i+1) + '"' + (i+1 === now.getMonth()+1 ? ' selected' : '') + '>' + m + '</option>';
+  }).join('');
+  ySel.innerHTML = [now.getFullYear()-1, now.getFullYear()].map(function(y) {
+    return '<option value="' + y + '"' + (y === now.getFullYear() ? ' selected' : '') + '>' + y + '</option>';
+  }).join('');
+}
+
+async function nwLoadMonthly() {
+  var mSel = document.getElementById('mo-month');
+  var ySel = document.getElementById('mo-year');
+  var listEl = document.getElementById('mo-list');
+  var totalEl = document.getElementById('mo-total');
+  if (!listEl) return;
+
+  listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var month = mSel ? mSel.value : new Date().getMonth() + 1;
+  var year  = ySel ? ySel.value : new Date().getFullYear();
+
+  var d = await nwApi('/nuwan/prints/monthly?year=' + year + '&month=' + month);
+  if (!d) {
+    listEl.innerHTML = '<div class="nw-spin-wrap">Failed to load. Click Refresh.</div>';
+    return;
+  }
+
+  if (totalEl) totalEl.textContent = (d.grand_total || 0).toLocaleString();
+
+  if (!d.branches || !d.branches.length) {
+    listEl.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
+      + '<div style="font-size:32px">📅</div>'
+      + '<div style="font-weight:600">No print logs for this month</div>'
+      + '<div style="font-size:12px;color:var(--t3)">Service persons need to submit daily print counts</div>'
+      + '</div>';
+    return;
+  }
+
+  var maxTotal = Math.max.apply(null, d.branches.map(function(b){ return b.total || 0; }));
+
+  listEl.innerHTML = d.branches.map(function(b) {
+    var barW = maxTotal > 0 ? Math.round((b.total / maxTotal) * 100) : 0;
+    return '<div class="nw-mo-row">'
+      + '<div class="nw-mo-branch">'
+      +   '<span class="nw-branch-code">' + b.branch_code + '</span>'
+      +   '<span class="nw-mo-name">' + b.branch_name + '</span>'
+      + '</div>'
+      + '<div class="nw-mo-bar-wrap">'
+      +   '<div class="nw-mo-bar" style="width:' + barW + '%"></div>'
+      + '</div>'
+      + '<div class="nw-mo-total">' + (b.total || 0).toLocaleString() + '</div>'
+      + '</div>';
+  }).join('');
+}
 
 function nwTab(name) {
   document.querySelectorAll('.nw-tab').forEach(function(t) { t.classList.remove('act'); });
@@ -642,11 +705,23 @@ function nwBuildTonerHTML(filterStatus, filterText) {
 
 
 async function nwLoadTonerModels() {
-  if (_tonerModels.length) return;
-  var d = await nwApi('/nuwan/toner-models');
-  if (!d) return;
-  _tonerModels = d;
   var sel = document.getElementById('nw-req-model');
+  if (!sel) return;
+  // Always reload if empty
+  if (_tonerModels.length) {
+    sel.innerHTML = '<option value="">— Select Toner Model —</option>';
+    _tonerModels.forEach(function(m) {
+      sel.add(new Option(m.model_code + (m.brand ? ' (' + m.brand + ')' : ''), m.id));
+    });
+    return;
+  }
+  sel.innerHTML = '<option value="">Loading...</option>';
+  var d = await nwApi('/nuwan/toner-models');
+  if (!d || !d.length) {
+    sel.innerHTML = '<option value="">— No toner models found —</option>';
+    return;
+  }
+  _tonerModels = d;
   sel.innerHTML = '<option value="">— Select Toner Model —</option>';
   d.forEach(function(m) {
     sel.add(new Option(m.model_code + (m.brand ? ' (' + m.brand + ')' : ''), m.id));
