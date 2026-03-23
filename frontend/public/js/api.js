@@ -93,11 +93,6 @@ async function doLogin() {
   try {
     var d = await api('POST', '/auth/login', { username: u, password: p });
 
-    if (d.user.role !== APP.curRole) {
-      showLoginErr('This account is a "' + d.user.role + '" — please select the correct role tab.');
-      return;
-    }
-
     APP.token = d.token;
     APP.user  = d.user;
 
