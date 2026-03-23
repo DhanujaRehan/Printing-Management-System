@@ -3,10 +3,10 @@
    File: js/store.js
    ============================================================ */
 
-var _storeTab = 'dispatch';
+var _storeTab = 'overview';
 
 async function loadStore() {
-  loadDispatchQueue(); // always refresh badge
+  loadDispatchQueue(); // refresh dispatch badge
   switchStoreTab(_storeTab);
 }
 
@@ -240,11 +240,14 @@ function renderStoreTonerTable(stock) {
 async function storeReceiveToner() {
   var tid   = document.getElementById('st-recv-toner-model').value;
   var qty   = parseInt(document.getElementById('st-recv-toner-qty').value);
+  var date  = document.getElementById('st-recv-toner-date').value;
   var notes = document.getElementById('st-recv-toner-notes').value;
   if (!tid || !qty || qty <= 0) { toast('❌', 'Select model and enter quantity', ''); return; }
+  var fullNotes = (date ? 'Purchase Date: ' + date : '') + (date && notes ? ' | ' : '') + (notes || '');
   try {
-    var r = await api('POST', '/toner/stock/receive', { toner_model_id: parseInt(tid), quantity: qty, notes: notes || null });
+    var r = await api('POST', '/toner/stock/receive', { toner_model_id: parseInt(tid), quantity: qty, notes: fullNotes || null });
     document.getElementById('st-recv-toner-qty').value   = '';
+    document.getElementById('st-recv-toner-date').value  = '';
     document.getElementById('st-recv-toner-notes').value = '';
     toast('📦', qty + ' toner units received', 'Balance: ' + r.new_balance);
     loadStoreToner(); loadStoreOverview();
@@ -294,11 +297,14 @@ function renderStorePaperTable(stock) {
 async function storeReceivePaper() {
   var tid   = document.getElementById('st-recv-paper-type').value;
   var qty   = parseInt(document.getElementById('st-recv-paper-qty').value);
+  var date  = document.getElementById('st-recv-paper-date').value;
   var notes = document.getElementById('st-recv-paper-notes').value;
   if (!tid || !qty || qty <= 0) { toast('❌', 'Select paper type and quantity', ''); return; }
+  var fullNotes = (date ? 'Purchase Date: ' + date : '') + (date && notes ? ' | ' : '') + (notes || '');
   try {
-    var r = await api('POST', '/paper/stock/receive', { paper_type_id: parseInt(tid), quantity: qty, notes: notes || null });
+    var r = await api('POST', '/paper/stock/receive', { paper_type_id: parseInt(tid), quantity: qty, notes: fullNotes || null });
     document.getElementById('st-recv-paper-qty').value   = '';
+    document.getElementById('st-recv-paper-date').value  = '';
     document.getElementById('st-recv-paper-notes').value = '';
     toast('📄', qty + ' reams received', 'Balance: ' + r.new_balance);
     loadStorePaper(); loadStoreOverview();
