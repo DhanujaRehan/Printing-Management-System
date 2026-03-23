@@ -9,7 +9,7 @@ Usage:
 
 import requests
 
-BASE_URL = "https://YOUR-APP.onrender.com/api"  # ← replace with your Render URL
+BASE_URL = "https://softwave.onrender.com"  # ← replace with your Render URL
 
 # Step 1 — login as existing user won't work yet
 # So we use the db/setup approach — run this locally against Render DB
@@ -18,7 +18,7 @@ import bcrypt
 import psycopg2
 
 # Render External Database URL — paste yours here
-DATABASE_URL = "postgresql://softwave_db_user:YOUR_PASSWORD@YOUR_HOST/softwave_db"
+DATABASE_URL = "postgresql://softwave_db_user:OtLPXbtEIyWNejg4Q372q7Th1pyH0qyC@dpg-d70k03ndiees73dn1t1g-a.singapore-postgres.render.com/softwave_db"
 
 def hash_password(plain):
     return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
