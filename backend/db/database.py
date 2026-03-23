@@ -5,17 +5,28 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_CONFIG = {
-    "host":     os.getenv("DB_HOST", "localhost"),
-    "port":     int(os.getenv("DB_PORT", 5432)),
-    "dbname":   os.getenv("DB_NAME", "tonerpro"),
-    "user":     os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
-}
+# Render provides DATABASE_URL — support both styles
+DATABASE_URL = os.getenv("postgresql://softwave_db_user:OtLPXbtEIyWNejg4Q372q7Th1pyH0qyC@dpg-d70k03ndiees73dn1t1g-a/softwave_db")
+
+if DATABASE_URL:
+    # Render/Railway style — single connection string
+    # Fix for psycopg2: replace postgres:// with postgresql://
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DB_CONFIG = {"dsn": DATABASE_URL}
+else:
+    # Local development — individual variables
+    DB_CONFIG = {
+        "host":     os.getenv("DB_HOST", "localhost"),
+        "port":     int(os.getenv("DB_PORT", 5432)),
+        "dbname":   os.getenv("DB_NAME", "tonerpro"),
+        "user":     os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD", ""),
+    }
 
 
 def get_conn():
-    """Open a fresh connection (simple and reliable)."""
+    """Open a fresh connection."""
     return psycopg2.connect(**DB_CONFIG)
 
 
