@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Render provides DATABASE_URL — support both styles
-DATABASE_URL = os.getenv("postgresql://softwave_db_user:OtLPXbtEIyWNejg4Q372q7Th1pyH0qyC@dpg-d70k03ndiees73dn1t1g-a/softwave_db")
+# Render provides DATABASE_URL as an environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
     # Render/Railway style — single connection string
@@ -15,7 +15,7 @@ if DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     DB_CONFIG = {"dsn": DATABASE_URL}
 else:
-    # Local development — individual variables
+    # Local development — individual variables from .env
     DB_CONFIG = {
         "host":     os.getenv("DB_HOST", "localhost"),
         "port":     int(os.getenv("DB_PORT", 5432)),
