@@ -830,3 +830,144 @@
   .tl-pct          { font-size:22px; }
   .tl-replace-btn  { font-size:14px; padding:13px; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   EOD LOG v2 — Mobile-first redesign
+   ══════════════════════════════════════════════════════════ */
+
+/* Paper section container */
+.eod2-paper-sections {
+  padding: 0 16px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Each paper type (A4 / B4 / Letter) */
+.eod2-section {
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.eod2-section:last-child { border-bottom: none; }
+
+.eod2-section-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0c1a2e;
+  margin-bottom: 12px;
+  letter-spacing: .01em;
+}
+
+/* Single/Double side inputs side by side */
+.eod2-inputs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: #f8fafc;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #e8f0fe;
+}
+
+.eod2-input-group {
+  flex: 1;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eod2-input-divider {
+  width: 1px;
+  background: #e8f0fe;
+  flex-shrink: 0;
+}
+
+.eod2-input-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #94a3b8;
+}
+
+.eod2-input {
+  width: 100%;
+  padding: 12px 8px;
+  border: 2px solid #e8f0fe;
+  border-radius: 10px;
+  font-family: var(--m);
+  font-size: 22px;
+  font-weight: 800;
+  color: #0c1a2e;
+  background: #fff;
+  text-align: center;
+  transition: all .2s;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  box-sizing: border-box;
+}
+.eod2-input::-webkit-outer-spin-button,
+.eod2-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.eod2-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 4px rgba(14,165,233,.12);
+  background: #fff;
+}
+.eod2-input::placeholder { color: #cbd5e1; }
+
+/* Footer: total + save button */
+.eod2-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 16px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  gap: 12px;
+}
+
+
+.eod2-total-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+.eod2-total-num {
+  font-family: var(--m);
+  font-size: 28px;
+  font-weight: 800;
+  color: #94a3b8;
+  line-height: 1;
+  transition: color .2s;
+}
+
+.eod2-save-btn {
+  padding: 14px 28px;
+  border-radius: 13px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #fff;
+  font-family: var(--f);
+  font-size: 16px;
+  font-weight: 800;
+  transition: all .2s;
+  box-shadow: 0 4px 16px rgba(14,165,233,.35);
+  letter-spacing: .01em;
+}
+.eod2-save-btn:hover   { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,165,233,.4); }
+.eod2-save-btn:active  { transform: translateY(0); }
+.eod2-save-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .eod2-input        { font-size: 20px; padding: 10px 6px; }
+  .eod2-save-btn     { padding: 13px 22px; font-size: 15px; }
+  .eod2-total-num    { font-size: 24px; }
+  .eod2-section-label { font-size: 14px; }
+}
