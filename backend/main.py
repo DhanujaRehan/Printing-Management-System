@@ -24,7 +24,7 @@ from routes.requests import router as requests_router
 from routes.nuwan    import router as nuwan_router
 
 try:
-    from routes.imports import router as imports_router
+    from routes.imports import router as imports_router # type: ignore
     _has_imports = True
 except Exception:
     _has_imports = False
