@@ -21,30 +21,74 @@ def require_nuwan(current_user: dict = Depends(get_current_user)):
 # ── Toner levels per branch ──────────────────────────────────────────────────
 @router.get("/toner")
 def get_toner_levels(current_user: dict = Depends(require_nuwan)):
-    """Toner % for every active printer, grouped by branch."""
-    return query("""
+    """Toner levels for every active printer — remaining copies calculated from daily logs."""
+    # Try new view columns first, fall back to legacy current_pct if view not updated yet
+    rows = query("""
         SELECT
-            b.id                AS branch_id,
-            b.code              AS branch_code,
-            b.name              AS branch_name,
-            p.printer_id,
+            b.id                    AS branch_id,
+            b.code                  AS branch_code,
+            b.name                  AS branch_name,
+            p.id                    AS printer_id,
             p.printer_code,
-            p.printer_model     AS model,
-            p.current_pct       AS toner_pct,
-            p.days_remaining,
-            p.toner_model       AS toner_model_code,
+            p.model,
+            tm.model_code           AS toner_model_code,
+            COALESCE(ti.yield_copies, 0) AS yield_copies,
+            -- Remaining copies = yield minus total prints since install
+            GREATEST(0,
+                COALESCE(ti.yield_copies, 0) - COALESCE((
+                    SELECT SUM(pl.print_count)
+                    FROM print_logs pl
+                    WHERE pl.printer_id = p.id
+                      AND pl.log_date >= COALESCE(ti.installed_at::date, '2000-01-01')
+                ), 0)
+            ) AS copies_remaining,
+            -- Percentage remaining
+            ROUND(GREATEST(0.0,
+                100.0 * (
+                    COALESCE(ti.yield_copies, 0) - COALESCE((
+                        SELECT SUM(pl.print_count)
+                        FROM print_logs pl
+                        WHERE pl.printer_id = p.id
+                          AND pl.log_date >= COALESCE(ti.installed_at::date, '2000-01-01')
+                    ), 0)
+                ) / NULLIF(ti.yield_copies, 0)
+            ), 1) AS current_pct,
+            -- Total prints since install
+            COALESCE((
+                SELECT SUM(pl.print_count)
+                FROM print_logs pl
+                WHERE pl.printer_id = p.id
+                  AND pl.log_date >= COALESCE(ti.installed_at::date, '2000-01-01')
+            ), 0) AS total_prints_since_install,
+            -- Days remaining
             CASE
-                WHEN p.current_pct IS NULL  THEN 'unknown'
-                WHEN p.current_pct <= 5     THEN 'critical'
-                WHEN p.current_pct <= 25    THEN 'low'
-                WHEN p.current_pct <= 50    THEN 'medium'
+                WHEN COALESCE(ti.avg_daily_copies, 0) > 0 THEN
+                    ROUND(GREATEST(0,
+                        COALESCE(ti.yield_copies, 0) - COALESCE((
+                            SELECT SUM(pl.print_count)
+                            FROM print_logs pl
+                            WHERE pl.printer_id = p.id
+                              AND pl.log_date >= COALESCE(ti.installed_at::date, '2000-01-01')
+                        ), 0)
+                    )::NUMERIC / ti.avg_daily_copies)
+                ELSE NULL
+            END AS days_remaining,
+            -- Status label
+            CASE
+                WHEN ti.id IS NULL THEN 'unknown'
+                WHEN ROUND(GREATEST(0.0, 100.0 * (COALESCE(ti.yield_copies,0) - COALESCE((SELECT SUM(pl2.print_count) FROM print_logs pl2 WHERE pl2.printer_id=p.id AND pl2.log_date >= COALESCE(ti.installed_at::date,'2000-01-01')),0)) / NULLIF(ti.yield_copies,0)),1) <= 10 THEN 'critical'
+                WHEN ROUND(GREATEST(0.0, 100.0 * (COALESCE(ti.yield_copies,0) - COALESCE((SELECT SUM(pl2.print_count) FROM print_logs pl2 WHERE pl2.printer_id=p.id AND pl2.log_date >= COALESCE(ti.installed_at::date,'2000-01-01')),0)) / NULLIF(ti.yield_copies,0)),1) <= 25 THEN 'low'
+                WHEN ROUND(GREATEST(0.0, 100.0 * (COALESCE(ti.yield_copies,0) - COALESCE((SELECT SUM(pl2.print_count) FROM print_logs pl2 WHERE pl2.printer_id=p.id AND pl2.log_date >= COALESCE(ti.installed_at::date,'2000-01-01')),0)) / NULLIF(ti.yield_copies,0)),1) <= 50 THEN 'medium'
                 ELSE 'good'
             END AS status
-        FROM v_printer_status p
-        JOIN branches b ON b.id = p.branch_id
-        WHERE b.is_active = TRUE
-        ORDER BY b.code, p.printer_code
-    """)
+        FROM printers p
+        JOIN branches b ON b.id = p.branch_id AND b.is_active = TRUE
+        LEFT JOIN toner_installations ti ON ti.printer_id = p.id AND ti.is_current = TRUE
+        LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+        WHERE p.is_active = TRUE
+        ORDER BY current_pct ASC NULLS LAST, b.code, p.printer_code
+    """) or []
+    return rows
 
 
 # ── Yesterday's print totals per branch ─────────────────────────────────────

@@ -574,3 +574,66 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .nw-repl-step-box   { width:100%; }
   .nw-repl-step-who   { white-space:normal; }
 }
+
+/* ── REMAINING COPIES ROW ───────────────────────────────── */
+.nw-pc-copies {
+  display: flex; align-items: center;
+  background: #f8fafc; border-radius: 10px;
+  padding: 8px 10px; margin: 8px 0 6px; gap: 0;
+}
+.nw-copies-item {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nw-copies-sep {
+  width: 1px; height: 28px; background: var(--sb); flex-shrink: 0;
+}
+.nw-copies-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--t3);
+}
+.nw-copies-val {
+  font-family: var(--m); font-size: 13px; font-weight: 800; color: var(--tx);
+}
+
+/* ── BELOW 50% ATTENTION BANNER ─────────────────────────── */
+.nw-pc-attention {
+  font-size: 11px; font-weight: 700; color: #c2410c;
+  background: #fff7ed; border: 1px solid #fed7aa;
+  border-radius: 8px; padding: 6px 10px;
+  margin-bottom: 6px; text-align: center;
+}
+
+/* ── CARD BORDER HIGHLIGHT FOR ATTENTION ────────────────── */
+.nw-pc-needs-attention {
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: 0 0 0 3px rgba(251,146,60,.1) !important;
+}
+
+/* ── TONER CARD UPDATES — remaining copies & alert ───────── */
+.nw-printer-card {
+  border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 10px; transition: box-shadow .2s;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.nw-printer-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+.nw-pc-top    { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.nw-pc-code   { font-family:var(--m); font-size:15px; font-weight:800; color:var(--tx); }
+.nw-pc-model  { font-size:11px; color:var(--t3); margin-top:2px; }
+.nw-pc-pct    { font-family:var(--m); font-size:22px; font-weight:800; line-height:1; }
+.nw-pc-toner  { font-size:10px; color:var(--t3); margin-top:2px; }
+.nw-bar-wrap  { height:5px; background:rgba(0,0,0,.08); border-radius:3px; overflow:hidden; margin-bottom:10px; }
+.nw-bar-fill  { height:100%; border-radius:3px; transition:width 1s ease; }
+.nw-pc-stats  { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.nw-pc-stat   { font-size:11px; color:var(--t2); }
+.nw-pc-stat-val { font-weight:600; }
+
+/* Alert badge — shown when < 50% */
+.nw-alert-badge {
+  display:inline-block; font-size:11px; font-weight:700;
+  padding:4px 10px; border-radius:20px; margin-bottom:10px;
+}
+
+/* Stat cards for low/critical counts - make them clickable clearly */
+.nw-stat-card { cursor:pointer; }
+.nw-stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }

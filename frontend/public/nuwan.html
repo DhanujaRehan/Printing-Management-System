@@ -521,113 +521,147 @@ async function nwLoadYesterday() {
    ══════════════════════════════════════════════ */
 var _tonerData = []; // raw data cache
 
+async function nwLoadToner() {
+  document.getElementById('tn-branches').innerHTML =
+    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var data = await nwApi('/nuwan/toner');
+  if (!data) {
+    document.getElementById('tn-branches').innerHTML =
+      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">⚠️</div><div style="font-weight:600">Could not load toner data</div><div style="font-size:12px;color:var(--t3)">Check server logs or click Refresh</div></div>';
+    return;
+  }
+  if (!data.length) {
+    document.getElementById('tn-branches').innerHTML =
+      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">🖨️</div><div style="font-weight:600">No printers found</div><div style="font-size:12px;color:var(--t3)">Run the seed SQL in pgAdmin to load real data</div></div>';
+    return;
+  }
+
+  _tonerData = data;
+
+  // Update stat cards
+  var low      = data.filter(function(r){ return r.status === 'low'; }).length;
+  var critical = data.filter(function(r){ return r.status === 'critical'; }).length;
+  var el_total = document.getElementById('tn-total');
+  var el_low   = document.getElementById('tn-low');
+  var el_crit  = document.getElementById('tn-crit');
+  if (el_total) el_total.textContent = data.length;
+  if (el_low)   el_low.textContent   = low;
+  if (el_crit)  el_crit.textContent  = critical;
+
+  nwBuildTonerHTML(null, null);
+}
+
 function nwBuildTonerHTML(filterStatus, filterText) {
-  // Build branches from _tonerData, applying filters
   var branches = {};
   _tonerData.forEach(function(r) {
     if (!branches[r.branch_id]) {
-      branches[r.branch_id] = { code: r.branch_code, name: r.branch_name, printers: [] };
+      branches[r.branch_id] = {
+        branch_code: r.branch_code,
+        branch_name: r.branch_name,
+        printers: []
+      };
+    }
+    var pct = r.current_pct != null ? parseFloat(r.current_pct) : null;
+    var status = r.status || 'unknown';
+    // Apply status filter
+    if (filterStatus && filterStatus !== 'all') {
+      if (filterStatus === 'low'      && status !== 'low')      return;
+      if (filterStatus === 'critical' && status !== 'critical') return;
+      if (filterStatus === 'medium'   && status !== 'medium')   return;
+      if (filterStatus === 'good'     && status !== 'good')     return;
+    }
+    // Apply text filter
+    if (filterText) {
+      var q = filterText.toLowerCase();
+      var match = (r.branch_code||'').toLowerCase().includes(q)
+               || (r.branch_name||'').toLowerCase().includes(q)
+               || (r.printer_code||'').toLowerCase().includes(q)
+               || (r.model||'').toLowerCase().includes(q);
+      if (!match) return;
     }
     branches[r.branch_id].printers.push(r);
   });
 
-  var html = '';
-  var branchList = Object.values(branches);
-  var totalVisible = 0;
-
-  branchList.forEach(function(b) {
-    // Apply filter
-    var filteredPrinters = b.printers;
-    if (filterStatus === 'low') {
-      filteredPrinters = b.printers.filter(function(p) { return p.status === 'low' || p.status === 'critical'; });
-    } else if (filterStatus === 'critical') {
-      filteredPrinters = b.printers.filter(function(p) { return p.status === 'critical'; });
-    } else if (filterText) {
-      var t = filterText.toLowerCase();
-      var branchMatch = b.code.toLowerCase().includes(t) || b.name.toLowerCase().includes(t);
-      filteredPrinters = branchMatch ? b.printers : b.printers.filter(function(p) {
-        return p.printer_code.toLowerCase().includes(t) || (p.model||'').toLowerCase().includes(t);
-      });
-    }
-
-    if (!filteredPrinters.length) return;
-    totalVisible += filteredPrinters.length;
-
-    // Should this branch be open?
-    var shouldOpen = filterStatus || filterText ||
-      filteredPrinters.some(function(p) { return p.status === 'critical'; });
-
-    var critCount = filteredPrinters.filter(function(p) { return p.status === 'critical'; }).length;
-    var lowCount  = filteredPrinters.filter(function(p) { return p.status === 'low'; }).length;
-    var statsStr  = '';
-    if (critCount) statsStr += '<span style="color:#ef4444;font-weight:700">🚨 ' + critCount + ' Critical</span> ';
-    if (lowCount)  statsStr += '<span style="color:#f59e0b;font-weight:700">⚠️ ' + lowCount + ' Low</span>';
-    if (!statsStr) statsStr = '<span style="color:#10b981;font-weight:600">✓ All Good</span>';
-
-    html += '<div class="nw-branch-block' + (shouldOpen ? ' open' : '') + '" id="bb-' + b.code + '">';
-    html += '<div class="nw-branch-block-hdr" onclick="nwToggleBranch(\'' + b.code + '\')">';
-    html += '<div class="nw-branch-block-code">' + b.code + '</div>';
-    html += '<div class="nw-branch-block-name">' + b.name + '</div>';
-    html += '<div class="nw-branch-block-stats">' + statsStr + '</div>';
-    html += '<span class="nw-branch-block-arrow' + (shouldOpen ? ' open' : '') + '">▶</span>';
-    html += '</div>';
-    html += '<div class="nw-printers-grid" id="bg-' + b.code + '" style="' + (shouldOpen ? '' : 'display:none') + '">';
-
-    filteredPrinters.forEach(function(p) {
-      var pct = p.toner_pct != null ? p.toner_pct : null;
-      var barCls   = pct == null ? 'bar-unk' : pct <= 5 ? 'bar-low' : pct <= 25 ? 'bar-med' : 'bar-good';
-      var badgeCls = 'badge-' + p.status;
-      var badgeTxt = p.status.charAt(0).toUpperCase() + p.status.slice(1);
-      var pctTxt   = pct != null ? pct + '%' : '?';
-      var pctColor = pct == null ? 'var(--t3)' : pct <= 5 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
-      var safeModel = (p.model||'—').replace(/'/g, "\'");
-      var safeName  = b.name.replace(/'/g, "\'");
-
-      html += '<div class="nw-printer-card">';
-      html += '<div class="nw-pc-top"><div class="nw-pc-code">' + p.printer_code + '</div>';
-      html += '<div class="nw-pc-pct" style="color:' + pctColor + '">' + pctTxt + '</div></div>';
-      html += '<div class="nw-pc-model">' + (p.model||'—') + '</div>';
-      html += '<div class="nw-bar"><div class="nw-bar-fill ' + barCls + '" style="width:' + (pct||0) + '%"></div></div>';
-      html += '<div class="nw-pc-status">';
-      html += '<div class="nw-pc-days">' + (p.days_remaining != null ? p.days_remaining + ' days left' : 'No estimate') + '</div>';
-      html += '<span class="nw-pc-badge ' + badgeCls + '">' + badgeTxt + '</span>';
-      html += '</div>';
-      if (p.status === 'low' || p.status === 'critical') {
-        html += '<button class="nw-req-btn" onclick="nwOpenRequestModal(' + p.printer_id + ',\'' + p.printer_code + '\',\'' + safeName + '\',\'' + p.status + '\')">📤 Request Toner Refill</button>';
-      }
-      html += '</div>';
-    });
-    html += '</div></div>';
-  });
-
-  if (!totalVisible) {
-    var msg = filterStatus === 'critical' ? '🎉 No critical printers!'
-            : filterStatus === 'low'      ? '✅ No low toner printers!'
-            : filterText ? '🔍 No results for "' + filterText + '"'
-            : 'No printer data found.';
-    return '<div class="nw-spin-wrap" style="flex-direction:column;gap:10px"><div style="font-size:36px">' +
-           (filterStatus==='critical'?'🎉':filterStatus==='low'?'✅':'🔍') +
-           '</div><div style="font-size:14px;font-weight:600;color:var(--tx)">' + msg + '</div></div>';
+  var branchList = Object.values(branches).filter(function(b) { return b.printers.length > 0; });
+  if (!branchList.length) {
+    document.getElementById('tn-branches').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--t3)">No printers match this filter.</div>';
+    return;
   }
-  return html;
+
+  var html = branchList.map(function(b) {
+    var printerCards = b.printers.map(function(r) {
+      var pct     = r.current_pct != null ? parseFloat(r.current_pct) : null;
+      var pctDisp = pct != null ? pct.toFixed(1) + '%' : '—';
+      var col     = pct == null ? '#94a3b8'
+                  : pct <= 10  ? '#ef4444'
+                  : pct <= 25  ? '#f59e0b'
+                  : pct <= 50  ? '#f97316'
+                  : '#10b981';
+      var barW    = pct != null ? Math.max(2, pct) : 0;
+      var bgCol   = pct == null ? '#f8fafc'
+                  : pct <= 10  ? '#fef2f2'
+                  : pct <= 25  ? '#fffbeb'
+                  : pct <= 50  ? '#fff7ed'
+                  : '#f0fdf4';
+
+      // Remaining copies
+      var copiesLeft = r.copies_remaining != null
+        ? parseInt(r.copies_remaining).toLocaleString() + ' copies left'
+        : '— copies';
+
+      // Days remaining
+      var daysLeft = r.days_remaining != null
+        ? '~' + r.days_remaining + ' days'
+        : '';
+
+      // Alert indicator for < 50%
+      var alertBadge = '';
+      if (pct != null && pct < 50) {
+        var alertTxt = pct <= 10 ? '🔴 Critical' : pct <= 25 ? '🟠 Low' : '🟡 Monitor';
+        var alertCol = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#f97316';
+        alertBadge = '<div class="nw-alert-badge" style="background:' + alertCol + '15;color:' + alertCol + ';border:1px solid ' + alertCol + '40">'
+          + alertTxt + '</div>';
+      }
+
+      var reqBtn = '<button class="nw-req-btn" onclick="nwOpenRequest(' + r.printer_id + ',\'' + (r.toner_model_code||'') + '\')">📤 Request Refill</button>';
+
+      return '<div class="nw-printer-card" style="background:' + bgCol + ';border-left:3px solid ' + col + '">'
+        + '<div class="nw-pc-top">'
+        +   '<div>'
+        +     '<div class="nw-pc-code">' + r.printer_code + '</div>'
+        +     '<div class="nw-pc-model">' + (r.model || '—') + '</div>'
+        +   '</div>'
+        +   '<div style="text-align:right">'
+        +     '<div class="nw-pc-pct" style="color:' + col + '">' + pctDisp + '</div>'
+        +     '<div class="nw-pc-toner">' + (r.toner_model_code || '—') + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="nw-bar-wrap"><div class="nw-bar-fill" style="width:' + barW + '%;background:' + col + '"></div></div>'
+        + '<div class="nw-pc-stats">'
+        +   '<div class="nw-pc-stat"><span class="nw-pc-stat-val">' + copiesLeft + '</span></div>'
+        +   (daysLeft ? '<div class="nw-pc-stat"><span class="nw-pc-stat-val">' + daysLeft + '</span></div>' : '')
+        +   '<div class="nw-pc-stat"><span class="nw-pc-stat-val">Yield: ' + (r.yield_copies ? parseInt(r.yield_copies).toLocaleString() : '—') + '</span></div>'
+        + '</div>'
+        + alertBadge
+        + reqBtn
+        + '</div>';
+    }).join('');
+
+    return '<div class="nw-branch-block">'
+      + '<div class="nw-branch-hdr">'
+      +   '<div class="nw-branch-code">' + b.branch_code + '</div>'
+      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'
+      +   '<div class="nw-branch-count">' + b.printers.length + ' printer' + (b.printers.length > 1 ? 's' : '') + '</div>'
+      + '</div>'
+      + '<div class="nw-printer-grid">' + printerCards + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('tn-branches').innerHTML = html;
 }
 
-async function nwLoadToner() {
-  document.getElementById('tn-branches').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  var si = document.getElementById('tn-search'); if (si) si.value = '';
-  var cb = document.getElementById('tn-clear');  if (cb) cb.style.display = 'none';
-  _tonerData = [];
-
-  var rows = await nwApi('/nuwan/toner');
-  if (!rows) return;
-  _tonerData = rows;
-
-  document.getElementById('tn-total').textContent = rows.length;
-  document.getElementById('tn-low').textContent   = rows.filter(function(r){ return r.status==='low'||r.status==='critical'; }).length;
-  document.getElementById('tn-crit').textContent  = rows.filter(function(r){ return r.status==='critical'; }).length;
-
-  document.getElementById('tn-branches').innerHTML = nwBuildTonerHTML(null, null);
-}
 
 function nwFilterToner(q) {
   if (!_tonerData.length) return; // not loaded yet
