@@ -592,7 +592,8 @@ async function nwLoadYesterday() {
 /* ══════════════════════════════════════════════
    TONER LEVELS
    ══════════════════════════════════════════════ */
-var _tonerData = []; // raw data cache
+var _tonerData  = []; // raw data cache
+var _tonerModels = []; // toner model list for request modal
 
 async function nwLoadToner() {
   document.getElementById('tn-branches').innerHTML =
@@ -740,8 +741,9 @@ async function nwLoadTonerModels() {
 
 /* Open request modal from a printer card click */
 function nwOpenRequest(printerId, tonerModelCode) {
-  // Find printer data from _tonerData
-  var printer = _tonerData.find(function(r) { return r.printer_id === printerId; });
+  // Convert to number to match API response type
+  printerId = parseInt(printerId);
+  var printer = _tonerData.find(function(r) { return parseInt(r.printer_id) === printerId; });
   var printerCode = printer ? printer.printer_code : 'Printer ' + printerId;
   var branchName  = printer ? printer.branch_name  : '';
   var status      = printer ? (printer.status || 'unknown') : 'unknown';
