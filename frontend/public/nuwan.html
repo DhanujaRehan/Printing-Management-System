@@ -420,12 +420,22 @@ function nwLogout() {
 
 /* ── API helper ─────────────────────────────── */
 async function nwApi(path) {
-  var r = await fetch('/api' + path, {
-    headers: {'Authorization': 'Bearer ' + NW.token}
-  });
-  if (r.status === 401) { nwLogout(); return null; }
-  if (!r.ok) { nwToast('❌', 'API error: ' + r.status); return null; }
-  return r.json();
+  try {
+    var r = await fetch('/api' + path, {
+      headers: {'Authorization': 'Bearer ' + NW.token}
+    });
+    if (r.status === 401) { nwLogout(); return null; }
+    if (!r.ok) {
+      var errTxt = '';
+      try { var errJson = await r.json(); errTxt = errJson.detail || ''; } catch(e) {}
+      nwToast('❌', 'Error ' + r.status, errTxt);
+      return null;
+    }
+    return r.json();
+  } catch(e) {
+    nwToast('❌', 'Network error', e.message || '');
+    return null;
+  }
 }
 
 /* ── Tab switching ──────────────────────────── */
