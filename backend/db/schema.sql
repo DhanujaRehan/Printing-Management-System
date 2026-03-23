@@ -21,11 +21,13 @@ RESTART IDENTITY CASCADE;
 DELETE FROM printers;
 DELETE FROM branches;
 DELETE FROM toner_models;
+DELETE FROM paper_types;
 
 -- Reset sequences
-ALTER SEQUENCE branches_id_seq    RESTART WITH 1;
-ALTER SEQUENCE printers_id_seq    RESTART WITH 1;
+ALTER SEQUENCE branches_id_seq     RESTART WITH 1;
+ALTER SEQUENCE printers_id_seq     RESTART WITH 1;
 ALTER SEQUENCE toner_models_id_seq RESTART WITH 1;
+ALTER SEQUENCE paper_types_id_seq  RESTART WITH 1;
 
 -- ============================================================
 -- Step 2: Insert 7 real toner models
@@ -70,15 +72,15 @@ INSERT INTO branches (code, name, location, contact) VALUES
     ('KUR',  'Kurunegala',       'Kurunegala',       'Branch Contact'),
     ('KURZ', 'Kurunegala Zonal', 'Kurunegala Zonal', 'Branch Contact'),
     ('MAH',  'Mahara',           'Mahara',           'Branch Contact'),
-    ('MAN',  'Mannar',           'Mannar',            'Branch Contact'),
-    ('MAT',  'Matara',           'Matara',            'Branch Contact'),
-    ('MUL',  'Mullathivu',       'Mullathivu',        'Branch Contact'),
-    ('NEG',  'Negombo',          'Negombo',           'Branch Contact'),
-    ('PAN',  'Panadura',         'Panadura',          'Branch Contact'),
-    ('PPE',  'Point Pedro',      'Point Pedro',       'Branch Contact'),
-    ('RAT',  'Rathnapura',       'Rathnapura',        'Branch Contact'),
-    ('VAV',  'Vavuniya',         'Vavuniya',          'Branch Contact'),
-    ('WAL',  'Walasmulla',       'Walasmulla',        'Branch Contact');
+    ('MAN',  'Mannar',           'Mannar',           'Branch Contact'),
+    ('MAT',  'Matara',           'Matara',           'Branch Contact'),
+    ('MUL',  'Mullathivu',       'Mullathivu',       'Branch Contact'),
+    ('NEG',  'Negombo',          'Negombo',          'Branch Contact'),
+    ('PAN',  'Panadura',         'Panadura',         'Branch Contact'),
+    ('PPE',  'Point Pedro',      'Point Pedro',      'Branch Contact'),
+    ('RAT',  'Rathnapura',       'Rathnapura',       'Branch Contact'),
+    ('VAV',  'Vavuniya',         'Vavuniya',         'Branch Contact'),
+    ('WAL',  'Walasmulla',       'Walasmulla',       'Branch Contact');
 
 -- ============================================================
 -- Step 4: Insert 59 printers
@@ -222,14 +224,16 @@ JOIN printers pr     ON pr.printer_code = p.serial
 JOIN toner_models tm ON tm.model_code   = p.toner_model;
 
 -- ============================================================
--- Default paper types
+-- Step 6: Correct 3 paper types (A4, B4, Letter only)
 -- ============================================================
 INSERT INTO paper_types (name, size, gsm, min_stock) VALUES
     ('A4 80gsm',     'A4',     80, 20),
-    ('A4 75gsm',     'A4',     75, 15),
-    ('A3 80gsm',     'A3',     80, 10),
+    ('B4 80gsm',     'B4',     80, 15),
     ('Letter 75gsm', 'Letter', 75, 10)
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (name) DO UPDATE SET
+    size      = EXCLUDED.size,
+    gsm       = EXCLUDED.gsm,
+    min_stock = EXCLUDED.min_stock;
 
 INSERT INTO paper_stock (paper_type_id, quantity)
 SELECT id, 0 FROM paper_types
@@ -239,11 +243,11 @@ ON CONFLICT (paper_type_id) DO NOTHING;
 -- Verify final counts
 -- ============================================================
 SELECT tbl, rows FROM (
-    SELECT 'branches'             AS tbl, COUNT(*) AS rows FROM branches
-    UNION ALL SELECT 'toner_models',      COUNT(*) FROM toner_models
-    UNION ALL SELECT 'printers',          COUNT(*) FROM printers
-    UNION ALL SELECT 'toner_installations', COUNT(*) FROM toner_installations
-    UNION ALL SELECT 'toner_stock',       COUNT(*) FROM toner_stock
-    UNION ALL SELECT 'paper_types',       COUNT(*) FROM paper_types
-    UNION ALL SELECT 'users',             COUNT(*) FROM users
+    SELECT 'branches'               AS tbl, COUNT(*) AS rows FROM branches
+    UNION ALL SELECT 'toner_models',          COUNT(*) FROM toner_models
+    UNION ALL SELECT 'printers',              COUNT(*) FROM printers
+    UNION ALL SELECT 'toner_installations',   COUNT(*) FROM toner_installations
+    UNION ALL SELECT 'toner_stock',           COUNT(*) FROM toner_stock
+    UNION ALL SELECT 'paper_types',           COUNT(*) FROM paper_types
+    UNION ALL SELECT 'users',                 COUNT(*) FROM users
 ) t ORDER BY tbl;
