@@ -1,55 +1,60 @@
 /* ============================================================
-   SoftWave — Navigation & Layout Module
+   SoftWave — Navigation & Layout
    File: js/nav.js
    ============================================================ */
 
 var NAVS = {
   manager: [
     { s: 'Overview', items: [
-      { i: '📊', l: 'Dashboard',   p: 'dashboard' },
-      { i: '🏢', l: 'Branches',    p: 'branches'  },
-      { i: '🖨️', l: 'Printers',    p: 'printers'  },
+      { i: '📊', l: 'Dashboard',        p: 'dashboard'    },
+      { i: '🏢', l: 'Branches',         p: 'branches'     },
+      { i: '🖨️', l: 'Printers',         p: 'printers'     },
     ]},
     { s: 'Inventory', items: [
-      { i: '📦', l: 'Toner Stock', p: 'stock' },
-      { i: '📄', l: 'Paper Stock', p: 'paper' },
+      { i: '📦', l: 'Toner Stock',      p: 'stock'        },
+      { i: '📄', l: 'Paper Stock',      p: 'paper'        },
     ]},
     { s: 'Management', items: [
-      { i: '✅', l: 'Approvals',    p: 'approvals',   badge: 'approvals-badge' },
-      { i: '📊', l: 'Print Report', p: 'printreport' },
+      { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
+      { i: '📥', l: 'Import Approvals', p: 'importapprove',badge: 'import-badge'    },
+      { i: '📊', l: 'Print Report',     p: 'printreport'  },
     ]},
   ],
 
-  /* ── SERVICE: ONE page only — End of Day Log ── */
+  /* ── SERVICE PERSON ── */
   service: [
     { s: 'My Work', items: [
-      { i: '📊', l: 'End of Day Log', p: 'eodlog' },
+      { i: '📊', l: 'End of Day Log',   p: 'eodlog'       },
+      { i: '🔄', l: 'Toner Replaced',   p: 'tonerlog'     },
     ]},
   ],
 
   store: [
     { s: 'Warehouse', items: [
-      { i: '📊', l: 'Overview',        p: 'store'         },
-      { i: '🖨️', l: 'Toner Stock',     p: 'store-toner'   },
-      { i: '📄', l: 'Paper Stock',      p: 'store-paper'   },
+      { i: '📦', l: 'Dispatch Queue',   p: 'store-dispatch', badge: 'store-dispatch-badge' },
+      { i: '📊', l: 'Overview',         p: 'store'        },
+      { i: '🖨️', l: 'Toner Stock',      p: 'store-toner'  },
+      { i: '📄', l: 'Paper Stock',      p: 'store-paper'  },
       { i: '📋', l: 'Movement History', p: 'store-history' },
     ]},
   ],
 
   dba: [
     { s: 'Admin', items: [
-      { i: '🗄️', l: 'Administration', p: 'dba'          },
-      { i: '📊', l: 'Dashboard',       p: 'dashboard'    },
-      { i: '📦', l: 'Toner Stock',     p: 'stock'        },
-      { i: '📄', l: 'Paper Stock',     p: 'paper'        },
-      { i: '🖨️', l: 'Printers',        p: 'printers'     },
-      { i: '✅', l: 'Approvals',        p: 'approvals',   badge: 'approvals-badge' },
+      { i: '🗄️', l: 'Administration',   p: 'dba'          },
+      { i: '📥', l: 'Excel Import',     p: 'import',       badge: 'import-badge' },
+      { i: '📊', l: 'Dashboard',        p: 'dashboard'    },
+      { i: '📦', l: 'Toner Stock',      p: 'stock'        },
+      { i: '📄', l: 'Paper Stock',      p: 'paper'        },
+      { i: '🖨️', l: 'Printers',         p: 'printers'     },
+      { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
       { i: '📊', l: 'Print Report',     p: 'printreport'  },
     ]},
   ],
 };
 
 
+/* ── Build sidebar nav ───────────────────────────────────── */
 function buildNav() {
   var nav = document.getElementById('sbnav');
   nav.innerHTML = '';
@@ -75,7 +80,7 @@ function buildNav() {
     });
   });
 
-  /* Activate first item */
+  /* Activate first item automatically */
   var first = nav.querySelector('.nb');
   if (first) {
     first.classList.add('act');
@@ -89,69 +94,54 @@ function buildNav() {
       (APP.user.role === 'manager' || APP.user.role === 'dba') ? '' : 'none';
   }
 
-  /* Poll pending badge after short delay — manager & dba only */
+  /* Badge polling — manager & dba only */
   if (APP.user.role === 'manager' || APP.user.role === 'dba') {
     setTimeout(function() {
       if (typeof refreshPendingBadge === 'function') {
         refreshPendingBadge();
         setInterval(refreshPendingBadge, 60000);
       }
+      if (typeof refreshImportBadge === 'function') {
+        refreshImportBadge();
+        setInterval(refreshImportBadge, 60000);
+      }
     }, 800);
   }
 }
 
 
+/* ── Show page ───────────────────────────────────────────── */
 function showPage(id, btn) {
-  /* Hide all pages & deactivate all nav buttons */
+  /* Hide all pages + deactivate all nav buttons */
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('act'); });
   document.querySelectorAll('.nb').forEach(function(b)   { b.classList.remove('act'); });
   if (btn) btn.classList.add('act');
 
-  /* ── Service sub-pages (manager/dba can still access page-service via URL) ── */
-  if (id === 'service-new') {
-    var pg = document.getElementById('page-service');
-    if (pg) pg.classList.add('act');
-    if (typeof loadService === 'function') loadService();
-    setTimeout(function() {
-      if (typeof switchSvcTab === 'function') switchSvcTab('new');
-    }, 150);
-    return;
-  }
-  if (id === 'service-log') {
-    var pg = document.getElementById('page-service');
-    if (pg) pg.classList.add('act');
-    if (typeof loadService === 'function') loadService();
-    setTimeout(function() {
-      if (typeof switchSvcTab === 'function') switchSvcTab('log');
-    }, 150);
-    return;
-  }
-  if (id === 'service') {
-    var pg = document.getElementById('page-service');
-    if (pg) pg.classList.add('act');
-    ['requests','new','log'].forEach(function(t) {
-      var tab   = document.getElementById('svc-tab-'   + t);
-      var panel = document.getElementById('svc-panel-' + t);
-      if (tab)   tab.className       = 'svc-tab' + (t === 'requests' ? ' svc-tab-act' : '');
-      if (panel) panel.style.display = t === 'requests' ? '' : 'none';
-    });
-    if (typeof loadService === 'function') loadService();
-    return;
-  }
-
-  /* ── Store sub-pages ── */
-  if (id === 'store-toner' || id === 'store-paper' || id === 'store-history') {
-    var tab = id.replace('store-','');
+  /* ── Store sub-tabs ── */
+  if (id === 'store' || id === 'store-dispatch' || id === 'store-toner' || id === 'store-paper' || id === 'store-history') {
+    var tab = id === 'store' ? 'overview' : id.replace('store-', '');
     var pg  = document.getElementById('page-store');
     if (pg) pg.classList.add('act');
     if (typeof loadStore === 'function') loadStore();
     setTimeout(function() {
       if (typeof switchStoreTab === 'function') switchStoreTab(tab);
     }, 150);
+    startAutoRefresh(id);
     return;
   }
 
-  /* ── Normal page — show page-{id} and call its loader ── */
+  /* ── Manager import approvals ── */
+  if (id === 'importapprove') {
+    var pg = document.getElementById('page-import');
+    if (pg) pg.classList.add('act');
+    if (typeof loadImport === 'function') loadImport();
+    setTimeout(function() {
+      if (typeof switchImportTab === 'function') switchImportTab('pending');
+    }, 150);
+    return;
+  }
+
+  /* ── Normal page + loader map ── */
   var pg = document.getElementById('page-' + id);
   if (pg) pg.classList.add('act');
 
@@ -161,19 +151,74 @@ function showPage(id, btn) {
     printers:    loadPrinters,
     stock:       loadStock,
     paper:       loadPaper,
-    replace:     loadService,
-    printlog:    loadService,
     approvals:   loadApprovals,
     printreport: loadPrintReport,
-    store:       loadStore,
+    /* store handled by sub-tab routing above */
+    import:      loadImport,
     dba:         loadDBA,
-    eodlog:      loadEOD,      /* ← End of Day Log — service person only */
+    eodlog:      loadEOD,
+    tonerlog:    loadTonerLog,
   };
 
-  if (loaders[id]) loaders[id]();
+  /* Call loader — use double rAF to ensure page is painted before data loads */
+  if (loaders[id]) {
+    var _fn = loaders[id];
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        _fn();
+      });
+    });
+  }
+  startAutoRefresh(id);
 }
 
 
+/* ── Auto-refresh ───────────────────────────────────────────── */
+var _autoRefreshInterval = null;
+var _currentPage         = null;
+
+var AUTO_REFRESH = {
+  dashboard:   60,
+  approvals:   30,
+  eodlog:      60,
+  tonerlog:    60,
+  store:       45,
+  printreport: 120,
+  paper:       120,
+  stock:       120,
+  branches:    120,
+};
+
+function startAutoRefresh(pageId) {
+  _currentPage = pageId;
+  if (_autoRefreshInterval) { clearInterval(_autoRefreshInterval); _autoRefreshInterval = null; }
+
+  var key = pageId;
+  if (pageId === 'store-dispatch' || pageId === 'store-toner' ||
+      pageId === 'store-paper'    || pageId === 'store-history') { key = 'store'; }
+
+  var seconds = AUTO_REFRESH[key];
+  if (!seconds) return;
+
+  _autoRefreshInterval = setInterval(function() {
+    if (document.hidden) return;
+    var loaders = {
+      dashboard:   typeof loadDashboard   === 'function' ? loadDashboard   : null,
+      approvals:   typeof loadApprovals   === 'function' ? loadApprovals   : null,
+      eodlog:      typeof loadEOD         === 'function' ? loadEOD         : null,
+      tonerlog:    typeof loadTonerLog    === 'function' ? loadTonerLog    : null,
+      store:       typeof loadDispatchQueue === 'function' ? loadDispatchQueue : (typeof loadStore === 'function' ? loadStore : null),
+      printreport: typeof loadPrintReport === 'function' ? loadPrintReport : null,
+      paper:       typeof loadPaper       === 'function' ? loadPaper       : null,
+      stock:       typeof loadStock       === 'function' ? loadStock       : null,
+      branches:    typeof loadBranches    === 'function' ? loadBranches    : null,
+    };
+    var fn = loaders[key];
+    if (fn) fn();
+  }, seconds * 1000);
+}
+
+/* ── Clock ───────────────────────────────────────────────── */
 function updateClock() {
   var el = document.getElementById('lclk');
   if (el) el.textContent = new Date().toLocaleTimeString('en-US', {

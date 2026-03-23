@@ -69,6 +69,9 @@
     <button class="nw-tab" id="tab-monthly" onclick="nwTab('monthly')">
       <span class="nw-tab-icon">📅</span> Monthly Report
     </button>
+    <button class="nw-tab" id="tab-replacements" onclick="nwTab('replacements')">
+      <span class="nw-tab-icon">🔄</span> Toner Replacements
+    </button>
   </div>
 
   <!-- ── YESTERDAY PANEL ─────────────────────── -->
@@ -217,6 +220,32 @@
         </button>
       </div>
       <div id="nw-req-list">
+        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── TONER REPLACEMENTS PANEL ─────────────────── -->
+    <div class="nw-panel" id="panel-replacements">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">Toner Replacements</div>
+          <div class="nw-section-sub">Physical replacements logged by service persons — date, time &amp; who</div>
+        </div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="nwLoadReplacements()">
+          ↺ Refresh
+        </button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="nw-search-wrap" style="margin-bottom:16px">
+        <span class="nw-search-icon">🔍</span>
+        <input class="nw-search-input" id="repl-search"
+          placeholder="Search branch or printer..."
+          oninput="nwFilterReplacements(this.value)">
+        <button class="nw-search-clear" id="repl-clear" onclick="nwClearReplSearch()" style="display:none">✕</button>
+      </div>
+
+      <div id="nw-repl-list">
         <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
       </div>
     </div>
@@ -399,16 +428,33 @@ async function nwApi(path) {
 }
 
 /* ── Tab switching ──────────────────────────── */
+var _nwRefreshInterval = null;
+var _nwCurrentTab      = null;
+var NW_AUTO_REFRESH    = { yesterday:60, toner:90, requests:45, replacements:60, monthly:300 };
+
 function nwTab(name) {
   document.querySelectorAll('.nw-tab').forEach(function(t) { t.classList.remove('act'); });
   document.querySelectorAll('.nw-panel').forEach(function(p) { p.classList.remove('act'); });
   document.getElementById('tab-' + name).classList.add('act');
   document.getElementById('panel-' + name).classList.add('act');
 
-  if (name === 'yesterday') nwLoadYesterday();
-  if (name === 'toner')     nwLoadToner();
-  if (name === 'monthly')   nwLoadMonthly();
-  if (name === 'requests')  nwLoadMyRequests();
+  if (name === 'yesterday')    nwLoadYesterday();
+  if (name === 'toner')        nwLoadToner();
+  if (name === 'monthly')      nwLoadMonthly();
+  if (name === 'requests')     nwLoadMyRequests();
+  if (name === 'replacements') nwLoadReplacements();
+
+  _nwCurrentTab = name;
+  if (_nwRefreshInterval) { clearInterval(_nwRefreshInterval); _nwRefreshInterval = null; }
+  var secs = NW_AUTO_REFRESH[name];
+  if (!secs) return;
+  _nwRefreshInterval = setInterval(function() {
+    if (document.hidden) return;
+    if      (_nwCurrentTab === 'yesterday')    nwLoadYesterday();
+    else if (_nwCurrentTab === 'toner')        nwLoadToner();
+    else if (_nwCurrentTab === 'requests')     nwLoadMyRequests();
+    else if (_nwCurrentTab === 'replacements') nwLoadReplacements();
+  }, secs * 1000);
 }
 
 /* ══════════════════════════════════════════════
@@ -879,6 +925,140 @@ async function nwLoadMyRequests() {
 }
 
 /* Update tab routing to include requests */
+/* ══════════════════════════════════════════════
+   TONER REPLACEMENTS
+   ══════════════════════════════════════════════ */
+var _replData = [];
+
+async function nwLoadReplacements() {
+  document.getElementById('nw-repl-list').innerHTML =
+    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var si = document.getElementById('repl-search');
+  var cb = document.getElementById('repl-clear');
+  if (si) si.value = '';
+  if (cb) cb.style.display = 'none';
+
+  var rows = await nwApi('/printers/toner-replacements');
+  if (!rows) return;
+  _replData = rows;
+  nwRenderReplacements(rows);
+}
+
+function nwRenderReplacements(rows) {
+  var el = document.getElementById('nw-repl-list');
+
+  if (!rows.length) {
+    el.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
+      + '<div style="font-size:36px">🔄</div>'
+      + '<div style="font-size:14px;font-weight:600;color:var(--tx)">No replacements logged yet</div>'
+      + '<div style="font-size:12px;color:var(--t3)">Service persons will appear here when they log a toner replacement</div>'
+      + '</div>';
+    return;
+  }
+
+  function fmt(dtStr) {
+    if (!dtStr) return null;
+    return new Date(dtStr).toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  el.innerHTML = rows.map(function(r) {
+    var replacedAt = fmt(r.installed_at);
+
+    // Build workflow steps — only show steps that have data
+    var steps = [];
+
+    // Step 1: Requested (if came via request system)
+    if (r.requested_by_name) {
+      steps.push({
+        icon: '📤', col: '#6366f1', bg: '#f5f3ff',
+        label: 'Requested',
+        who: r.requested_by_name,
+        when: fmt(r.requested_at)
+      });
+    }
+
+    // Step 2: Manager approved
+    if (r.approved_by_name) {
+      steps.push({
+        icon: '✅', col: '#10b981', bg: '#f0fdf4',
+        label: 'Approved',
+        who: r.approved_by_name,
+        when: fmt(r.reviewed_at)
+      });
+    }
+
+    // Step 3: Store dispatched
+    if (r.dispatched_by_name) {
+      steps.push({
+        icon: '📦', col: '#3b82f6', bg: '#eff6ff',
+        label: 'Dispatched',
+        who: r.dispatched_by_name,
+        when: fmt(r.dispatched_at)
+      });
+    }
+
+    // Step 4: Service person replaced (always shown)
+    steps.push({
+      icon: '🔄', col: '#f59e0b', bg: '#fffbeb',
+      label: 'Replaced',
+      who: r.installed_by_name || r.installed_by_username || '—',
+      when: replacedAt
+    });
+
+    var stepsHtml = steps.map(function(s, i) {
+      return '<div class="nw-repl-step">'
+        + (i > 0 ? '<div class="nw-repl-step-arrow">→</div>' : '')
+        + '<div class="nw-repl-step-box" style="border-color:' + s.col + ';background:' + s.bg + '">'
+        +   '<div class="nw-repl-step-icon">' + s.icon + '</div>'
+        +   '<div class="nw-repl-step-label" style="color:' + s.col + '">' + s.label + '</div>'
+        +   '<div class="nw-repl-step-who">' + s.who + '</div>'
+        +   (s.when ? '<div class="nw-repl-step-when">' + s.when + '</div>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="nw-repl-card">'
+      + '<div class="nw-repl-card-header">'
+      +   '<div class="nw-repl-card-title">'
+      +     '<div class="nw-repl-printer">' + r.printer_code + '</div>'
+      +     '<div class="nw-repl-model">' + (r.toner_model || '—') + '</div>'
+      +   '</div>'
+      +   '<div class="nw-repl-location">'
+      +     '<span class="nw-branch-code" style="font-size:10px">' + r.branch_code + '</span>'
+      +     '<span class="nw-repl-branch-name">' + r.branch_name + '</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="nw-repl-workflow">' + stepsHtml + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function nwFilterReplacements(q) {
+  var cb = document.getElementById('repl-clear');
+  if (cb) cb.style.display = q ? 'flex' : 'none';
+  if (!q.trim()) { nwRenderReplacements(_replData); return; }
+  var lower = q.toLowerCase();
+  var filtered = _replData.filter(function(r) {
+    return r.branch_code.toLowerCase().includes(lower)
+        || r.branch_name.toLowerCase().includes(lower)
+        || r.printer_code.toLowerCase().includes(lower)
+        || (r.installed_by_name||'').toLowerCase().includes(lower);
+  });
+  nwRenderReplacements(filtered);
+}
+
+function nwClearReplSearch() {
+  var si = document.getElementById('repl-search');
+  var cb = document.getElementById('repl-clear');
+  if (si) si.value = '';
+  if (cb) cb.style.display = 'none';
+  nwRenderReplacements(_replData);
+}
+
 /* ── Toast ──────────────────────────────────── */
 var _toastTimer;
 function nwToast(ico, txt) {

@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Separated CSS files -->
-<link rel="stylesheet" href="/css/main.css">
-<link rel="stylesheet" href="/css/login.css">
-<link rel="stylesheet" href="/css/pages.css">
+<link rel="stylesheet" href="/css/main.css?v=1774243746">
+<link rel="stylesheet" href="/css/login.css?v=1774243746">
+<link rel="stylesheet" href="/css/pages.css?v=1774243746">
 </head>
 <body>
 
@@ -1211,6 +1211,35 @@
       </div>
     </div>
 
+    <!-- ── TONER REPLACEMENT LOG — Service Person ──────── -->
+    <div class="page" id="page-tonerlog">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Toner Replacement Log</div>
+          <div class="pgs">Mark when you physically replace a toner cartridge</div>
+        </div>
+        <div class="pgact">
+          <button class="btn btn-g" onclick="loadTonerLog()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Branch badge (assigned) or selector (ALL access) -->
+      <div id="tl-branch-badge-wrap" style="display:none">
+        <div class="tl-branch-badge" id="tl-branch-badge">—</div>
+      </div>
+      <div id="tl-branch-select-wrap" class="tl-branch-sel-wrap" style="display:none">
+        <span style="font-size:20px">🏢</span>
+        <select class="fs" id="tl-branch-sel" onchange="tlBranchChanged()" style="flex:1">
+          <option value="">— Select Branch —</option>
+        </select>
+      </div>
+
+      <!-- Printer cards injected by JS -->
+      <div id="tl-printers">
+        <div class="tl-loading"><div class="spin"></div> Loading…</div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1560,9 +1589,11 @@
 <script src="/js/approvals.js"></script>
 <script src="/js/printreport.js"></script>
 <script src="/js/store.js"></script>
+<script src="/js/import.js"></script>
 <script src="/js/eodlog.js"></script>
 <script src="/js/dba.js"></script>
 <script src="/js/paper.js"></script>
+<script src="/js/tonerlog.js"></script>
 
 <script>
 /* ── Mobile Sidebar Toggle ─────────────────────────────── */

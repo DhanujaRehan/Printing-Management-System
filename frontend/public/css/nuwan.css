@@ -501,3 +501,76 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .nw-tl-info { text-align:left; margin-top:0; padding-top:6px; }
   .nw-tl-sub  { max-width:none; }
 }
+
+/* ── TONER REPLACEMENT CARDS (Nuwan dashboard) ───────────── */
+.nw-repl-card {
+  display:flex; gap:14px; padding:16px 20px;
+  border-bottom:1px solid #f1f5f9; transition:background .12s;
+}
+.nw-repl-card:last-child { border-bottom:none; }
+.nw-repl-card:hover { background:#f8fafc; }
+
+.nw-repl-card-left { display:flex; flex-direction:column; align-items:center; padding-top:3px; }
+.nw-repl-icon {
+  width:36px; height:36px; border-radius:10px;
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.nw-repl-card-body { flex:1; min-width:0; }
+.nw-repl-top    { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.nw-repl-printer { font-family:var(--m); font-size:16px; font-weight:800; color:var(--tx); }
+.nw-repl-model   { font-size:12px; color:var(--t3); background:#f1f5f9; padding:2px 8px; border-radius:6px; }
+.nw-repl-meta    { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.nw-repl-footer  { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.nw-repl-by  { font-size:12px; color:var(--t2); font-weight:600; }
+.nw-repl-dt  { font-size:12px; color:var(--t3); }
+
+@media (max-width:480px) {
+  .nw-repl-footer { flex-direction:column; align-items:flex-start; gap:4px; }
+}
+
+/* ── TONER REPLACEMENT WORKFLOW CARDS (updated) ──────────── */
+.nw-repl-card {
+  background:#fff; border:1px solid var(--sb); border-radius:16px;
+  padding:18px 20px; margin-bottom:14px; box-shadow:var(--shadow);
+  transition:box-shadow .2s;
+}
+.nw-repl-card:hover { box-shadow:var(--shadow-lg); }
+
+.nw-repl-card-header {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; margin-bottom:16px; flex-wrap:wrap;
+}
+.nw-repl-card-title  { display:flex; align-items:center; gap:10px; }
+.nw-repl-printer     { font-family:var(--m); font-size:17px; font-weight:800; color:var(--tx); }
+.nw-repl-model       { font-size:11px; font-weight:700; background:#f1f5f9; color:var(--t2); padding:3px 9px; border-radius:6px; }
+.nw-repl-location    { display:flex; align-items:center; gap:7px; }
+.nw-repl-branch-name { font-size:12px; color:var(--t2); }
+
+/* Workflow steps */
+.nw-repl-workflow {
+  display:flex; align-items:stretch; gap:0; flex-wrap:wrap; gap:6px;
+}
+.nw-repl-step {
+  display:flex; align-items:center; gap:6px; flex:1; min-width:120px;
+}
+.nw-repl-step-arrow {
+  font-size:16px; color:var(--t3); flex-shrink:0; padding:0 2px;
+}
+.nw-repl-step-box {
+  flex:1; border:1.5px solid; border-radius:12px; padding:10px 12px;
+  display:flex; flex-direction:column; gap:2px; min-width:0;
+}
+.nw-repl-step-icon  { font-size:16px; margin-bottom:2px; }
+.nw-repl-step-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+.nw-repl-step-who   { font-size:12px; font-weight:700; color:var(--tx); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nw-repl-step-when  { font-size:10px; color:var(--t3); margin-top:1px; }
+
+@media (max-width:640px) {
+  .nw-repl-workflow   { flex-direction:column; gap:6px; }
+  .nw-repl-step       { flex-direction:column; align-items:flex-start; }
+  .nw-repl-step-arrow { transform:rotate(90deg); margin-left:16px; }
+  .nw-repl-step-box   { width:100%; }
+  .nw-repl-step-who   { white-space:normal; }
+}

@@ -22,27 +22,33 @@ from routes.users    import router as users_router
 from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
 from routes.nuwan    import router as nuwan_router
-from scheduler import start_scheduler
+
+try:
+    from routes.imports import router as imports_router
+    _has_imports = True
+except Exception:
+    _has_imports = False
+
+try:
+    from scheduler import start_scheduler
+    _has_scheduler = True
+except Exception:
+    _has_scheduler = False
+
+# ── App setup ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="SoftWave Print Management API",
-    description="SoftWave Enterprise Print Management System",
     version="1.0.0",
 )
 
-@app.on_event("startup")
-async def on_startup():
-    start_scheduler()
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logging.getLogger("softwave.scheduler").setLevel(logging.INFO)
+# ── Global error handler ──────────────────────────────────────────────────────
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": f"Internal error: {str(exc)}"}
-    )
+    return JSONResponse(status_code=500, content={"detail": f"Internal error: {str(exc)}"})
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,6 +57,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Routes ────────────────────────────────────────────────────────────────────
 
 app.include_router(auth_router)
 app.include_router(branches_router)
@@ -61,9 +69,23 @@ app.include_router(paper_router)
 app.include_router(requests_router)
 app.include_router(nuwan_router)
 
+if _has_imports:
+    app.include_router(imports_router)
+
+# ── Startup ───────────────────────────────────────────────────────────────────
+
+@app.on_event("startup")
+async def startup():
+    if _has_scheduler:
+        start_scheduler()
+
+# ── Health check ──────────────────────────────────────────────────────────────
+
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "version": "4.2.0"}
+    return {"status": "ok"}
+
+# ── Serve frontend ────────────────────────────────────────────────────────────
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "public"
 
@@ -72,26 +94,26 @@ if FRONTEND_DIR.exists():
     app.mount("/js",     StaticFiles(directory=str(FRONTEND_DIR / "js")),     name="js")
     app.mount("/images", StaticFiles(directory=str(FRONTEND_DIR / "images")), name="images")
 
+    @app.get("/monitor", response_class=FileResponse)
+    def serve_monitor():
+        return FileResponse(str(FRONTEND_DIR / "nuwan.html"))
+
     @app.get("/", response_class=FileResponse)
     def serve_index():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
 
-    @app.get("/monitor", response_class=FileResponse)
-    def serve_nuwan():
-        return FileResponse(str(FRONTEND_DIR / "nuwan.html"))
+    @app.get("/{full_path:path}", response_class=FileResponse)
+    def serve_spa(full_path: str):
+        f = FRONTEND_DIR / full_path
+        if f.exists() and f.is_file():
+            return FileResponse(str(f))
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
 
-    # SPA fallback — only serve index.html for GET requests to non-API paths
-    # All methods allowed so POST/PATCH/DELETE to /api/* don't get 405
-    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
-    async def serve_spa(request: Request, full_path: str):
-        # Only serve frontend for GET requests to non-API paths
-        if request.method == "GET" and not full_path.startswith("api/"):
-            return FileResponse(str(FRONTEND_DIR / "index.html"))
-        return JSONResponse(status_code=404, content={"detail": "Not found"})
+# ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 4000))
-    print(f"\n  SoftWave Print Management System starting on http://localhost:{port}")
+    print(f"\n  SoftWave API starting on http://localhost:{port}")
     print(f"  API Docs: http://localhost:{port}/docs\n")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
