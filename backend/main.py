@@ -6,6 +6,7 @@ Entry point: python main.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from fastapi.params import Depends
 
 load_dotenv()
 
@@ -23,11 +24,7 @@ from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
 from routes.nuwan    import router as nuwan_router
 
-try:
-    from routes.imports import router as imports_router # type: ignore
-    _has_imports = True
-except Exception:
-    _has_imports = False
+from routes.imports import router as imports_router # type: ignore
 
 try:
     from scheduler import start_scheduler
@@ -69,8 +66,7 @@ app.include_router(paper_router)
 app.include_router(requests_router)
 app.include_router(nuwan_router)
 
-if _has_imports:
-    app.include_router(imports_router)
+app.include_router(imports_router)
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 
@@ -78,6 +74,18 @@ if _has_imports:
 async def startup():
     if _has_scheduler:
         start_scheduler()
+
+# ── Test email endpoint (manager/dba only) ───────────────────────────────────
+
+@app.get("/api/test-email")
+def test_email():
+    """Manually trigger the missing log check — for testing only."""
+    try:
+        from scheduler import check_missing_logs
+        check_missing_logs()
+        return {"status": "ok", "message": "Email check triggered — check server logs and inbox"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 # ── Health check ──────────────────────────────────────────────────────────────
 
@@ -108,6 +116,20 @@ if FRONTEND_DIR.exists():
         if f.exists() and f.is_file():
             return FileResponse(str(f))
         return FileResponse(str(FRONTEND_DIR / "index.html"))
+
+# ── Test email endpoint (manager/dba only) ───────────────────────────────────
+
+from middleware.auth import require_role as _require_role
+
+@app.get("/api/test-email-alert")
+def test_email_alert(current_user: dict = Depends(_require_role("manager", "dba"))):
+    """Manually trigger the missing log email check — for testing only."""
+    try:
+        from scheduler import check_missing_logs
+        check_missing_logs()
+        return {"status": "ok", "message": "Email check triggered — check Nuwan inbox and server logs"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
