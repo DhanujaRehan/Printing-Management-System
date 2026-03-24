@@ -6,11 +6,10 @@ Entry point: python main.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi.params import Depends
 
 load_dotenv()
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -23,8 +22,9 @@ from routes.users    import router as users_router
 from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
 from routes.nuwan    import router as nuwan_router
+from routes.rentals  import router as rentals_router
 
-from routes.imports import router as imports_router # type: ignore
+from routes.imports import router as imports_router
 
 try:
     from scheduler import start_scheduler
@@ -65,6 +65,7 @@ app.include_router(users_router)
 app.include_router(paper_router)
 app.include_router(requests_router)
 app.include_router(nuwan_router)
+app.include_router(rentals_router)
 
 app.include_router(imports_router)
 

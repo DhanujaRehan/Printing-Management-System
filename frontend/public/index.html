@@ -1232,6 +1232,67 @@
       </div>
     </div>
 
+    <!-- ── RENTAL PRINTERS ──────────────────────────────── -->
+    <div class="page" id="page-rentals">
+      <div class="pgh">
+        <div>
+          <div class="pgt">📋 Rental Printers</div>
+          <div class="pgs">Gestetner rental agreements — 3 year contracts</div>
+        </div>
+        <button class="btn btn-g" onclick="loadRentals()" style="font-size:12px">↺ Refresh</button>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="rental-kpi-row">
+        <div class="rental-kpi rental-kpi-total">
+          <div class="rental-kpi-num" id="rnt-total">—</div>
+          <div class="rental-kpi-lbl">Total Printers</div>
+        </div>
+        <div class="rental-kpi rental-kpi-ok">
+          <div class="rental-kpi-num" id="rnt-ok">—</div>
+          <div class="rental-kpi-lbl">Active</div>
+        </div>
+        <div class="rental-kpi rental-kpi-warn">
+          <div class="rental-kpi-num" id="rnt-warn">—</div>
+          <div class="rental-kpi-lbl">Expiring ≤6 months</div>
+        </div>
+        <div class="rental-kpi rental-kpi-soon">
+          <div class="rental-kpi-num" id="rnt-soon">—</div>
+          <div class="rental-kpi-lbl">Expiring ≤90 days</div>
+        </div>
+        <div class="rental-kpi rental-kpi-expired">
+          <div class="rental-kpi-num" id="rnt-expired">—</div>
+          <div class="rental-kpi-lbl">Expired</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="ch">
+          <h3>All Rental Printers</h3>
+          <div class="chr">
+            <input class="searchi" placeholder="🔍 Search branch or serial..."
+              oninput="filterRentals(this.value)">
+          </div>
+        </div>
+        <div class="scx">
+          <table class="tbl" id="rental-table">
+            <thead>
+              <tr>
+                <th>Serial No.</th>
+                <th>Branch</th>
+                <th>Agreement Date</th>
+                <th>End Date</th>
+                <th>Days Left</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="rental-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1585,6 +1646,7 @@
 <script src="/js/dba.js"></script>
 <script src="/js/paper.js"></script>
 <script src="/js/tonerlog.js"></script>
+  <script src="/js/rentals.js"></script>
 
 <script>
 /* ── Mobile Sidebar Toggle ─────────────────────────────── */
