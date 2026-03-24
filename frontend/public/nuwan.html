@@ -40,6 +40,13 @@
      ════════════════════════════════════════════ -->
 <div id="nw-app">
 
+  <!-- Mobile hamburger -->
+  <button class="nw-ham-btn" id="nw-ham-btn" onclick="nwToggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <!-- Mobile tab overlay -->
+  <div class="nw-ham-overlay" id="nw-ham-overlay" onclick="nwCloseMenu()"></div>
+
   <!-- Top nav -->
   <nav class="nw-topnav">
     <div class="nw-topnav-left">
@@ -71,6 +78,9 @@
     </button>
     <button class="nw-tab" id="tab-replacements" onclick="nwTab('replacements')">
       <span class="nw-tab-icon">🔄</span> Toner Replacements
+    </button>
+    <button class="nw-tab" id="tab-rentals" onclick="nwTab('rentals')">
+      <span class="nw-tab-icon">📋</span> Rental Printers
     </button>
   </div>
 
@@ -246,6 +256,51 @@
       </div>
 
       <div id="nw-repl-list">
+        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── RENTAL PRINTERS PANEL ───────────────── -->
+    <div class="nw-panel" id="panel-rentals">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">Rental Printers</div>
+          <div class="nw-section-sub">Gestetner 3-year rental agreements — all branches</div>
+        </div>
+        <button class="nw-download-btn" onclick="nwLoadRentals()">↺ Refresh</button>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="nw-rental-kpis" id="nw-rental-kpis">
+        <div class="nw-rental-kpi nw-rk-total">
+          <div class="nw-rk-num" id="nwr-total">—</div>
+          <div class="nw-rk-lbl">Total</div>
+        </div>
+        <div class="nw-rental-kpi nw-rk-ok">
+          <div class="nw-rk-num" id="nwr-ok">—</div>
+          <div class="nw-rk-lbl">Active</div>
+        </div>
+        <div class="nw-rental-kpi nw-rk-warn">
+          <div class="nw-rk-num" id="nwr-warn">—</div>
+          <div class="nw-rk-lbl">≤6 Months</div>
+        </div>
+        <div class="nw-rental-kpi nw-rk-soon">
+          <div class="nw-rk-num" id="nwr-soon">—</div>
+          <div class="nw-rk-lbl">≤90 Days</div>
+        </div>
+        <div class="nw-rental-kpi nw-rk-exp">
+          <div class="nw-rk-num" id="nwr-expired">—</div>
+          <div class="nw-rk-lbl">Expired</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <input class="nw-rental-search" id="nw-rental-search"
+        placeholder="🔍 Search branch or serial number..."
+        oninput="nwFilterRentals(this.value)">
+
+      <!-- Table -->
+      <div class="nw-rental-list" id="nw-rental-list">
         <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
       </div>
     </div>
