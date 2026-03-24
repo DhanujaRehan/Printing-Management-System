@@ -1092,6 +1092,85 @@ function nwToast(ico, txt) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
+
+/* -- Rental Printers ---------------------------------------- */
+var _nwRentals = [];
+
+async function nwLoadRentals() {
+  var listEl = document.getElementById('nw-rental-list');
+  if (listEl) listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var summary = (await nwApi('/rentals/summary')) || {};
+  var rentals  = (await nwApi('/rentals'))         || [];
+  _nwRentals   = rentals;
+  function setEl(id, v) { var e = document.getElementById(id); if(e) e.textContent = v||0; }
+  setEl('nwr-total',   summary.total);
+  setEl('nwr-ok',      summary.ok);
+  setEl('nwr-warn',    summary.warning);
+  setEl('nwr-soon',    summary.expiring_soon);
+  setEl('nwr-expired', summary.expired);
+  nwRenderRentals(rentals);
+}
+
+function nwRenderRentals(data) {
+  var el = document.getElementById('nw-rental-list');
+  if (!el) return;
+  if (!data || !data.length) {
+    el.innerHTML = '<div class="nw-spin-wrap">No rental printers found.</div>';
+    return;
+  }
+  el.innerHTML = data.map(function(r) {
+    var days    = parseInt(r.days_remaining);
+    var daysStr = isNaN(days) ? '--'
+      : days < 0 ? '<span style="color:#ef4444;font-weight:700">Expired</span>'
+      : '<span style="font-weight:700">' + days + ' days</span>';
+    var statusMap = {
+      expired:       '<span class="nw-rental-badge nw-rb-exp">Expired</span>',
+      expiring_soon: '<span class="nw-rental-badge nw-rb-soon">&lt;90 Days</span>',
+      warning:       '<span class="nw-rental-badge nw-rb-warn">&lt;6 Months</span>',
+      ok:            '<span class="nw-rental-badge nw-rb-ok">Active</span>',
+    };
+    var badge   = statusMap[r.status] || '';
+    var endDate = r.end_date
+      ? new Date(r.end_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+      : '--';
+    return '<div class="nw-rental-row">'
+      + '<div class="nw-rental-serial">' + r.serial_number + '</div>'
+      + '<div class="nw-rental-branch">' + r.branch_name   + '</div>'
+      + '<div class="nw-rental-end">'    + endDate         + '</div>'
+      + '<div class="nw-rental-days">'   + daysStr         + '</div>'
+      + '<div>'                          + badge           + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function nwFilterRentals(q) {
+  if (!q.trim()) { nwRenderRentals(_nwRentals); return; }
+  var lower = q.toLowerCase();
+  nwRenderRentals(_nwRentals.filter(function(r) {
+    return r.serial_number.toLowerCase().includes(lower)
+        || r.branch_name.toLowerCase().includes(lower);
+  }));
+}
+
+/* -- Mobile Hamburger --------------------------------------- */
+function nwToggleMenu() {
+  var tabs    = document.querySelector('.nw-tabs');
+  var overlay = document.getElementById('nw-ham-overlay');
+  var btn     = document.getElementById('nw-ham-btn');
+  var isOpen  = tabs.classList.contains('nw-tabs-open');
+  tabs.classList.toggle('nw-tabs-open', !isOpen);
+  if (overlay) overlay.classList.toggle('vis',  !isOpen);
+  if (btn)     btn.classList.toggle('open',     !isOpen);
+}
+
+function nwCloseMenu() {
+  var tabs    = document.querySelector('.nw-tabs');
+  var overlay = document.getElementById('nw-ham-overlay');
+  var btn     = document.getElementById('nw-ham-btn');
+  if (tabs)    tabs.classList.remove('nw-tabs-open');
+  if (overlay) overlay.classList.remove('vis');
+  if (btn)     btn.classList.remove('open');
+}
 </script>
 </body>
 </html>
