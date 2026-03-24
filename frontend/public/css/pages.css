@@ -624,7 +624,7 @@
 .eod-side-lbl:first-of-type { margin-top:0; }
 .eod-input { width:100%; padding:12px 6px; border:2px solid var(--sb); border-radius:10px;
   font-family:var(--m); font-size:20px; font-weight:700; color:var(--tx);
-  background:#f8fafc; text-align:center; transition:all .18s; appearance:textfield; -moz-appearance:textfield; }
+  background:#f8fafc; text-align:center; transition:all .18s; appearance:textfield; }
 .eod-input::-webkit-outer-spin-button,
 .eod-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .eod-input:focus { outline:none; border-color:var(--c1); background:#fff; box-shadow:0 0 0 4px rgba(14,165,233,.12); }
@@ -1085,4 +1085,68 @@
 @media (max-width: 480px) {
   .dba-audit-kpis   { grid-template-columns: 1fr 1fr; }
   .dba-health-grid  { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   DBA — USER MANAGEMENT MOBILE CARDS
+   ══════════════════════════════════════════════════════════ */
+
+/* Desktop: show table, hide cards */
+.um-table-wrap { display: block; }
+.um-cards-wrap { display: none; }
+
+/* Mobile: hide table, show cards */
+@media (max-width: 768px) {
+  .um-table-wrap { display: none; }
+  .um-cards-wrap {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 12px 4px;
+  }
+}
+
+.um-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  transition: box-shadow .2s;
+}
+.um-card:active { box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+
+.um-card-top {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 10px;
+  margin-bottom: 10px;
+}
+.um-card-info { flex: 1; min-width: 0; }
+.um-card-name {
+  font-size: 15px; font-weight: 800;
+  color: #0f172a; margin-bottom: 3px;
+}
+.um-card-user {
+  font-size: 11px; color: #64748b;
+  font-family: var(--m);
+}
+.um-card-badges {
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 4px;
+  flex-shrink: 0;
+}
+
+.um-card-meta {
+  font-size: 12px; color: #94a3b8;
+  margin-bottom: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.um-card-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.um-card-actions .btn {
+  flex: 1; min-width: 80px;
+  padding: 9px 8px;
+  font-size: 12px; font-weight: 700;
+  text-align: center; border-radius: 9px;
 }

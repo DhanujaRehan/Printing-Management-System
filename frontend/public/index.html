@@ -1185,15 +1185,20 @@
           <div style="display:flex;gap:6px;align-items:center">
             <input id="user-search" type="text" placeholder="Search name, username, role…"
               oninput="searchUsers()"
-              style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
+              style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:200px;background:var(--bg2,#f9f9f9);color:var(--t1)">
             <button class="btn btn-sm" onclick="clearSearch()"
-              style="font-size:11px;padding:5px 10px">✕ Clear</button>
+              style="font-size:11px;padding:5px 10px">✕</button>
           </div>
         </div>
-        <table class="tbl">
-          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="user-tbody"></tbody>
-        </table>
+        <!-- Desktop table (hidden on mobile) -->
+        <div class="um-table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+        <!-- Mobile cards (hidden on desktop) -->
+        <div class="um-cards-wrap" id="user-cards"></div>
       </div>
     </div>
 

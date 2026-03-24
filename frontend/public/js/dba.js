@@ -136,48 +136,75 @@ async function saveUser() {
 
 /* ── Render user table ────────────────────────────────────── */
 function renderUserTable(users) {
-  var tbody = document.getElementById('user-tbody');
-  if (!tbody) return;
+  var tbody    = document.getElementById('user-tbody');
+  var cardWrap = document.getElementById('user-cards');
+  if (!tbody && !cardWrap) return;
 
   if (!users || !users.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">No users found</td></tr>';
+    if (tbody)    tbody.innerHTML    = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">No users found</td></tr>';
+    if (cardWrap) cardWrap.innerHTML = '<div style="text-align:center;color:var(--t3);padding:30px">No users found</div>';
     return;
   }
 
-  tbody.innerHTML = users.map(function(u) {
-    var roleTag = u.role === 'manager' ? '<span class="tag tb">Manager</span>'
-                : u.role === 'dba'    ? '<span class="tag tp">DBA</span>'
-                : u.role === 'store'  ? '<span class="tag tg">Store</span>'
-                :                       '<span class="tag ta">Service</span>';
+  var roleColors = {
+    manager: { bg:'#dbeafe', color:'#1d4ed8', label:'Manager' },
+    dba:     { bg:'#ede9fe', color:'#6d28d9', label:'DBA'     },
+    store:   { bg:'#d1fae5', color:'#065f46', label:'Store'   },
+    service: { bg:'#fef9c3', color:'#92400e', label:'Service' },
+    nuwan:   { bg:'#fce7f3', color:'#9d174d', label:'Nuwan'   },
+  };
 
-    var branchCell = (u.branch_access && u.branch_access !== 'ALL')
-      ? '<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;font-family:var(--m)">' + u.branch_access + '</span>'
-      : '<span style="color:var(--t3);font-size:11px">All</span>';
-
+  var rows = users.map(function(u) {
+    var rc = roleColors[u.role] || { bg:'#f1f5f9', color:'#475569', label: u.role };
+    var roleTag   = '<span style="background:' + rc.bg + ';color:' + rc.color + ';padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700">' + rc.label + '</span>';
+    var branch    = (u.branch_access && u.branch_access !== 'ALL') ? u.branch_access : 'All';
     var lastLogin = u.last_login
       ? new Date(u.last_login).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
       : 'Never';
+    var statusTag = '<span style="background:' + (u.is_active?'#d1fae5':'#fee2e2') + ';color:' + (u.is_active?'#065f46':'#991b1b') + ';padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700">'
+      + (u.is_active ? 'Active' : 'Inactive') + '</span>';
+    var isDba = APP.user.role === 'dba';
 
-    var statusTag = '<span class="tag ' + (u.is_active ? 'tg' : 'tr') + '">' + (u.is_active ? '● Active' : '○ Inactive') + '</span>';
-
-    var actions = APP.user.role === 'dba'
-      ? '<button class="btn btn-g btn-sm" onclick="openEditUser(' + u.id + ')">✏️ Edit</button>'
-        + (u.is_active
-          ? '<button class="btn btn-er btn-sm" onclick="deactivateUser(' + u.id + ',\'' + u.username + '\')">Deactivate</button>'
-          : '<button class="btn btn-ok btn-sm" onclick="activateUser(' + u.id + ',\'' + u.username + '\')">Activate</button>')
-        + '<button class="btn btn-sm" onclick="openResetPassword(' + u.id + ',\'' + u.username + '\')" style="background:#d97706;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">🔑 Reset PW</button>'
-      : '—';
-
-    return '<tr>'
+    var trHtml = '<tr>'
       + '<td style="font-weight:600">' + u.full_name + '</td>'
-      + '<td style="font-family:var(--m);font-size:11px;color:var(--t3)">' + u.username + '</td>'
+      + '<td style="font-family:var(--m);font-size:11px;color:var(--t3)">@' + u.username + '</td>'
       + '<td>' + roleTag + '</td>'
-      + '<td>' + branchCell + '</td>'
+      + '<td style="font-size:11px">' + branch + '</td>'
       + '<td style="font-size:11px;color:var(--t3)">' + lastLogin + '</td>'
       + '<td>' + statusTag + '</td>'
-      + '<td style="display:flex;gap:4px;flex-wrap:wrap">' + actions + '</td>'
-      + '</tr>';
-  }).join('');
+      + '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'
+      + (isDba
+          ? '<button class="btn btn-g btn-sm" onclick="openEditUser(' + u.id + ')">Edit</button>'
+          + (u.is_active
+              ? '<button class="btn btn-er btn-sm" onclick="deactivateUser(' + u.id + ',\'' + u.username + '\')">Off</button>'
+              : '<button class="btn btn-ok btn-sm" onclick="activateUser(' + u.id + ',\'' + u.username + '\')">On</button>')
+          + '<button class="btn btn-sm" onclick="openResetPassword(' + u.id + ',\'' + u.username + '\')" style="background:#d97706;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer">PW</button>'
+          : '—')
+      + '</div></td></tr>';
+
+    var cardHtml = '<div class="um-card" style="border-left:4px solid ' + rc.color + '">'
+      + '<div class="um-card-top">'
+      +   '<div class="um-card-info">'
+      +     '<div class="um-card-name">' + u.full_name + '</div>'
+      +     '<div class="um-card-user">@' + u.username + ' &nbsp;·&nbsp; Branch: ' + branch + '</div>'
+      +   '</div>'
+      +   '<div class="um-card-badges">' + roleTag + statusTag + '</div>'
+      + '</div>'
+      + '<div class="um-card-meta">🕐 Last login: ' + lastLogin + '</div>'
+      + (isDba ? '<div class="um-card-actions">'
+          + '<button class="btn btn-g btn-sm" onclick="openEditUser(' + u.id + ')">✏️ Edit</button>'
+          + (u.is_active
+              ? '<button class="btn btn-er btn-sm" onclick="deactivateUser(' + u.id + ',\'' + u.username + '\')">Deactivate</button>'
+              : '<button class="btn btn-ok btn-sm" onclick="activateUser(' + u.id + ',\'' + u.username + '\')">Activate</button>')
+          + '<button class="btn btn-sm" onclick="openResetPassword(' + u.id + ',\'' + u.username + '\')" style="background:#d97706;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:700">🔑 Reset PW</button>'
+          + '</div>' : '')
+      + '</div>';
+
+    return { tr: trHtml, card: cardHtml };
+  });
+
+  if (tbody)    tbody.innerHTML    = rows.map(function(r){ return r.tr;   }).join('');
+  if (cardWrap) cardWrap.innerHTML = rows.map(function(r){ return r.card; }).join('');
 }
 
 
