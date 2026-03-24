@@ -584,7 +584,12 @@
             <div class="appr-hero-sub">Review, approve or reject toner &amp; paper requests from the service team</div>
           </div>
         </div>
-        <button class="btn btn-g" onclick="loadApprovals()" style="font-size:12px;flex-shrink:0">↺ Refresh</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-g" onclick="loadApprovals()" style="font-size:12px">↺ Refresh</button>
+          <button class="btn" onclick="downloadTonerAudit()" style="font-size:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700">
+            📥 Download Audit Excel
+          </button>
+        </div>
       </div>
 
       <!-- ══ KPI STRIP ════════════════════════════════════ -->

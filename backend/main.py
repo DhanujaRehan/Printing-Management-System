@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -23,6 +23,7 @@ from routes.paper    import router as paper_router
 from routes.requests import router as requests_router
 from routes.nuwan    import router as nuwan_router
 from routes.rentals  import router as rentals_router
+from routes.export   import router as export_router
 
 from routes.imports import router as imports_router
 
@@ -66,6 +67,7 @@ app.include_router(paper_router)
 app.include_router(requests_router)
 app.include_router(nuwan_router)
 app.include_router(rentals_router)
+app.include_router(export_router)
 
 app.include_router(imports_router)
 

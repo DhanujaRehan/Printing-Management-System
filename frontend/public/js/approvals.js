@@ -5,6 +5,32 @@
 
 var _allRequests = [];
 
+async function downloadTonerAudit() {
+  var btn = event.currentTarget;
+  var orig = btn.textContent;
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  try {
+    var res = await fetch('/api/export/toner-audit', {
+      headers: { 'Authorization': 'Bearer ' + APP.token }
+    });
+    if (!res.ok) { toast('❌', 'Export failed', 'Server error'); return; }
+    var blob = await res.blob();
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    var cd   = res.headers.get('Content-Disposition') || '';
+    var fn   = (cd.match(/filename=([^;]+)/) || [])[1] || 'toner_audit.xlsx';
+    a.href = url; a.download = fn.replace(/"/g,''); a.click();
+    URL.revokeObjectURL(url);
+    toast('✅', 'Downloaded!', 'Toner Audit Excel saved to your device');
+  } catch(e) {
+    toast('❌', 'Download failed', e.message || '');
+  } finally {
+    btn.textContent = orig;
+    btn.disabled    = false;
+  }
+}
+
 async function loadApprovals() {
   var container = document.getElementById('approvals-container');
   container.innerHTML = '<div class="loading"><div class="spin"></div>Loading requests...</div>';
