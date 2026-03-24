@@ -826,8 +826,8 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
 
 .nw-rental-row {
   display: grid;
-  grid-template-columns: 110px 1fr 110px 90px 90px;
-  align-items: center; gap: 10px;
+  grid-template-columns: 100px 160px 100px 80px 80px;
+  align-items: center; gap: 8px;
   padding: 11px 4px; border-bottom: 1px solid #f1f5f9;
   font-size: 13px;
 }
@@ -852,7 +852,7 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
 
 .nw-ham-btn {
   display: none;
-  position: fixed; top: 14px; right: 14px; z-index: 300;
+  position: fixed; top: 14px; left: 14px; z-index: 300;
   width: 42px; height: 42px;
   background: #fff; border: 1.5px solid #e2e8f0;
   border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.1);

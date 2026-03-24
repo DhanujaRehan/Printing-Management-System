@@ -571,6 +571,7 @@ function nwTab(name) {
   if (name === 'monthly')      nwLoadMonthly();
   if (name === 'requests')     nwLoadMyRequests();
   if (name === 'replacements') nwLoadReplacements();
+  if (name === 'rentals')       nwLoadRentals();
 
   _nwCurrentTab = name;
   if (_nwRefreshInterval) { clearInterval(_nwRefreshInterval); _nwRefreshInterval = null; }
