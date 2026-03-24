@@ -160,6 +160,7 @@ function showPage(id, btn) {
     dba:         loadDBA,
     eodlog:      loadEOD,
     tonerlog:    loadTonerLog,
+    rentals:     loadRentals,
   };
 
   /* Call loader — use double rAF to ensure page is painted before data loads */
