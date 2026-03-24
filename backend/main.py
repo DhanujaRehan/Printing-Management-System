@@ -122,10 +122,11 @@ if FRONTEND_DIR.exists():
 
 # ── Test email endpoint (manager/dba only) ───────────────────────────────────
 
+from fastapi import Depends as _Depends
 from middleware.auth import require_role as _require_role
 
 @app.get("/api/test-email-alert")
-def test_email_alert(current_user: dict = Depends(_require_role("manager", "dba"))):
+def test_email_alert(current_user: dict = _Depends(_require_role("manager", "dba"))):
     """Manually trigger the missing log email check — for testing only."""
     try:
         from scheduler import check_missing_logs
