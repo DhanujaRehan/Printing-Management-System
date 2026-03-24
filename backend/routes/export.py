@@ -25,11 +25,11 @@ def export_toner_audit(current_user: dict = Depends(_allowed)):
              Dispatched By & Date | Replaced By & Date | Status
     """
     try:
-        from openpyxl import Workbook
-        from openpyxl.styles import (
+        from openpyxl import Workbook # type: ignore
+        from openpyxl.styles import ( # type: ignore
             Font, PatternFill, Alignment, Border, Side, GradientFill
         )
-        from openpyxl.utils import get_column_letter
+        from openpyxl.utils import get_column_letter # type: ignore
     except ImportError:
         return {"error": "openpyxl not installed"}
 

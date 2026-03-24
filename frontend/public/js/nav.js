@@ -41,16 +41,10 @@ var NAVS = {
   ],
 
   dba: [
-    { s: 'Admin', items: [
-      { i: '🗄️', l: 'Administration',   p: 'dba'          },
-      { i: '📥', l: 'Excel Import',     p: 'import',       badge: 'import-badge' },
-      { i: '📊', l: 'Dashboard',        p: 'dashboard'    },
-      { i: '📦', l: 'Toner Stock',      p: 'stock'        },
-      { i: '📄', l: 'Paper Stock',      p: 'paper'        },
-      { i: '🖨️', l: 'Printers',         p: 'printers'     },
-      { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
-      { i: '📊', l: 'Print Report',     p: 'printreport'  },
-      { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
+    { s: 'Administration', items: [
+      { i: '🗄️', l: 'User Management',  p: 'dba'           },
+      { i: '🔍', l: 'User Audit Log',   p: 'dba-audit'     },
+      { i: '💚', l: 'System Health',    p: 'dba-health'    },
     ]},
   ],
 };
@@ -161,6 +155,8 @@ function showPage(id, btn) {
     eodlog:      loadEOD,
     tonerlog:    loadTonerLog,
     rentals:     loadRentals,
+    "dba-audit":  loadDbaAudit,
+    "dba-health": loadDbaHealth,
   };
 
   /* Call loader — use double rAF to ensure page is painted before data loads */

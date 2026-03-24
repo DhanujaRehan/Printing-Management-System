@@ -359,3 +359,176 @@ async function saveResetPassword() {
     if (btn) { btn.textContent = 'Reset Password'; btn.disabled = false; }
   }
 }
+
+
+/* ============================================================
+   DBA — User Audit Log Page
+   ============================================================ */
+
+var _auditFull = [];
+
+async function loadDbaAudit() {
+  var tbody = document.getElementById('dba-audit-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px"><div class="spin" style="margin:0 auto"></div></td></tr>';
+
+  var [logs, stats] = await Promise.all([
+    silentApi('GET', '/users/audit-log/full?limit=300'),
+    silentApi('GET', '/users/audit-log/stats'),
+  ]);
+
+  _auditFull = logs || [];
+
+  // KPI cards
+  if (stats) {
+    var kpis = document.getElementById('audit-kpis');
+    if (kpis) {
+      kpis.innerHTML = [
+        { num: stats.total_actions,  lbl: 'Total Actions',     col: '#0ea5e9' },
+        { num: stats.actions_24h,    lbl: 'Last 24 Hours',     col: '#10b981' },
+        { num: stats.total_logins,   lbl: 'Total Logins',      col: '#6366f1' },
+        { num: stats.unique_users,   lbl: 'Unique Users',      col: '#f59e0b' },
+      ].map(function(k) {
+        return '<div class="dba-audit-kpi" style="border-top-color:' + k.col + '">'
+          + '<div class="dba-ak-num">' + (k.num||0).toLocaleString() + '</div>'
+          + '<div class="dba-ak-lbl">' + k.lbl + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  renderAuditFull(_auditFull);
+}
+
+function renderAuditFull(data) {
+  var tbody = document.getElementById('dba-audit-tbody');
+  var count = document.getElementById('audit-count');
+  if (!tbody) return;
+
+  if (count) count.textContent = data.length + ' records';
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="emptys">No audit entries found.</td></tr>';
+    return;
+  }
+
+  var actionColors = {
+    'LOGIN':         '#dbeafe',
+    'TONER_REQUEST': '#fef3c7',
+    'APPROVE':       '#d1fae5',
+    'REJECT':        '#fee2e2',
+    'DISPATCH':      '#ede9fe',
+    'PRINT_LOG':     '#f0f9ff',
+    'CREATE_USER':   '#f0fdf4',
+    'UPDATE_USER':   '#fffbeb',
+    'DELETE_USER':   '#fef2f2',
+  };
+
+  tbody.innerHTML = data.map(function(a) {
+    var dt = a.created_at
+      ? new Date(a.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : '—';
+    var action = (a.action || '').toUpperCase();
+    var bgCol  = actionColors[action] || '#f8fafc';
+    var roleColors = { manager:'#dbeafe',service:'#d1fae5',store:'#fef3c7',nuwan:'#f3e8ff',dba:'#fce7f3' };
+    var roleBg = roleColors[a.role] || '#f1f5f9';
+
+    return '<tr style="background:' + bgCol + '">'
+      + '<td style="font-family:var(--m);font-size:11px;color:var(--t3);white-space:nowrap">' + dt + '</td>'
+      + '<td style="font-size:12px;font-weight:700">' + (a.full_name||'System') + '<br><span style="font-size:10px;color:var(--t3)">@' + (a.username||'—') + '</span></td>'
+      + '<td><span style="background:' + roleBg + ';padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700">' + (a.role||'—') + '</span></td>'
+      + '<td><span style="background:#f1f5f9;padding:3px 9px;border-radius:6px;font-size:11px;font-family:var(--m);font-weight:700">' + (a.action||'—') + '</span></td>'
+      + '<td style="font-size:12px;color:var(--t2);max-width:260px">' + (a.detail||'—') + '</td>'
+      + '<td style="font-family:var(--m);font-size:10px;color:var(--t3)">' + (a.ip_address||'—') + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function filterAuditLog() {
+  var search = (document.getElementById('audit-search')||{}).value||'';
+  var role   = (document.getElementById('audit-role-filter')||{}).value||'';
+  var action = (document.getElementById('audit-action-filter')||{}).value||'';
+  var q = search.toLowerCase();
+
+  var filtered = _auditFull.filter(function(a) {
+    var matchSearch = !q
+      || (a.username||'').toLowerCase().includes(q)
+      || (a.full_name||'').toLowerCase().includes(q)
+      || (a.action||'').toLowerCase().includes(q)
+      || (a.detail||'').toLowerCase().includes(q);
+    var matchRole   = !role   || (a.role||'') === role;
+    var matchAction = !action || (a.action||'').toUpperCase().includes(action);
+    return matchSearch && matchRole && matchAction;
+  });
+
+  renderAuditFull(filtered);
+}
+
+
+/* ============================================================
+   DBA — System Health Page
+   ============================================================ */
+
+async function loadDbaHealth() {
+  // Set API status immediately
+  var apiEl = document.getElementById('h-api-status');
+  if (apiEl) apiEl.textContent = '🟢 Online';
+
+  var d = await silentApi('GET', '/users/system-health');
+  if (!d) {
+    var dbEl = document.getElementById('h-db-status');
+    if (dbEl) dbEl.textContent = '🔴 Error';
+    return;
+  }
+
+  var s = d.stats || {};
+  var dbEl = document.getElementById('h-db-status');
+  if (dbEl) dbEl.textContent = '🟢 Connected';
+
+  // KPI values
+  var setEl = function(id, val) {
+    var e = document.getElementById(id);
+    if (e) e.textContent = val;
+  };
+
+  setEl('h-users',    (s.active_users||0) + ' / ' + (s.total_users||0) + ' active');
+  setEl('h-printers', (s.active_printers||0) + ' printers');
+  setEl('h-logs',     (s.total_logs||0).toLocaleString() + ' entries');
+  setEl('h-pending',  (s.pending_requests||0) + ' waiting');
+
+  // Recent logins table
+  var lt = document.getElementById('h-logins-tbody');
+  if (lt) {
+    if (!d.recent_logins || !d.recent_logins.length) {
+      lt.innerHTML = '<tr><td colspan="3" class="emptys">No logins recorded yet.</td></tr>';
+    } else {
+      var roleColors = { manager:'#dbeafe',service:'#d1fae5',store:'#fef3c7',nuwan:'#f3e8ff',dba:'#fce7f3' };
+      lt.innerHTML = d.recent_logins.map(function(u) {
+        var dt = u.last_login
+          ? new Date(u.last_login).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+          : '—';
+        var roleBg = roleColors[u.role]||'#f1f5f9';
+        return '<tr>'
+          + '<td style="font-weight:600">' + (u.full_name||'—') + '<br><span style="font-size:10px;color:var(--t3)">@' + (u.username||'') + '</span></td>'
+          + '<td><span style="background:' + roleBg + ';padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700">' + (u.role||'') + '</span></td>'
+          + '<td style="font-family:var(--m);font-size:12px;color:var(--t2)">' + dt + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
+
+  // DB table counts
+  var dt = document.getElementById('h-db-tbody');
+  if (dt) {
+    var goodMin = { users:1, branches:32, printers:59, toner_models:7 };
+    dt.innerHTML = (d.db_tables||[]).map(function(t) {
+      var min  = goodMin[t.tbl] || 0;
+      var ok   = parseInt(t.cnt) >= min;
+      var icon = ok ? '✅' : '⚠️';
+      return '<tr>'
+        + '<td style="font-family:var(--m);font-size:12px;font-weight:600">' + t.tbl + '</td>'
+        + '<td style="font-family:var(--m);font-size:14px;font-weight:800;color:var(--c1)">' + parseInt(t.cnt).toLocaleString() + '</td>'
+        + '<td style="font-size:14px">' + icon + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+}

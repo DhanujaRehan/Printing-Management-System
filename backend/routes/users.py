@@ -58,6 +58,112 @@ def get_audit_log(limit: int = 50, current_user: dict = Depends(require_role("ma
     """, (limit,))
 
 
+
+
+@router.get("/audit-log/full")
+def get_full_audit_log(
+    limit: int = 200,
+    role: str = None,
+    action: str = None,
+    search: str = None,
+    current_user: dict = Depends(require_role("dba"))
+):
+    """Extended audit log with filters — DBA only."""
+    filters = ["1=1"]
+    params  = []
+
+    if role:
+        filters.append("u.role = %s")
+        params.append(role)
+    if action:
+        filters.append("al.action ILIKE %s")
+        params.append(f"%{action}%")
+    if search:
+        filters.append("(u.username ILIKE %s OR u.full_name ILIKE %s OR al.detail ILIKE %s OR al.action ILIKE %s)")
+        params.extend([f"%{search}%"] * 4)
+
+    params.append(limit)
+    return query(f"""
+        SELECT
+            al.id,
+            al.action,
+            al.detail,
+            al.ip_address,
+            al.created_at,
+            u.username,
+            u.full_name,
+            u.role
+        FROM audit_log al
+        LEFT JOIN users u ON u.id = al.user_id
+        WHERE {' AND '.join(filters)}
+        ORDER BY al.created_at DESC
+        LIMIT %s
+    """, tuple(params)) or []
+
+
+@router.get("/audit-log/stats")
+def get_audit_stats(current_user: dict = Depends(require_role("dba"))):
+    """Audit statistics for DBA health dashboard."""
+    return query("""
+        SELECT
+            COUNT(*)                                                    AS total_actions,
+            COUNT(*) FILTER (WHERE al.created_at >= NOW() - INTERVAL '24 hours') AS actions_24h,
+            COUNT(*) FILTER (WHERE al.action = 'LOGIN')                AS total_logins,
+            COUNT(DISTINCT al.user_id)                                 AS unique_users
+        FROM audit_log al
+    """, fetch="one")
+
+
+@router.get("/system-health")
+def get_system_health(current_user: dict = Depends(require_role("dba"))):
+    """System health stats — DBA only."""
+    stats = query("""
+        SELECT
+            (SELECT COUNT(*) FROM users WHERE is_active = TRUE)           AS active_users,
+            (SELECT COUNT(*) FROM users)                                   AS total_users,
+            (SELECT COUNT(*) FROM printers WHERE is_active = TRUE)         AS active_printers,
+            (SELECT COUNT(*) FROM branches WHERE is_active = TRUE)         AS active_branches,
+            (SELECT COUNT(*) FROM print_logs)                              AS total_logs,
+            (SELECT COUNT(*) FROM print_logs
+             WHERE log_date = CURRENT_DATE - 1)                            AS logs_yesterday,
+            (SELECT COUNT(*) FROM replacement_requests
+             WHERE status = 'pending')                                     AS pending_requests,
+            (SELECT COUNT(*) FROM replacement_requests)                    AS total_requests,
+            (SELECT COUNT(*) FROM toner_installations WHERE is_current=TRUE) AS active_installations,
+            (SELECT COUNT(*) FROM audit_log)                               AS total_audit_entries,
+            (SELECT COUNT(*) FROM rental_printers WHERE is_active=TRUE)    AS rental_printers
+    """, fetch="one")
+
+    recent_logins = query("""
+        SELECT full_name, username, role,
+               last_login
+        FROM users
+        WHERE last_login IS NOT NULL
+          AND is_active = TRUE
+        ORDER BY last_login DESC
+        LIMIT 10
+    """) or []
+
+    db_tables = query("""
+        SELECT
+            'users'                  AS tbl, COUNT(*) AS cnt FROM users
+        UNION ALL SELECT 'branches',       COUNT(*) FROM branches
+        UNION ALL SELECT 'printers',       COUNT(*) FROM printers
+        UNION ALL SELECT 'print_logs',     COUNT(*) FROM print_logs
+        UNION ALL SELECT 'toner_models',   COUNT(*) FROM toner_models
+        UNION ALL SELECT 'toner_installations', COUNT(*) FROM toner_installations
+        UNION ALL SELECT 'replacement_requests', COUNT(*) FROM replacement_requests
+        UNION ALL SELECT 'rental_printers', COUNT(*) FROM rental_printers
+        UNION ALL SELECT 'audit_log',      COUNT(*) FROM audit_log
+        ORDER BY tbl
+    """) or []
+
+    return {
+        "stats":         stats,
+        "recent_logins": recent_logins,
+        "db_tables":     db_tables,
+    }
+
 # ── Dynamic /{user_id} routes below ─────────────────────────────────────────
 
 

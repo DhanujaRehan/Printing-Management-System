@@ -1179,32 +1179,21 @@
         </div>
         <button class="btn btn-p" onclick="openAddUserModal()">+ Add User</button>
       </div>
-      <div class="twocol mb20">
-        <div class="card">
-          <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <h3>👥 User Management</h3>
-            <div style="display:flex;gap:6px;align-items:center">
-              <input id="user-search" type="text" placeholder="Search name, username, role…"
-                oninput="searchUsers()"
-                style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
-              <button class="btn btn-sm" onclick="clearSearch()"
-                style="font-size:11px;padding:5px 10px">✕ Clear</button>
-            </div>
-          </div>
-          <table class="tbl">
-            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="user-tbody"></tbody>
-          </table>
-        </div>
-        <div class="card">
-          <div class="ch"><h3>🔍 Audit Log</h3></div>
-          <div class="scy">
-            <table class="tbl">
-              <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
-              <tbody id="audit-tbody"></tbody>
-            </table>
+      <div class="card mb20">
+        <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <h3>👥 User Management</h3>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="user-search" type="text" placeholder="Search name, username, role…"
+              oninput="searchUsers()"
+              style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:220px;background:var(--bg2,#f9f9f9);color:var(--t1)">
+            <button class="btn btn-sm" onclick="clearSearch()"
+              style="font-size:11px;padding:5px 10px">✕ Clear</button>
           </div>
         </div>
+        <table class="tbl">
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="user-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1293,6 +1282,133 @@
               </tr>
             </thead>
             <tbody id="rental-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── USER AUDIT LOG ────────────────────────────────── -->
+    <div class="page" id="page-dba-audit">
+      <div class="pgh">
+        <div>
+          <div class="pgt">🔍 User Audit Log</div>
+          <div class="pgs">All user actions recorded in the system</div>
+        </div>
+        <button class="btn btn-g" onclick="loadDbaAudit()" style="font-size:12px">↺ Refresh</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb16">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:4px 0">
+          <input id="audit-search" placeholder="🔍 Search user, action, detail..."
+            oninput="filterAuditLog()"
+            style="flex:1;min-width:180px;padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
+          <select id="audit-role-filter" onchange="filterAuditLog()"
+            style="padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
+            <option value="">All Roles</option>
+            <option value="manager">Manager</option>
+            <option value="service">Service</option>
+            <option value="store">Store</option>
+            <option value="nuwan">Nuwan</option>
+            <option value="dba">DBA</option>
+          </select>
+          <select id="audit-action-filter" onchange="filterAuditLog()"
+            style="padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
+            <option value="">All Actions</option>
+            <option value="LOGIN">Login</option>
+            <option value="TONER_REQUEST">Toner Request</option>
+            <option value="APPROVE">Approve</option>
+            <option value="DISPATCH">Dispatch</option>
+            <option value="PRINT_LOG">Print Log</option>
+          </select>
+          <div id="audit-count" style="font-size:12px;color:var(--t3);white-space:nowrap"></div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="dba-audit-kpis" id="audit-kpis"></div>
+
+      <!-- Log table -->
+      <div class="card">
+        <div class="scx">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Action</th>
+                <th>Detail</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody id="dba-audit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SYSTEM HEALTH ──────────────────────────────────── -->
+    <div class="page" id="page-dba-health">
+      <div class="pgh">
+        <div>
+          <div class="pgt">💚 System Health</div>
+          <div class="pgs">Database, API and usage statistics — DBA only</div>
+        </div>
+        <button class="btn btn-g" onclick="loadDbaHealth()" style="font-size:12px">↺ Refresh</button>
+      </div>
+
+      <!-- Health KPI cards -->
+      <div class="dba-health-grid" id="dba-health-grid">
+        <div class="dba-hcard dba-hc-blue">
+          <div class="dba-hc-icon">🖥️</div>
+          <div class="dba-hc-label">API Status</div>
+          <div class="dba-hc-val" id="h-api-status">Checking...</div>
+        </div>
+        <div class="dba-hcard dba-hc-green">
+          <div class="dba-hc-icon">🗄️</div>
+          <div class="dba-hc-label">Database</div>
+          <div class="dba-hc-val" id="h-db-status">Checking...</div>
+        </div>
+        <div class="dba-hcard dba-hc-purple">
+          <div class="dba-hc-icon">👥</div>
+          <div class="dba-hc-label">Total Users</div>
+          <div class="dba-hc-val" id="h-users">—</div>
+        </div>
+        <div class="dba-hcard dba-hc-amber">
+          <div class="dba-hc-icon">🖨️</div>
+          <div class="dba-hc-label">Active Printers</div>
+          <div class="dba-hc-val" id="h-printers">—</div>
+        </div>
+        <div class="dba-hcard dba-hc-teal">
+          <div class="dba-hc-icon">📋</div>
+          <div class="dba-hc-label">Print Logs Total</div>
+          <div class="dba-hc-val" id="h-logs">—</div>
+        </div>
+        <div class="dba-hcard dba-hc-red">
+          <div class="dba-hc-icon">⚠️</div>
+          <div class="dba-hc-label">Pending Requests</div>
+          <div class="dba-hc-val" id="h-pending">—</div>
+        </div>
+      </div>
+
+      <!-- Two column -->
+      <div class="twocol">
+        <!-- Recent logins -->
+        <div class="card">
+          <div class="ch"><h3>🕐 Recent Logins</h3></div>
+          <table class="tbl">
+            <thead><tr><th>User</th><th>Role</th><th>Last Login</th></tr></thead>
+            <tbody id="h-logins-tbody"></tbody>
+          </table>
+        </div>
+        <!-- DB table stats -->
+        <div class="card">
+          <div class="ch"><h3>📊 Database Record Counts</h3></div>
+          <table class="tbl">
+            <thead><tr><th>Table</th><th>Records</th><th>Status</th></tr></thead>
+            <tbody id="h-db-tbody"></tbody>
           </table>
         </div>
       </div>
