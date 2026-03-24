@@ -18,6 +18,7 @@ var NAVS = {
       { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
       { i: '📥', l: 'Import Approvals', p: 'importapprove',badge: 'import-badge'    },
       { i: '📊', l: 'Print Report',     p: 'printreport'  },
+      { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
     ]},
   ],
 
@@ -49,6 +50,7 @@ var NAVS = {
       { i: '🖨️', l: 'Printers',         p: 'printers'     },
       { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
       { i: '📊', l: 'Print Report',     p: 'printreport'  },
+      { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
     ]},
   ],
 };
