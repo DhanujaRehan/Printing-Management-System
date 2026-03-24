@@ -362,6 +362,21 @@
       </button>
     </div>
   </div>
+  <!-- ── BRANCH DETAIL DRAWER ──────────────────────────── -->
+  <div class="nw-drawer-overlay" id="nw-drawer-overlay" onclick="nwCloseDrawer()"></div>
+  <div class="nw-drawer" id="nw-drawer">
+    <div class="nw-drawer-hdr">
+      <div>
+        <div class="nw-drawer-title" id="nw-drawer-title">Branch Logs</div>
+        <div class="nw-drawer-sub" id="nw-drawer-sub"></div>
+      </div>
+      <button class="nw-drawer-close" onclick="nwCloseDrawer()">✕</button>
+    </div>
+    <div class="nw-drawer-body" id="nw-drawer-body">
+      <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+    </div>
+  </div>
+
 </div><!-- /nw-app -->
 
 <!-- Toast -->
@@ -629,19 +644,11 @@ async function nwLoadYesterday() {
   var max = Math.max.apply(null, d.branches.map(function(b) { return b.total_prints; })) || 1;
   document.getElementById('yd-list').innerHTML = d.branches.map(function(b) {
     var pct = Math.round((b.total_prints / max) * 100);
-    return '<div class="nw-branch-row">'
-      + '<div class="nw-branch-code">' + b.branch_code + '</div>'
-      + '<div style="flex:1;min-width:0">'
-      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'
-      +   (b.has_submitted
-          ? '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'
-          : '<div class="nw-branch-sub">No log submitted</div>')
-      + '</div>'
-      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'
-      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'
-      +   (b.has_submitted ? '✓ Done' : '✗ Missing')
-      + '</span>'
-      + '</div>';
+    var rowCls  = b.has_submitted ? 'nw-branch-row nw-branch-clickable' : 'nw-branch-row';
+    var onClick = b.has_submitted
+      ? ' onclick="nwShowBranchDetail(' + b.branch_id + ',\'' + (b.branch_code + ' — ' + b.branch_name).replace(/'/g,"\\'") + '\')"'
+      : '';
+    return '<div class="' + rowCls + '"' + onClick + '>'      + '<div class="nw-branch-code">' + b.branch_code + '</div>'      + '<div style="flex:1;min-width:0">'      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'      +   (b.has_submitted          ? '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'          : '<div class="nw-branch-sub">No log submitted</div>')      + '</div>'      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'      +   (b.has_submitted ? 'View ›' : '✗ Missing')      + '</span>'      + '</div>';
   }).join('');
 }
 
@@ -1172,6 +1179,97 @@ function nwCloseMenu() {
   if (overlay) overlay.classList.remove('vis');
   if (btn)     btn.classList.remove('open');
 }
+
+/* -- Branch Detail Drawer ----------------------------------- */
+async function nwShowBranchDetail(branchId, branchLabel) {
+  var overlay = document.getElementById('nw-drawer-overlay');
+  var drawer  = document.getElementById('nw-drawer');
+  var body    = document.getElementById('nw-drawer-body');
+  var title   = document.getElementById('nw-drawer-title');
+  var sub     = document.getElementById('nw-drawer-sub');
+
+  title.textContent = branchLabel;
+  sub.textContent   = 'Loading...';
+  body.innerHTML    = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  overlay.classList.add('vis');
+  drawer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  var d = await nwApi('/nuwan/prints/branch-detail/' + branchId);
+  if (!d) {
+    body.innerHTML = '<div class="nw-spin-wrap">Failed to load. Try again.</div>';
+    return;
+  }
+
+  var dt = new Date(d.log_date + 'T00:00:00');
+  var pretty = dt.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  sub.textContent = pretty + ' — ' + d.logs.length + ' printer' + (d.logs.length !== 1 ? 's' : '') + ' logged';
+
+  if (!d.logs.length) {
+    body.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
+      + '<div style="font-size:32px">📋</div>'
+      + '<div>No print logs found for this date.</div>'
+      + '</div>';
+    return;
+  }
+
+  body.innerHTML = d.logs.map(function(log) {
+    var time = log.created_at
+      ? new Date(log.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+      : '--';
+
+    var papers = [];
+    if (log.a4_single || log.a4_double)         papers.push({ t:'A4',     s: log.a4_single||0, d: log.a4_double||0 });
+    if (log.b4_single || log.b4_double)         papers.push({ t:'B4',     s: log.b4_single||0, d: log.b4_double||0 });
+    if (log.letter_single || log.letter_double) papers.push({ t:'Letter', s: log.letter_single||0, d: log.letter_double||0 });
+
+    var paperHtml = papers.map(function(p) {
+      return '<div class="nw-dl-paper">'
+        + '<div class="nw-dl-paper-type">' + p.t + '</div>'
+        + '<div class="nw-dl-paper-counts">'
+        +   '<span class="nw-dl-side">Single <strong>' + p.s + '</strong></span>'
+        +   '<span class="nw-dl-side">Double <strong>' + p.d + '</strong></span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    if (!paperHtml) {
+      paperHtml = '<div class="nw-dl-paper" style="color:#94a3b8">No paper breakdown recorded</div>';
+    }
+
+    return '<div class="nw-dl-card">'
+      + '<div class="nw-dl-card-hdr">'
+      +   '<div class="nw-dl-printer">'
+      +     '<div class="nw-dl-printer-code">' + log.printer_code + '</div>'
+      +     '<div class="nw-dl-printer-model">' + (log.printer_model||'') + '</div>'
+      +   '</div>'
+      +   '<div class="nw-dl-total">'
+      +     '<div class="nw-dl-total-num">' + (log.print_count||0).toLocaleString() + '</div>'
+      +     '<div class="nw-dl-total-lbl">Total Prints</div>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="nw-dl-meta">'
+      +   '<span class="nw-dl-who">👤 ' + log.logged_by_name + '</span>'
+      +   '<span class="nw-dl-when">🕐 ' + time + '</span>'
+      + '</div>'
+      + '<div class="nw-dl-papers">' + paperHtml + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Total summary at bottom
+  body.innerHTML += '<div class="nw-dl-grand-total">'
+    + '<span>Total Prints for Branch</span>'
+    + '<span class="nw-dl-grand-num">' + d.total.toLocaleString() + '</span>'
+    + '</div>';
+}
+
+function nwCloseDrawer() {
+  document.getElementById('nw-drawer-overlay').classList.remove('vis');
+  document.getElementById('nw-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 </script>
 </body>
 </html>

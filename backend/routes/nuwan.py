@@ -148,6 +148,56 @@ def get_yesterday_prints(current_user: dict = Depends(require_nuwan)):
     }
 
 
+
+# ── Branch detail for a specific date ────────────────────────────────────────
+@router.get("/prints/branch-detail/{branch_id}")
+def get_branch_print_detail(
+    branch_id: int,
+    log_date: str = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """
+    Detailed print log for a specific branch on a given date.
+    Returns each printer log with: who logged it, when, print counts per paper type.
+    """
+    from datetime import date, timedelta
+    if not log_date:
+        log_date = (date.today() - timedelta(days=1)).isoformat()
+
+    rows = query("""
+        SELECT
+            pl.id              AS log_id,
+            p.printer_code,
+            p.model            AS printer_model,
+            pl.print_count,
+            pl.a4_single,
+            pl.a4_double,
+            pl.b4_single,
+            pl.b4_double,
+            pl.letter_single,
+            pl.letter_double,
+            pl.log_date,
+            pl.created_at,
+            u.full_name        AS logged_by_name,
+            u.username         AS logged_by_user,
+            b.code             AS branch_code,
+            b.name             AS branch_name
+        FROM print_logs pl
+        JOIN printers p  ON p.id  = pl.printer_id
+        JOIN branches b  ON b.id  = p.branch_id
+        JOIN users u     ON u.id  = pl.logged_by
+        WHERE b.id = %s
+          AND pl.log_date = %s::date
+        ORDER BY pl.created_at ASC
+    """, (branch_id, log_date)) or []
+
+    return {
+        "branch_id":  branch_id,
+        "log_date":   log_date,
+        "logs":       rows,
+        "total":      sum(r["print_count"] for r in rows),
+    }
+
 # ── Monthly print totals ─────────────────────────────────────────────────────
 @router.get("/prints/monthly")
 def get_monthly_prints(
