@@ -82,6 +82,9 @@
     <button class="nw-tab" id="tab-rentals" onclick="nwTab('rentals')">
       <span class="nw-tab-icon">📋</span> Rental Printers
     </button>
+    <button class="nw-tab" id="tab-summary" onclick="nwTab('summary')">
+      <span class="nw-tab-icon">📈</span> Print Summary
+    </button>
   </div>
 
   <!-- ── YESTERDAY PANEL ─────────────────────── -->
@@ -303,6 +306,130 @@
       <div class="nw-rental-list" id="nw-rental-list">
         <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
       </div>
+    </div>
+
+
+    <!-- ── PRINT SUMMARY PANEL ────────────────────────────── -->
+    <div class="nw-panel" id="panel-summary">
+
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">📈 Print Summary</div>
+          <div class="nw-section-sub">Filter and export daily print logs for audit</div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="nws-filter-bar">
+        <!-- Date from -->
+        <div class="nws-filter-group">
+          <label class="nws-filter-lbl">From Date</label>
+          <input type="date" class="nws-filter-input" id="nws-from" onchange="nwLoadSummary()">
+        </div>
+        <!-- Date to -->
+        <div class="nws-filter-group">
+          <label class="nws-filter-lbl">To Date</label>
+          <input type="date" class="nws-filter-input" id="nws-to" onchange="nwLoadSummary()">
+        </div>
+        <!-- Month -->
+        <div class="nws-filter-group">
+          <label class="nws-filter-lbl">Month</label>
+          <select class="nws-filter-input" id="nws-month" onchange="nwLoadSummary()">
+            <option value="">Any</option>
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <!-- Year -->
+        <div class="nws-filter-group">
+          <label class="nws-filter-lbl">Year</label>
+          <select class="nws-filter-input" id="nws-year" onchange="nwLoadSummary()">
+            <option value="">Any</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+        <!-- Branch -->
+        <div class="nws-filter-group">
+          <label class="nws-filter-lbl">Branch</label>
+          <select class="nws-filter-input" id="nws-branch" onchange="nwLoadSummary()">
+            <option value="">All Branches</option>
+          </select>
+        </div>
+        <!-- Actions -->
+        <div class="nws-filter-actions">
+          <button class="nws-btn-search" onclick="nwLoadSummary()">🔍 Search</button>
+          <button class="nws-btn-clear"  onclick="nwClearSummaryFilters()">✕ Clear</button>
+          <button class="nws-btn-export" onclick="nwExportSummary()">📥 Excel</button>
+        </div>
+      </div>
+
+      <!-- Grand total KPI strip -->
+      <div class="nws-kpi-strip" id="nws-kpis" style="display:none">
+        <div class="nws-kpi nws-kpi-total">
+          <div class="nws-kpi-num" id="nws-kpi-total">—</div>
+          <div class="nws-kpi-lbl">Total Prints</div>
+        </div>
+        <div class="nws-kpi nws-kpi-a4">
+          <div class="nws-kpi-num" id="nws-kpi-a4">—</div>
+          <div class="nws-kpi-lbl">A4 Total</div>
+        </div>
+        <div class="nws-kpi nws-kpi-b4">
+          <div class="nws-kpi-num" id="nws-kpi-b4">—</div>
+          <div class="nws-kpi-lbl">B4 Total</div>
+        </div>
+        <div class="nws-kpi nws-kpi-lg">
+          <div class="nws-kpi-num" id="nws-kpi-lg">—</div>
+          <div class="nws-kpi-lbl">Legal Total</div>
+        </div>
+        <div class="nws-kpi nws-kpi-rec">
+          <div class="nws-kpi-num" id="nws-kpi-records">—</div>
+          <div class="nws-kpi-lbl">Log Entries</div>
+        </div>
+      </div>
+
+      <!-- Branch summary cards -->
+      <div id="nws-branch-cards"></div>
+
+      <!-- Detailed log table -->
+      <div class="nws-table-wrap" id="nws-table-wrap" style="display:none">
+        <div class="nws-table-hdr">
+          <div class="nws-table-title">📋 Detailed Log Entries</div>
+          <div class="nws-record-count" id="nws-record-label"></div>
+        </div>
+        <div class="nws-table-scroll">
+          <table class="nws-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Branch</th>
+                <th>Printer</th>
+                <th>Total</th>
+                <th>A4</th>
+                <th>B4</th>
+                <th>Legal</th>
+                <th>Logged By</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="nws-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="nws-empty" id="nws-empty">
+        <div style="font-size:48px;margin-bottom:12px">📈</div>
+        <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Select filters and search</div>
+        <div style="font-size:13px;color:#94a3b8">Choose a date range, month, year or branch then tap Search</div>
+      </div>
+
     </div>
 
   </div><!-- /nw-main -->
@@ -1275,6 +1402,183 @@ function nwCloseDrawer() {
   document.getElementById('nw-drawer-overlay').classList.remove('vis');
   document.getElementById('nw-drawer').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+
+/* ── Print Summary ───────────────────────────────────────── */
+var _nwSummaryData = null;
+
+async function nwInitSummary() {
+  // Load branches into filter dropdown once
+  var sel = document.getElementById('nws-branch');
+  if (sel && sel.options.length <= 1) {
+    var branches = await nwApi('/branches') || [];
+    branches.filter(function(b){ return b.is_active; }).forEach(function(b) {
+      sel.add(new Option(b.code + ' — ' + b.name, b.id));
+    });
+  }
+  // Auto-search with current month/year
+  var now = new Date();
+  var mSel = document.getElementById('nws-month');
+  var ySel = document.getElementById('nws-year');
+  if (mSel && !mSel.value) mSel.value = now.getMonth() + 1;
+  if (ySel && !ySel.value) ySel.value = now.getFullYear();
+  await nwLoadSummary();
+}
+
+async function nwLoadSummary() {
+  var from   = (document.getElementById('nws-from')   || {}).value || '';
+  var to     = (document.getElementById('nws-to')     || {}).value || '';
+  var month  = (document.getElementById('nws-month')  || {}).value || '';
+  var year   = (document.getElementById('nws-year')   || {}).value || '';
+  var branch = (document.getElementById('nws-branch') || {}).value || '';
+
+  // Build query string
+  var params = [];
+  if (from)   params.push('date_from=' + from);
+  if (to)     params.push('date_to='   + to);
+  if (month)  params.push('month='     + month);
+  if (year)   params.push('year='      + year);
+  if (branch) params.push('branch_id=' + branch);
+  var qs = params.length ? '?' + params.join('&') : '';
+
+  // Show loading
+  document.getElementById('nws-empty').style.display = 'none';
+  document.getElementById('nws-kpis').style.display  = 'none';
+  document.getElementById('nws-branch-cards').innerHTML =
+    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  document.getElementById('nws-table-wrap').style.display = 'none';
+
+  var d = await nwApi('/nuwan/prints/summary' + qs);
+  if (!d) {
+    document.getElementById('nws-branch-cards').innerHTML = '';
+    document.getElementById('nws-empty').style.display = '';
+    return;
+  }
+  _nwSummaryData = d;
+
+  // KPI strip
+  function setKpi(id, v) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = typeof v === 'number' ? v.toLocaleString() : v;
+  }
+  setKpi('nws-kpi-total',   d.grand_total);
+  setKpi('nws-kpi-a4',      d.grand_a4);
+  setKpi('nws-kpi-b4',      d.grand_b4);
+  setKpi('nws-kpi-lg',      d.grand_legal);
+  setKpi('nws-kpi-records', d.record_count);
+  document.getElementById('nws-kpis').style.display = '';
+
+  // Branch summary cards
+  var bc = document.getElementById('nws-branch-cards');
+  if (!d.branch_totals || !d.branch_totals.length) {
+    bc.innerHTML = '';
+    document.getElementById('nws-empty').style.display = '';
+    return;
+  }
+
+  var maxPrints = Math.max.apply(null, d.branch_totals.map(function(b){ return b.total_prints||0; })) || 1;
+
+  bc.innerHTML = '<div class="nws-branch-grid">'
+    + d.branch_totals.map(function(b) {
+        var barW = Math.round((b.total_prints / maxPrints) * 100);
+        return '<div class="nws-branch-card">'
+          + '<div class="nws-bc-top">'
+          +   '<div>'
+          +     '<span class="nws-bc-code">' + b.branch_code + '</span>'
+          +     '<span class="nws-bc-name">' + b.branch_name + '</span>'
+          +   '</div>'
+          +   '<div class="nws-bc-total">' + (b.total_prints||0).toLocaleString() + '</div>'
+          + '</div>'
+          + '<div class="nws-bc-bar-wrap"><div class="nws-bc-bar" style="width:' + barW + '%"></div></div>'
+          + '<div class="nws-bc-pills">'
+          +   (b.a4_total    > 0 ? '<span class="nws-pill nws-pill-a4">A4 ' + (b.a4_total||0).toLocaleString() + '</span>' : '')
+          +   (b.b4_total    > 0 ? '<span class="nws-pill nws-pill-b4">B4 ' + (b.b4_total||0).toLocaleString() + '</span>' : '')
+          +   (b.legal_total > 0 ? '<span class="nws-pill nws-pill-lg">Legal ' + (b.legal_total||0).toLocaleString() + '</span>' : '')
+          +   '<span class="nws-pill nws-pill-days">' + (b.days_logged||0) + ' days</span>'
+          + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
+
+  // Detailed table
+  var tbody = document.getElementById('nws-tbody');
+  var label = document.getElementById('nws-record-label');
+  if (label) label.textContent = d.record_count + ' entries';
+
+  if (tbody && d.logs && d.logs.length) {
+    tbody.innerHTML = d.logs.slice(0, 500).map(function(l) {
+      var dateStr = l.log_date ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+      var timeStr = l.created_at ? new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+      var a4  = (l.a4_single||0) + (l.a4_double||0);
+      var b4  = (l.b4_single||0) + (l.b4_double||0);
+      var lg  = (l.letter_single||0) + (l.letter_double||0);
+      return '<tr>'
+        + '<td class="nws-td-date">' + dateStr + '</td>'
+        + '<td><span class="nws-td-code">' + (l.branch_code||'—') + '</span></td>'
+        + '<td class="nws-td-printer">' + (l.printer_code||'—') + '</td>'
+        + '<td class="nws-td-total">'   + (l.print_count||0).toLocaleString() + '</td>'
+        + '<td class="nws-td-paper">'   + (a4||'—') + '</td>'
+        + '<td class="nws-td-paper">'   + (b4||'—') + '</td>'
+        + '<td class="nws-td-paper">'   + (lg||'—') + '</td>'
+        + '<td class="nws-td-user">'    + (l.logged_by||'—') + '</td>'
+        + '<td class="nws-td-time">'    + timeStr + '</td>'
+        + '</tr>';
+    }).join('');
+    document.getElementById('nws-table-wrap').style.display = '';
+  }
+}
+
+function nwClearSummaryFilters() {
+  ['nws-from','nws-to'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value = '';
+  });
+  var now = new Date();
+  var mSel = document.getElementById('nws-month');
+  var ySel = document.getElementById('nws-year');
+  var bSel = document.getElementById('nws-branch');
+  if (mSel) mSel.value = now.getMonth() + 1;
+  if (ySel) ySel.value = now.getFullYear();
+  if (bSel) bSel.value = '';
+  nwLoadSummary();
+}
+
+async function nwExportSummary() {
+  var from   = (document.getElementById('nws-from')   || {}).value || '';
+  var to     = (document.getElementById('nws-to')     || {}).value || '';
+  var month  = (document.getElementById('nws-month')  || {}).value || '';
+  var year   = (document.getElementById('nws-year')   || {}).value || '';
+  var branch = (document.getElementById('nws-branch') || {}).value || '';
+
+  var params = [];
+  if (from)   params.push('date_from=' + from);
+  if (to)     params.push('date_to='   + to);
+  if (month)  params.push('month='     + month);
+  if (year)   params.push('year='      + year);
+  if (branch) params.push('branch_id=' + branch);
+  var qs = params.length ? '?' + params.join('&') : '';
+
+  var btn = document.querySelector('.nws-btn-export');
+  if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
+
+  try {
+    var res = await fetch('/api/nuwan/prints/summary/export' + qs, {
+      headers: { 'Authorization': 'Bearer ' + NW.token }
+    });
+    if (!res.ok) { nwToast('❌', 'Export failed', 'Server error'); return; }
+    var blob = await res.blob();
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    var cd   = res.headers.get('Content-Disposition') || '';
+    var fn   = (cd.match(/filename=([^;]+)/) || [])[1] || 'print_summary.xlsx';
+    a.href = url; a.download = fn.replace(/"/g,''); a.click();
+    URL.revokeObjectURL(url);
+    nwToast('✅', 'Downloaded!', 'Print Summary Excel saved');
+  } catch(e) {
+    nwToast('❌', 'Download failed', e.message || '');
+  } finally {
+    if (btn) { btn.textContent = '📥 Excel'; btn.disabled = false; }
+  }
 }
 
 </script>

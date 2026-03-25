@@ -208,6 +208,362 @@ def get_branch_print_detail(
         "total":      sum(r["print_count"] for r in rows),
     }
 
+
+# ── Print Summary — filtered logs for Nuwan ─────────────────────────────────
+@router.get("/prints/summary")
+def get_print_summary(
+    branch_id: int = None,
+    date_from: str = None,
+    date_to:   str = None,
+    month:     int = None,
+    year:      int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """
+    Filtered print log summary for Nuwan.
+    Returns per-row logs + branch totals + grand total.
+    Supports filter by branch, date range, or month/year.
+    """
+    filters = ["1=1"]
+    params  = []
+
+    if branch_id:
+        filters.append("b.id = %s")
+        params.append(branch_id)
+
+    if date_from:
+        filters.append("pl.log_date >= %s::date")
+        params.append(date_from)
+
+    if date_to:
+        filters.append("pl.log_date <= %s::date")
+        params.append(date_to)
+
+    if month and year:
+        filters.append("EXTRACT(MONTH FROM pl.log_date) = %s")
+        filters.append("EXTRACT(YEAR  FROM pl.log_date) = %s")
+        params.extend([month, year])
+    elif year:
+        filters.append("EXTRACT(YEAR FROM pl.log_date) = %s")
+        params.append(year)
+
+    where = " AND ".join(filters)
+
+    logs = query(f"""
+        SELECT
+            pl.id,
+            pl.log_date,
+            pl.print_count,
+            pl.a4_single,  pl.a4_double,
+            pl.b4_single,  pl.b4_double,
+            pl.letter_single, pl.letter_double,
+            pl.created_at,
+            p.printer_code,
+            p.model        AS printer_model,
+            b.id           AS branch_id,
+            b.code         AS branch_code,
+            b.name         AS branch_name,
+            u.full_name    AS logged_by,
+            u.username     AS logged_by_user
+        FROM print_logs pl
+        JOIN printers p ON p.id  = pl.printer_id
+        JOIN branches b ON b.id  = p.branch_id
+        JOIN users    u ON u.id  = pl.logged_by
+        WHERE {where}
+        ORDER BY pl.log_date DESC, b.code, p.printer_code
+        LIMIT 1000
+    """, tuple(params)) or []
+
+    # Branch totals
+    branch_totals = query(f"""
+        SELECT
+            b.id           AS branch_id,
+            b.code         AS branch_code,
+            b.name         AS branch_name,
+            COUNT(DISTINCT pl.log_date)                               AS days_logged,
+            COUNT(pl.id)                                              AS log_count,
+            COALESCE(SUM(pl.print_count),0)                           AS total_prints,
+            COALESCE(SUM(pl.a4_single)+SUM(pl.a4_double),0)          AS a4_total,
+            COALESCE(SUM(pl.b4_single)+SUM(pl.b4_double),0)          AS b4_total,
+            COALESCE(SUM(pl.letter_single)+SUM(pl.letter_double),0)  AS legal_total
+        FROM print_logs pl
+        JOIN printers p ON p.id = pl.printer_id
+        JOIN branches b ON b.id = p.branch_id
+        WHERE {where}
+        GROUP BY b.id, b.code, b.name
+        ORDER BY total_prints DESC
+    """, tuple(params)) or []
+
+    grand_total   = sum(r["total_prints"] for r in branch_totals)
+    grand_a4      = sum(r["a4_total"]     for r in branch_totals)
+    grand_b4      = sum(r["b4_total"]     for r in branch_totals)
+    grand_legal   = sum(r["legal_total"]  for r in branch_totals)
+
+    return {
+        "logs":          logs,
+        "branch_totals": branch_totals,
+        "grand_total":   grand_total,
+        "grand_a4":      grand_a4,
+        "grand_b4":      grand_b4,
+        "grand_legal":   grand_legal,
+        "record_count":  len(logs),
+    }
+
+
+# ── Print Summary Excel Export ───────────────────────────────────────────────
+@router.get("/prints/summary/export")
+def export_print_summary(
+    branch_id: int = None,
+    date_from: str = None,
+    date_to:   str = None,
+    month:     int = None,
+    year:      int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """Export filtered print summary as Excel — for audit purposes."""
+    from fastapi.responses import StreamingResponse
+    import io
+    from datetime import datetime as dt
+
+    try:
+        from openpyxl import Workbook # type: ignore
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side # type: ignore
+        from openpyxl.utils import get_column_letter # type: ignore
+    except ImportError:
+        return {"error": "openpyxl not installed"}
+
+    # Reuse summary logic
+    filters = ["1=1"]
+    params  = []
+    if branch_id:
+        filters.append("b.id = %s"); params.append(branch_id)
+    if date_from:
+        filters.append("pl.log_date >= %s::date"); params.append(date_from)
+    if date_to:
+        filters.append("pl.log_date <= %s::date"); params.append(date_to)
+    if month and year:
+        filters.append("EXTRACT(MONTH FROM pl.log_date) = %s")
+        filters.append("EXTRACT(YEAR  FROM pl.log_date) = %s")
+        params.extend([month, year])
+    elif year:
+        filters.append("EXTRACT(YEAR FROM pl.log_date) = %s"); params.append(year)
+
+    where = " AND ".join(filters)
+
+    logs = query(f"""
+        SELECT pl.log_date, b.code AS branch_code, b.name AS branch_name,
+               p.printer_code, p.model AS printer_model,
+               pl.print_count,
+               pl.a4_single, pl.a4_double,
+               pl.b4_single, pl.b4_double,
+               pl.letter_single, pl.letter_double,
+               u.full_name AS logged_by, pl.created_at
+        FROM print_logs pl
+        JOIN printers p ON p.id = pl.printer_id
+        JOIN branches b ON b.id = p.branch_id
+        JOIN users    u ON u.id = pl.logged_by
+        WHERE {where}
+        ORDER BY pl.log_date DESC, b.code, p.printer_code
+        LIMIT 5000
+    """, tuple(params)) or []
+
+    branch_totals = query(f"""
+        SELECT b.code AS branch_code, b.name AS branch_name,
+               COUNT(DISTINCT pl.log_date) AS days_logged,
+               COALESCE(SUM(pl.print_count),0) AS total_prints,
+               COALESCE(SUM(pl.a4_single)+SUM(pl.a4_double),0) AS a4_total,
+               COALESCE(SUM(pl.b4_single)+SUM(pl.b4_double),0) AS b4_total,
+               COALESCE(SUM(pl.letter_single)+SUM(pl.letter_double),0) AS legal_total
+        FROM print_logs pl
+        JOIN printers p ON p.id = pl.printer_id
+        JOIN branches b ON b.id = p.branch_id
+        WHERE {where}
+        GROUP BY b.code, b.name ORDER BY total_prints DESC
+    """, tuple(params)) or []
+
+    # Build Excel
+    wb  = Workbook()
+
+    NAVY   = "1E3A5F"
+    BLUE   = "0EA5E9"
+    GREEN  = "10B981"
+    WHITE  = "FFFFFF"
+    ALTROW = "F8FAFC"
+    BORDER = "D1D5DB"
+
+    def hfont(sz=10, bold=True, col=WHITE):
+        return Font(name="Arial", size=sz, bold=bold, color=col)
+    def cfont(sz=9, bold=False, col="0F172A"):
+        return Font(name="Arial", size=sz, bold=bold, color=col)
+    def fill(c):
+        return PatternFill("solid", start_color=c, fgColor=c)
+    def thin():
+        s = Side(style="thin", color=BORDER)
+        return Border(left=s, right=s, top=s, bottom=s)
+    def ctr():
+        return Alignment(horizontal="center", vertical="center", wrap_text=True)
+    def lft():
+        return Alignment(horizontal="left", vertical="center")
+
+    def fmt_date(v):
+        if not v: return "—"
+        try:
+            if hasattr(v, 'strftime'): return v.strftime("%d/%m/%Y")
+            return str(v)[:10]
+        except: return str(v)
+
+    def fmt_time(v):
+        if not v: return "—"
+        try:
+            if hasattr(v, 'strftime'): return v.strftime("%d/%m/%Y %H:%M")
+            from datetime import datetime
+            return datetime.fromisoformat(str(v).replace("Z","")).strftime("%d/%m/%Y %H:%M")
+        except: return str(v)
+
+    # ── Sheet 1: Detailed Logs ────────────────────────────────
+    ws1 = wb.active
+    ws1.title = "Detailed Logs"
+
+    ws1.merge_cells("A1:N1")
+    ws1["A1"] = "SoftWave Print Management — Print Summary Report"
+    ws1["A1"].font      = Font(name="Arial", size=14, bold=True, color=WHITE)
+    ws1["A1"].fill      = fill(NAVY)
+    ws1["A1"].alignment = ctr()
+    ws1.row_dimensions[1].height = 28
+
+    ws1.merge_cells("A2:N2")
+    ws1["A2"] = f"Generated: {dt.now().strftime('%d %B %Y at %H:%M')}   |   Records: {len(logs)}"
+    ws1["A2"].font      = Font(name="Arial", size=9, italic=True, color="64748B")
+    ws1["A2"].fill      = fill("F1F5F9")
+    ws1["A2"].alignment = ctr()
+    ws1.row_dimensions[2].height = 16
+
+    headers = [
+        ("A3","Date"),("B3","Branch Code"),("C3","Branch Name"),
+        ("D3","Printer Serial"),("E3","Model"),
+        ("F3","Total Prints"),
+        ("G3","A4 Single"),("H3","A4 Double"),
+        ("I3","B4 Single"),("J3","B4 Double"),
+        ("K3","Legal Single"),("L3","Legal Double"),
+        ("M3","Logged By"),("N3","Logged At"),
+    ]
+    for addr, label in headers:
+        c = ws1[addr]
+        c.value     = label
+        c.font      = Font(name="Arial", size=9, bold=True, color=WHITE)
+        c.fill      = fill(BLUE)
+        c.alignment = ctr()
+        c.border    = thin()
+    ws1.row_dimensions[3].height = 24
+
+    for i, r in enumerate(logs):
+        row = 4 + i
+        bg  = WHITE if i % 2 == 0 else ALTROW
+        vals = [
+            fmt_date(r.get("log_date")),
+            r.get("branch_code",""),
+            r.get("branch_name",""),
+            r.get("printer_code",""),
+            r.get("printer_model",""),
+            r.get("print_count",0),
+            r.get("a4_single",0),  r.get("a4_double",0),
+            r.get("b4_single",0),  r.get("b4_double",0),
+            r.get("letter_single",0), r.get("letter_double",0),
+            r.get("logged_by",""),
+            fmt_time(r.get("created_at")),
+        ]
+        cols = "ABCDEFGHIJKLMN"
+        for j, v in enumerate(vals):
+            c = ws1[f"{cols[j]}{row}"]
+            c.value     = v
+            c.font      = cfont(bold=(j==5))
+            c.fill      = fill(bg)
+            c.alignment = lft() if j in [2,4,12] else ctr()
+            c.border    = thin()
+        ws1.row_dimensions[row].height = 16
+
+    ws1.column_dimensions["A"].width = 12
+    ws1.column_dimensions["B"].width = 10
+    ws1.column_dimensions["C"].width = 18
+    ws1.column_dimensions["D"].width = 13
+    ws1.column_dimensions["E"].width = 16
+    ws1.column_dimensions["F"].width = 12
+    for col in "GHIJKL":
+        ws1.column_dimensions[col].width = 10
+    ws1.column_dimensions["M"].width = 16
+    ws1.column_dimensions["N"].width = 16
+    ws1.freeze_panes = "A4"
+
+    # ── Sheet 2: Branch Summary ───────────────────────────────
+    ws2 = wb.create_sheet("Branch Summary")
+
+    ws2.merge_cells("A1:G1")
+    ws2["A1"] = "Branch Print Summary"
+    ws2["A1"].font      = Font(name="Arial", size=13, bold=True, color=WHITE)
+    ws2["A1"].fill      = fill(NAVY)
+    ws2["A1"].alignment = ctr()
+    ws2.row_dimensions[1].height = 26
+
+    h2 = [("A2","Branch Code"),("B2","Branch Name"),("C2","Days Logged"),
+          ("D2","Total Prints"),("E2","A4 Total"),("F2","B4 Total"),("G2","Legal Total")]
+    for addr, label in h2:
+        c = ws2[addr]
+        c.value     = label
+        c.font      = Font(name="Arial", size=9, bold=True, color=WHITE)
+        c.fill      = fill(GREEN)
+        c.alignment = ctr()
+        c.border    = thin()
+    ws2.row_dimensions[2].height = 22
+
+    for i, r in enumerate(branch_totals):
+        row = 3 + i
+        bg  = WHITE if i % 2 == 0 else ALTROW
+        vals = [r.get("branch_code",""), r.get("branch_name",""),
+                r.get("days_logged",0),  r.get("total_prints",0),
+                r.get("a4_total",0),     r.get("b4_total",0), r.get("legal_total",0)]
+        for j, v in enumerate(vals):
+            c = ws2[f"{'ABCDEFG'[j]}{row}"]
+            c.value = v; c.font = cfont(bold=(j==3))
+            c.fill = fill(bg); c.alignment = ctr() if j != 1 else lft()
+            c.border = thin()
+        ws2.row_dimensions[row].height = 16
+
+    # Grand total row
+    gr = 3 + len(branch_totals)
+    grand = query(f"""
+        SELECT COALESCE(SUM(pl.print_count),0) AS total,
+               COALESCE(SUM(pl.a4_single)+SUM(pl.a4_double),0) AS a4,
+               COALESCE(SUM(pl.b4_single)+SUM(pl.b4_double),0) AS b4,
+               COALESCE(SUM(pl.letter_single)+SUM(pl.letter_double),0) AS legal
+        FROM print_logs pl JOIN printers p ON p.id=pl.printer_id
+        JOIN branches b ON b.id=p.branch_id WHERE {where}
+    """, tuple(params), fetch="one") or {}
+
+    ws2.merge_cells(f"A{gr}:C{gr}")
+    ws2[f"A{gr}"] = "GRAND TOTAL"
+    ws2[f"A{gr}"].font = Font(name="Arial", size=10, bold=True, color=WHITE)
+    ws2[f"A{gr}"].fill = fill(NAVY)
+    ws2[f"A{gr}"].alignment = ctr()
+    for col, val in [("D", grand.get("total",0)), ("E", grand.get("a4",0)),
+                     ("F", grand.get("b4",0)),     ("G", grand.get("legal",0))]:
+        c = ws2[f"{col}{gr}"]
+        c.value = val; c.font = Font(name="Arial", size=10, bold=True, color=WHITE)
+        c.fill = fill(NAVY); c.alignment = ctr(); c.border = thin()
+
+    ws2.column_dimensions["A"].width = 12
+    ws2.column_dimensions["B"].width = 22
+    for col in "CDEFG": ws2.column_dimensions[col].width = 14
+
+    buf = io.BytesIO()
+    wb.save(buf); buf.seek(0)
+
+    fname = f"SoftWave_PrintSummary_{dt.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={fname}"}
+    )
+
 # ── Monthly print totals ─────────────────────────────────────────────────────
 @router.get("/prints/monthly")
 def get_monthly_prints(
