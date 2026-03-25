@@ -73,9 +73,7 @@
     <button class="nw-tab" id="tab-requests" onclick="nwTab('requests')">
       <span class="nw-tab-icon">📋</span> My Requests
     </button>
-    <button class="nw-tab" id="tab-monthly" onclick="nwTab('monthly')">
-      <span class="nw-tab-icon">📅</span> Monthly Report
-    </button>
+
     <button class="nw-tab" id="tab-replacements" onclick="nwTab('replacements')">
       <span class="nw-tab-icon">🔄</span> Toner Replacements
     </button>
@@ -187,41 +185,7 @@
     </div>
 
     <!-- ── MONTHLY PANEL ─────────────────────── -->
-    <div class="nw-panel" id="panel-monthly">
-      <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">Monthly Print Report</div>
-          <div class="nw-section-sub">Total prints per branch for any month</div>
-        </div>
-        <div class="nw-month-controls">
-          <select class="nw-month-sel" id="mo-month" onchange="nwLoadMonthly()"></select>
-          <select class="nw-month-sel" id="mo-year"  onchange="nwLoadMonthly()"></select>
-          <button class="nw-download-btn" onclick="nwDownloadExcel()">
-            📥 Download Excel
-          </button>
-        </div>
-      </div>
-
-      <!-- Monthly grand total -->
-      <div class="nw-monthly-total">
-        <div>
-          <div class="nw-monthly-total-num" id="mo-total">—</div>
-          <div class="nw-monthly-total-lbl" id="mo-total-lbl">Total prints this month</div>
-        </div>
-        <div class="nw-monthly-total-icon">📊</div>
-      </div>
-
-      <div class="nw-card">
-        <div class="nw-card-hdr">
-          <div class="nw-card-title">Print Count by Branch</div>
-        </div>
-        <div id="mo-list">
-          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── MY REQUESTS PANEL ──────────────────── -->
+    
     <div class="nw-panel" id="panel-requests">
       <div class="nw-section-hdr">
         <div>
@@ -605,7 +569,6 @@ function showApp() {
   document.getElementById('nw-app').style.display   = 'block';
   document.getElementById('nw-uname').textContent = NW.user.full_name || NW.user.username;
   nwLoadYesterday();
-  nwInitMonthSelectors();
 }
 
 function nwLogout() {
@@ -710,7 +673,6 @@ function nwTab(name) {
 
   if (name === 'yesterday')    nwLoadYesterday();
   if (name === 'toner')        nwLoadToner();
-  if (name === 'monthly')      nwLoadMonthly();
   if (name === 'requests')     nwLoadMyRequests();
   if (name === 'replacements') nwLoadReplacements();
   if (name === 'rentals')       nwLoadRentals();
@@ -1409,11 +1371,20 @@ function nwCloseDrawer() {
 var _nwSummaryData = null;
 
 async function nwInitSummary() {
-  // Load branches into filter dropdown once
+  // Load branches into filter dropdown using nuwan toner data (always available)
   var sel = document.getElementById('nws-branch');
   if (sel && sel.options.length <= 1) {
-    var branches = await nwApi('/branches') || [];
-    branches.filter(function(b){ return b.is_active; }).forEach(function(b) {
+    var tonerData = await nwApi('/nuwan/toner') || [];
+    var seen = {};
+    var sorted = [];
+    tonerData.forEach(function(p) {
+      if (p.branch_id && !seen[p.branch_id]) {
+        seen[p.branch_id] = true;
+        sorted.push({ id: p.branch_id, code: p.branch_code, name: p.branch_name });
+      }
+    });
+    sorted.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    sorted.forEach(function(b) {
       sel.add(new Option(b.code + ' — ' + b.name, b.id));
     });
   }
