@@ -280,7 +280,7 @@ def get_print_summary(
         JOIN branches b ON b.id  = p.branch_id
         JOIN users    u ON u.id  = pl.logged_by
         WHERE {where}
-        ORDER BY pl.log_date DESC, b.code, p.printer_code
+        ORDER BY pl.log_date DESC, pl.created_at DESC, b.code, p.printer_code
         LIMIT 1000
     """, tuple(params)) or []
 
