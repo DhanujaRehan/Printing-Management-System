@@ -55,6 +55,12 @@ async function tlLoadPrinters(branchId) {
     '<div class="tl-loading"><div class="spin"></div> Loading printers…</div>';
 
   var printers = await silentApi('GET', '/printers/branch-printers-with-toner?branch_id=' + branchId);
+
+  if (printers === null || printers === undefined) {
+    document.getElementById('tl-printers').innerHTML = tlEmpty('❌', 'Failed to load printers', 'Check your connection and try Refresh.');
+    return;
+  }
+
   _tlPrinters = printers || [];
 
   if (!_tlPrinters.length) {

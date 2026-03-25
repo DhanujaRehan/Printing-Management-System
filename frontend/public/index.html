@@ -803,14 +803,14 @@
 
     <!-- ── TONER REPLACEMENT LOG — Service Person ──────── -->
     <div class="page" id="page-tonerlog">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Toner Replacement Log</div>
-          <div class="pgs">Mark when you physically replace a toner cartridge</div>
+
+      <!-- Mobile-friendly header -->
+      <div class="tl-page-hdr">
+        <div class="tl-page-hdr-left">
+          <div class="tl-page-title">🔄 Toner Replaced</div>
+          <div class="tl-page-sub">Mark when you put in a new toner cartridge</div>
         </div>
-        <div class="pgact">
-          <button class="btn btn-g" onclick="loadTonerLog()" style="font-size:12px">↺ Refresh</button>
-        </div>
+        <button class="tl-refresh-btn" onclick="loadTonerLog()">↺</button>
       </div>
 
       <!-- Branch badge (assigned) or selector (ALL access) -->

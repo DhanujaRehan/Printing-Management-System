@@ -200,23 +200,22 @@ def get_branch_printers_with_toner(branch_id: int, current_user: dict = Depends(
     from db.database import query as _q
     return _q("""
         SELECT
-            p.id AS printer_id,
-            p.printer_code,
-            p.model AS printer_model,
-            p.location_note,
-            b.code AS branch_code,
-            b.name AS branch_name,
-            tm.id   AS toner_model_id,
-            tm.model_code AS toner_model,
-            ti.current_pct,
-            ti.installed_at,
-            ti.installed_at AS last_replaced_at,
-            u.full_name AS last_replaced_by
-        FROM printers p
-        JOIN branches b ON b.id = p.branch_id
-        LEFT JOIN toner_installations ti ON ti.printer_id = p.id AND ti.is_current = TRUE
-        LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+            vps.printer_id,
+            vps.printer_code,
+            vps.printer_model,
+            vps.location_note,
+            vps.branch_code,
+            vps.branch_name,
+            vps.toner_model_id,
+            vps.toner_model,
+            vps.pct_remaining   AS current_pct,
+            vps.copies_remaining,
+            vps.installed_at    AS last_replaced_at,
+            u.full_name         AS last_replaced_by
+        FROM v_printer_status vps
+        LEFT JOIN toner_installations ti
+               ON ti.printer_id = vps.printer_id AND ti.is_current = TRUE
         LEFT JOIN users u ON u.id = ti.installed_by
-        WHERE p.branch_id = %s AND p.is_active = TRUE
-        ORDER BY p.printer_code
+        WHERE vps.branch_id = %s
+        ORDER BY vps.printer_code
     """, (branch_id,)) or []

@@ -754,81 +754,132 @@
    TONER REPLACEMENT LOG — Service Person Dashboard
    Mobile-first
    ══════════════════════════════════════════════════════════ */
+/* ── Toner Log — Branch header ─────────────────────────── */
 .tl-branch-badge {
-  display:inline-flex; align-items:center; gap:8px;
-  background:linear-gradient(135deg,#eff6ff,#dbeafe);
-  border:1.5px solid #bae6fd; border-radius:14px;
-  padding:12px 22px; font-size:15px; font-weight:700; color:#1d4ed8;
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,#1e3a5f,#0ea5e9);
+  border-radius:16px; padding:14px 20px;
+  font-size:15px; font-weight:700; color:#fff;
   margin-bottom:18px; width:100%; box-sizing:border-box;
+  box-shadow:0 4px 16px rgba(14,165,233,.25);
 }
 .tl-branch-sel-wrap {
-  background:var(--white); border:1px solid var(--sb); border-radius:14px;
-  padding:14px 18px; margin-bottom:18px; box-shadow:var(--shadow);
-  display:flex; align-items:center; gap:12px;
+  background:var(--white); border:1.5px solid var(--sb);
+  border-radius:14px; padding:14px 18px; margin-bottom:18px;
+  box-shadow:var(--shadow); display:flex; align-items:center; gap:12px;
 }
 
-/* Printer cards */
+/* ── Printer cards ─────────────────────────────────────── */
 .tl-card {
-  background:var(--white); border:1px solid var(--sb); border-radius:18px;
-  padding:18px 20px; margin-bottom:14px; box-shadow:var(--shadow);
+  background:#fff; border:2px solid #e2e8f0;
+  border-radius:20px; padding:20px;
+  margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,.06);
   transition:box-shadow .2s;
 }
-.tl-card:hover { box-shadow:var(--shadow-lg); }
+.tl-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.1); }
 
+/* Top row: printer info + toner % */
 .tl-card-top {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  gap:12px; margin-bottom:12px;
+  display:flex; align-items:center;
+  justify-content:space-between;
+  gap:12px; margin-bottom:14px;
 }
 .tl-card-left  { flex:1; min-width:0; }
-.tl-card-right { text-align:right; flex-shrink:0; }
+.tl-card-right {
+  text-align:center; flex-shrink:0;
+  background:#f8fafc; border-radius:14px;
+  padding:12px 16px; min-width:80px;
+}
 
-.tl-printer-code  { font-family:var(--m); font-size:18px; font-weight:800; color:var(--tx); }
-.tl-printer-model { font-size:12px; color:var(--t2); margin-top:3px; }
-.tl-printer-loc   { font-size:11px; color:var(--t3); margin-top:2px; }
-.tl-pct           { font-family:var(--m); font-size:26px; font-weight:800; line-height:1; }
-.tl-toner-model   { font-size:11px; color:var(--t3); margin-top:3px; }
+.tl-printer-code  {
+  font-family:var(--m); font-size:20px;
+  font-weight:900; color:#0f172a;
+}
+.tl-printer-model { font-size:13px; color:#64748b; margin-top:4px; }
+.tl-printer-loc   { font-size:12px; color:#94a3b8; margin-top:3px; }
 
-.tl-bar { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin-bottom:14px; }
-.tl-bar-fill { height:100%; border-radius:3px; transition:width .8s ease; }
+.tl-pct {
+  font-family:var(--m); font-size:28px;
+  font-weight:900; line-height:1;
+}
+.tl-toner-model {
+  font-size:10px; color:#94a3b8;
+  margin-top:4px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+
+/* Toner bar */
+.tl-bar {
+  height:10px; background:#f1f5f9;
+  border-radius:5px; overflow:hidden;
+  margin-bottom:16px;
+}
+.tl-bar-fill {
+  height:100%; border-radius:5px;
+  transition:width .8s ease;
+}
 
 /* Last replaced info */
 .tl-last-replaced {
-  display:flex; align-items:flex-start; gap:10px;
-  background:#f8fafc; border-radius:10px; padding:10px 14px;
-  margin-bottom:14px; border-left:3px solid #e2e8f0;
+  display:flex; align-items:flex-start; gap:12px;
+  background:#f8fafc; border-radius:12px;
+  padding:12px 16px; margin-bottom:16px;
+  border-left:4px solid #e2e8f0;
 }
-.tl-last-replaced.tl-never { border-left-color:#fed7aa; background:#fffbeb; }
-.tl-last-ico   { font-size:16px; flex-shrink:0; margin-top:1px; }
-.tl-last-label { font-size:11px; font-weight:600; color:var(--t3); text-transform:uppercase; letter-spacing:.04em; }
-.tl-last-dt    { font-size:13px; font-weight:700; color:var(--tx); margin-top:2px; }
-.tl-last-by    { font-size:11px; color:var(--t2); margin-top:1px; }
+.tl-last-replaced.tl-never {
+  border-left-color:#fed7aa; background:#fffbeb;
+}
+.tl-last-ico   { font-size:20px; flex-shrink:0; margin-top:1px; }
+.tl-last-label {
+  font-size:11px; font-weight:700; color:#94a3b8;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.tl-last-dt    { font-size:14px; font-weight:700; color:#0f172a; margin-top:3px; }
+.tl-last-by    { font-size:12px; color:#64748b; margin-top:2px; }
 
-/* Replace button */
+/* Replace button — BIG tap target */
 .tl-replace-btn {
-  width:100%; padding:14px; border-radius:13px; border:none; cursor:pointer;
-  background:linear-gradient(135deg,#10b981,#059669); color:#fff;
-  font-family:var(--f); font-size:15px; font-weight:700;
-  box-shadow:0 4px 16px rgba(16,185,129,.3); transition:all .2s;
+  width:100%; padding:18px;
+  border-radius:16px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff; font-family:var(--f);
+  font-size:17px; font-weight:800;
+  box-shadow:0 4px 20px rgba(16,185,129,.35);
+  transition:all .2s;
   display:flex; align-items:center; justify-content:center; gap:8px;
+  letter-spacing:.01em;
 }
-.tl-replace-btn:hover   { transform:translateY(-2px); box-shadow:0 8px 24px rgba(16,185,129,.4); }
-.tl-replace-btn:active  { transform:translateY(0); }
+.tl-replace-btn:hover   { transform:translateY(-2px); box-shadow:0 8px 28px rgba(16,185,129,.45); }
+.tl-replace-btn:active  { transform:translateY(0); box-shadow:none; }
 .tl-replace-btn:disabled { opacity:.65; cursor:not-allowed; transform:none; }
 
-/* Empty / loading states */
-.tl-loading { display:flex; align-items:center; justify-content:center; gap:10px;
-  padding:44px; color:var(--t3); font-size:13px; }
-.tl-empty   { padding:52px 20px; text-align:center; }
-.tl-empty-icon  { font-size:48px; margin-bottom:12px; }
-.tl-empty-title { font-size:16px; font-weight:700; color:var(--tx); }
-.tl-empty-sub   { font-size:13px; color:var(--t3); margin-top:6px; }
+/* Empty / loading */
+.tl-loading {
+  display:flex; align-items:center; justify-content:center;
+  gap:10px; padding:44px; color:#94a3b8; font-size:13px;
+}
+.tl-empty { padding:52px 20px; text-align:center; }
+.tl-empty-icon  { font-size:56px; margin-bottom:14px; }
+.tl-empty-title { font-size:17px; font-weight:800; color:#0f172a; }
+.tl-empty-sub   { font-size:13px; color:#94a3b8; margin-top:8px; }
 
-/* Mobile */
+/* ── MOBILE — full priority ────────────────────────────── */
+@media (max-width: 768px) {
+  .tl-card          { padding:18px 16px; border-radius:18px; }
+  .tl-printer-code  { font-size:22px; }
+  .tl-printer-model { font-size:14px; }
+  .tl-pct           { font-size:32px; }
+  .tl-card-right    { min-width:90px; padding:14px; }
+  .tl-bar           { height:12px; margin-bottom:18px; }
+  .tl-last-replaced { padding:14px; }
+  .tl-last-dt       { font-size:15px; }
+  .tl-replace-btn   { font-size:18px; padding:20px; border-radius:18px; }
+}
+
 @media (max-width: 480px) {
-  .tl-card        { padding:16px; }
-  .tl-printer-code { font-size:16px; }
-  .tl-pct          { font-size:22px; }
-  .tl-replace-btn  { font-size:14px; padding:13px; }
+  .tl-card          { padding:16px 14px; margin-bottom:14px; }
+  .tl-printer-code  { font-size:20px; }
+  .tl-replace-btn   { font-size:17px; padding:18px; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -926,6 +977,7 @@
   border-top: 1px solid #f1f5f9;
   gap: 12px;
 }
+
 
 .eod2-total-label {
   font-size: 10px;
@@ -1466,4 +1518,31 @@
   .eod3-printer-grid { grid-template-columns: repeat(2, 1fr); }
   .eod3-total-input  { font-size: 30px; padding: 14px; }
   .eod3-pop-save-btn { font-size: 16px; padding: 16px; }
+}
+
+/* ── Toner Log — Mobile page header ─────────────────────── */
+.tl-page-hdr {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px; gap: 12px;
+}
+.tl-page-title {
+  font-size: 20px; font-weight: 900;
+  color: #0f172a; letter-spacing: -.01em;
+}
+.tl-page-sub {
+  font-size: 12px; color: #94a3b8;
+  margin-top: 3px;
+}
+.tl-refresh-btn {
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: #f1f5f9; border: 1.5px solid #e2e8f0;
+  border-radius: 12px; font-size: 18px;
+  cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-refresh-btn:hover { background: #e2e8f0; }
+
+@media (max-width: 480px) {
+  .tl-page-title { font-size: 18px; }
 }
