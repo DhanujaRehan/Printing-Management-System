@@ -1078,3 +1078,13 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .nw-drawer.open { transform: translateY(0); }
   .nw-drawer-hdr  { border-radius: 20px 20px 0 0; }
 }
+
+/* Paper pills on branch rows */
+.nw-paper-pills { display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 2px; }
+.nw-pp {
+  font-size:10px; font-weight:700; padding:2px 7px;
+  border-radius:5px;
+}
+.nw-pp-a4  { background:#dbeafe; color:#1d4ed8; }
+.nw-pp-b4  { background:#d1fae5; color:#065f46; }
+.nw-pp-lg  { background:#fef3c7; color:#92400e; }

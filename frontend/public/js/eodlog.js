@@ -1,17 +1,52 @@
+/* ── Paper card toggle ───────────────────────────────────── */
+function eodTogglePaper(type) {
+  var inputs = document.getElementById('eod3-inputs-' + type);
+  var arrow  = document.getElementById('eod3-arrow-'  + type);
+  var card   = document.getElementById('eod3-paper-'  + type);
+  if (!inputs) return;
+  var open = inputs.style.display !== 'none';
+  inputs.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
+  if (card)  card.classList.toggle('eod3-paper-open', !open);
+  if (!open) {
+    setTimeout(function(){
+      var first = inputs.querySelector('input');
+      if (first) first.focus();
+    }, 100);
+  }
+}
+
 /* ============================================================
-   SoftWave — End of Day Print Log
-   Redesigned for non-technical mobile users
+   SoftWave — End of Day Print Log v3
+   Ultra-simple for non-technical mobile users
+   Flow: Date selector → Printer cards → Click printer popup
+         → Paper type cards → Summary → Save All
    ============================================================ */
 
-var _eodPrinters = [];
-var _eodBranchId = null;
+var _eodPrinters  = [];
+var _eodBranchId  = null;
+var _eodLogDate   = null;   // YYYY-MM-DD string
+var _eodActivePid = null;   // printer being edited in popup
+
+/* ── Helpers ─────────────────────────────────────────────── */
+function eodToday() {
+  var d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function eodYesterday() {
+  var d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0,10);
+}
+function eodFmtDate(iso) {
+  var d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
 
 /* ── Entry point ─────────────────────────────────────────── */
 async function loadEOD() {
-  var el = document.getElementById('eod-date');
-  if (el) el.textContent = new Date().toLocaleDateString('en-GB', {
-    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-  });
+  _eodLogDate = eodToday();
+  eodSetDateUI();
 
   var access   = (APP.user.branch_access || '').trim().toUpperCase();
   var branches = (await silentApi('GET', '/branches')) || [];
@@ -22,15 +57,15 @@ async function loadEOD() {
     });
     if (branch) {
       _eodBranchId = branch.id;
-      document.getElementById('eod-branch-row').style.display   = 'none';
+      document.getElementById('eod-branch-row').style.display    = 'none';
       document.getElementById('eod-assigned-wrap').style.display = '';
       document.getElementById('eod-branch-badge').textContent    = '🏢  ' + branch.code + ' — ' + branch.name;
       await eodLoadPrinters(branch.id);
     } else {
-      document.getElementById('eod-branch-row').style.display   = 'none';
+      document.getElementById('eod-branch-row').style.display    = 'none';
       document.getElementById('eod-assigned-wrap').style.display = '';
       document.getElementById('eod-branch-badge').textContent    = '⚠️ Branch not found — contact administrator';
-      document.getElementById('eod-printers').innerHTML = eodEmpty('⚠️', 'Branch not found', 'Contact your administrator.');
+      document.getElementById('eod-printers').innerHTML = eodEmpty('⚠️','Branch not found','Ask your administrator.');
     }
   } else {
     document.getElementById('eod-branch-row').style.display    = '';
@@ -42,23 +77,43 @@ async function loadEOD() {
         sel.add(new Option(b.code + ' — ' + b.name, b.id + '|' + b.code));
       });
     }
-    document.getElementById('eod-printers').innerHTML = eodEmpty('🏢', 'Select a branch above', '');
+    document.getElementById('eod-printers').innerHTML = eodEmpty('🏢','Select a branch above','');
   }
 
   eodLoadHistory();
 }
 
+/* ── Date selector UI ────────────────────────────────────── */
+function eodSetDateUI() {
+  var today = eodToday();
+  var yesterday = eodYesterday();
+  var btnToday = document.getElementById('eod-btn-today');
+  var btnYest  = document.getElementById('eod-btn-yest');
+  if (btnToday) {
+    btnToday.classList.toggle('eod-date-active', _eodLogDate === today);
+    btnYest.classList.toggle('eod-date-active',  _eodLogDate === yesterday);
+  }
+  var lbl = document.getElementById('eod-date');
+  if (lbl) lbl.textContent = eodFmtDate(_eodLogDate);
+}
+
+function eodSelectDate(which) {
+  _eodLogDate = (which === 'today') ? eodToday() : eodYesterday();
+  eodSetDateUI();
+  if (_eodBranchId) eodLoadPrinters(_eodBranchId);
+}
+
 async function eodBranchChanged() {
   var sel = document.getElementById('eod-branch-sel');
   if (!sel || !sel.value) {
-    document.getElementById('eod-printers').innerHTML = eodEmpty('🏢', 'Select a branch above', '');
+    document.getElementById('eod-printers').innerHTML = eodEmpty('🏢','Select a branch above','');
     return;
   }
   _eodBranchId = parseInt(sel.value.split('|')[0]);
   await eodLoadPrinters(_eodBranchId);
 }
 
-/* ── Load & render printers ──────────────────────────────── */
+/* ── Load printers ───────────────────────────────────────── */
 async function eodLoadPrinters(branchId) {
   var wrap = document.getElementById('eod-printers');
   wrap.innerHTML = '<div class="eod-loading"><div class="spin"></div> Loading printers…</div>';
@@ -67,120 +122,132 @@ async function eodLoadPrinters(branchId) {
   _eodPrinters = all.filter(function(p) { return p.branch_id === branchId; });
 
   if (!_eodPrinters.length) {
-    wrap.innerHTML = eodEmpty('🖨️', 'No printers in this branch', 'Contact your administrator');
+    wrap.innerHTML = eodEmpty('🖨️','No printers in this branch','Contact your administrator');
     return;
   }
 
-  wrap.innerHTML = _eodPrinters.map(function(p, idx) {
-    var pid = p.printer_id;
-    var pct = Math.round(p.current_pct || 0);
-    var tc  = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+  // Check which printers already have a log for this date
+  var existingLogs = (await silentApi('GET', '/requests/print-logs?branch_id=' + branchId)) || [];
+  var loggedMap = {};
+  existingLogs.forEach(function(l) {
+    if (l.log_date && l.log_date.slice(0,10) === _eodLogDate) {
+      loggedMap[l.printer_id] = l;
+    }
+  });
 
-    return '<div class="eod-card" id="eod-card-' + pid + '">'
+  wrap.innerHTML = '<div class="eod3-printer-grid" id="eod3-grid">'
+    + _eodPrinters.map(function(p, idx) {
+        var pid  = p.printer_id;
+        var pct  = Math.round(p.current_pct || 0);
+        var tc   = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+        var done = !!loggedMap[pid];
+        var log  = loggedMap[pid] || {};
 
-      /* ── Card header ── */
-      + '<div class="eod-card-hdr">'
-      +   '<div class="eod-card-num">' + (idx + 1) + '</div>'
-      +   '<div class="eod-card-meta">'
-      +     '<div class="eod-card-code">' + p.printer_code + '</div>'
-      +     '<div class="eod-card-model">' + (p.printer_model || '') + '</div>'
-      +   '</div>'
-      +   '<div class="eod-toner-ring" style="border-color:' + tc + ';color:' + tc + '">'
-      +     '<span class="eod-toner-pct">' + pct + '%</span>'
-      +     '<span class="eod-toner-word">TONER</span>'
-      +   '</div>'
-      +   '<div class="eod-done-tick" id="eod-tick-' + pid + '" style="display:none">✅</div>'
-      + '</div>'
-
-      /* ── Paper input sections ── */
-      + '<div class="eod2-paper-sections">'
-      +   eod2PaperSection(pid, 'a4', '📄', 'A4')
-      +   eod2PaperSection(pid, 'b4', '📋', 'B4')
-      +   eod2PaperSection(pid, 'lt', '📃', 'Letter')
-      + '</div>'
-
-      /* ── Total & save ── */
-      + '<div class="eod2-footer">'
-      +   '<div class="eod2-total-box">'
-      +     '<div class="eod2-total-label">Total Prints</div>'
-      +     '<div class="eod2-total-num" id="eod-tot-' + pid + '">0</div>'
-      +   '</div>'
-      +   '<button class="eod2-save-btn" id="eod-btn-' + pid + '" onclick="eodSave(' + pid + ')">'
-      +     '✓ Save'
-      +   '</button>'
-      + '</div>'
-
-      + '</div>';
-  }).join('');
-
-  eodUpdateSummary();
-}
-
-/* ── Paper section builder ───────────────────────────────── */
-function eod2PaperSection(pid, prefix, icon, label) {
-  return '<div class="eod2-section">'
-    + '<div class="eod2-section-label">' + icon + ' ' + label + '</div>'
-    + '<div class="eod2-inputs">'
-    +   '<div class="eod2-input-group">'
-    +     '<div class="eod2-input-label">Single Side</div>'
-    +     '<input type="number" class="eod2-input" id="eod-' + pid + '-' + prefix + 's"'
-    +       ' min="0" placeholder="0" inputmode="numeric"'
-    +       ' oninput="eodCalcTotal(' + pid + ')">'
-    +   '</div>'
-    +   '<div class="eod2-input-divider"></div>'
-    +   '<div class="eod2-input-group">'
-    +     '<div class="eod2-input-label">Double Side</div>'
-    +     '<input type="number" class="eod2-input" id="eod-' + pid + '-' + prefix + 'd"'
-    +       ' min="0" placeholder="0" inputmode="numeric"'
-    +       ' oninput="eodCalcTotal(' + pid + ')">'
-    +   '</div>'
-    + '</div>'
+        return '<div class="eod3-printer-card ' + (done ? 'eod3-done' : '') + '" id="eod3-card-' + pid + '" onclick="eodOpenPrinter(' + pid + ')">'
+          + '<div class="eod3-card-num">' + (idx+1) + '</div>'
+          + (done ? '<div class="eod3-done-badge">✅ Logged</div>' : '')
+          + '<div class="eod3-printer-icon">🖨️</div>'
+          + '<div class="eod3-printer-code">' + p.printer_code + '</div>'
+          + '<div class="eod3-printer-model">' + (p.printer_model||'') + '</div>'
+          + '<div class="eod3-toner-bar-wrap">'
+          +   '<div class="eod3-toner-bar" style="width:' + pct + '%;background:' + tc + '"></div>'
+          + '</div>'
+          + '<div class="eod3-toner-pct" style="color:' + tc + '">' + pct + '% Toner</div>'
+          + (done
+              ? '<div class="eod3-logged-total">' + (log.print_count||0).toLocaleString() + ' prints</div>'
+              : '<div class="eod3-tap-hint">Tap to log prints</div>')
+          + '</div>';
+      }).join('')
     + '</div>';
+
+  eodUpdateSummaryBar();
 }
 
-/* ── Calculation ─────────────────────────────────────────── */
-function eodCalcTotal(pid) {
-  var keys  = ['a4s','a4d','b4s','b4d','lts','ltd'];
-  var total = 0;
-  keys.forEach(function(k) {
-    var inp = document.getElementById('eod-' + pid + '-' + k);
-    total  += (inp && inp.value !== '') ? (parseInt(inp.value) || 0) : 0;
+/* ── Open printer popup ──────────────────────────────────── */
+function eodOpenPrinter(pid) {
+  _eodActivePid = pid;
+  var p   = _eodPrinters.find(function(x){ return x.printer_id === pid; });
+  var pct = Math.round((p && p.current_pct) || 0);
+  var tc  = pct <= 10 ? '#ef4444' : pct <= 25 ? '#f59e0b' : '#10b981';
+
+  // Set printer info
+  document.getElementById('eod-pop-code').textContent  = p ? p.printer_code : '';
+  document.getElementById('eod-pop-model').textContent = p ? (p.printer_model||'') : '';
+  document.getElementById('eod-pop-pct').textContent   = pct + '% Toner';
+  document.getElementById('eod-pop-pct').style.color   = tc;
+
+  // Clear all inputs
+  ['eod-pop-total','eod-pop-a4s','eod-pop-a4d','eod-pop-b4s','eod-pop-b4d','eod-pop-lgs','eod-pop-lgd'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
   });
-  var el = document.getElementById('eod-tot-' + pid);
-  if (el) {
-    el.textContent = total.toLocaleString();
-    el.style.color = total > 0 ? '#0ea5e9' : '#94a3b8';
+
+  document.getElementById('eod-pop-save').textContent = '✓ Save This Printer';
+  document.getElementById('eod-pop-save').disabled    = false;
+  document.getElementById('eod-pop-save').style.background = '';
+
+  eodPopCalcPaper();
+
+  // Show popup
+  document.getElementById('eod-pop-overlay').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('eod-pop-box').classList.add('open'); }, 10);
+  // Focus total input
+  setTimeout(function(){
+    var t = document.getElementById('eod-pop-total');
+    if (t) t.focus();
+  }, 200);
+}
+
+function eodClosePop() {
+  document.getElementById('eod-pop-box').classList.remove('open');
+  setTimeout(function(){ document.getElementById('eod-pop-overlay').style.display = 'none'; }, 300);
+}
+
+/* ── Popup calculation ───────────────────────────────────── */
+function eodPopCalcPaper() {
+  var a4s = parseInt(document.getElementById('eod-pop-a4s').value)||0;
+  var a4d = parseInt(document.getElementById('eod-pop-a4d').value)||0;
+  var b4s = parseInt(document.getElementById('eod-pop-b4s').value)||0;
+  var b4d = parseInt(document.getElementById('eod-pop-b4d').value)||0;
+  var lgs = parseInt(document.getElementById('eod-pop-lgs').value)||0;
+  var lgd = parseInt(document.getElementById('eod-pop-lgd').value)||0;
+
+  var paperTotal = a4s + a4d + b4s + b4d + lgs + lgd;
+
+  // Show paper total preview
+  var pt = document.getElementById('eod-pop-paper-total');
+  if (pt) {
+    pt.textContent = paperTotal > 0 ? 'Paper total: ' + paperTotal.toLocaleString() : '';
   }
-  eodUpdateSummary();
 }
 
-function eodUpdateSummary() {
-  var grand = 0, filled = 0;
-  _eodPrinters.forEach(function(p) {
-    var el = document.getElementById('eod-tot-' + p.printer_id);
-    var v  = el ? (parseInt(el.textContent.replace(/,/g,'')) || 0) : 0;
-    grand += v;
-    if (v > 0) filled++;
-  });
-  var gt = document.getElementById('eod-grand-total');
-  var fc = document.getElementById('eod-filled-count');
-  if (gt) gt.textContent = grand.toLocaleString();
-  if (fc) fc.textContent = filled + ' / ' + _eodPrinters.length;
+function eodPopTotalChanged() {
+  // If user typed total, show it prominently
+  var val = parseInt(document.getElementById('eod-pop-total').value)||0;
+  var preview = document.getElementById('eod-pop-total-preview');
+  if (preview) {
+    preview.textContent = val > 0 ? val.toLocaleString() + ' prints' : '';
+    preview.style.color = val > 0 ? '#0ea5e9' : '#94a3b8';
+  }
 }
 
-function eodGetVal(pid, key) {
-  var el = document.getElementById('eod-' + pid + '-' + key);
-  return el && el.value !== '' ? (parseInt(el.value) || 0) : 0;
-}
+/* ── Save from popup ─────────────────────────────────────── */
+async function eodPopSave() {
+  var pid   = _eodActivePid;
+  var total = parseInt(document.getElementById('eod-pop-total').value)||0;
+  var a4s   = parseInt(document.getElementById('eod-pop-a4s').value)||0;
+  var a4d   = parseInt(document.getElementById('eod-pop-a4d').value)||0;
+  var b4s   = parseInt(document.getElementById('eod-pop-b4s').value)||0;
+  var b4d   = parseInt(document.getElementById('eod-pop-b4d').value)||0;
+  var lgs   = parseInt(document.getElementById('eod-pop-lgs').value)||0;
+  var lgd   = parseInt(document.getElementById('eod-pop-lgd').value)||0;
 
-/* ── Save single printer ─────────────────────────────────── */
-async function eodSave(pid) {
-  var a4s = eodGetVal(pid,'a4s'), a4d = eodGetVal(pid,'a4d');
-  var b4s = eodGetVal(pid,'b4s'), b4d = eodGetVal(pid,'b4d');
-  var lts = eodGetVal(pid,'lts'), ltd = eodGetVal(pid,'ltd');
-  var total = a4s + a4d + b4s + b4d + lts + ltd;
+  if (total <= 0) {
+    toast('⚠️','Enter total prints','Please enter the total print count');
+    return;
+  }
 
-  var btn = document.getElementById('eod-btn-' + pid);
+  var btn = document.getElementById('eod-pop-save');
   btn.textContent = '⏳ Saving…';
   btn.disabled    = true;
 
@@ -188,95 +255,78 @@ async function eodSave(pid) {
     await api('POST', '/requests/print-logs', {
       printer_id:    pid,
       print_count:   total,
+      log_date:      _eodLogDate,
       a4_single:     a4s, a4_double:     a4d,
       b4_single:     b4s, b4_double:     b4d,
-      letter_single: lts, letter_double: ltd
+      letter_single: lgs, letter_double: lgd
     });
 
-    var card = document.getElementById('eod-card-' + pid);
-    if (card) card.classList.add('eod-card-done');
-    var tick = document.getElementById('eod-tick-' + pid);
-    if (tick) tick.style.display = '';
-    btn.textContent          = '✅ Saved!';
-    btn.style.background     = 'linear-gradient(135deg,#10b981,#059669)';
-    btn.style.boxShadow      = 'none';
+    // Mark card as done
+    var card = document.getElementById('eod3-card-' + pid);
+    if (card) {
+      card.classList.add('eod3-done');
+      var hint = card.querySelector('.eod3-tap-hint');
+      if (hint) hint.textContent = total.toLocaleString() + ' prints';
+      hint.className = 'eod3-logged-total';
+      var badge = card.querySelector('.eod3-done-badge');
+      if (!badge) {
+        var b = document.createElement('div');
+        b.className = 'eod3-done-badge';
+        b.textContent = '✅ Logged';
+        card.insertBefore(b, card.firstChild.nextSibling);
+      }
+    }
 
-    toast('✅', 'Saved!', total.toLocaleString() + ' total prints logged');
+    toast('✅','Saved!', total.toLocaleString() + ' prints logged');
+    eodClosePop();
+    eodUpdateSummaryBar();
     eodLoadHistory();
-    eodUpdateSummary();
 
   } catch(e) {
-    btn.textContent = '✓ Save';
+    btn.textContent = '✓ Save This Printer';
     btn.disabled    = false;
-    toast('❌', 'Save failed', 'Please try again');
+    toast('❌','Save failed','Please try again');
   }
 }
 
-/* ── Save all ────────────────────────────────────────────── */
-async function eodSaveAll() {
-  var btn = document.getElementById('eod-save-all-btn');
-  btn.textContent = '⏳ Saving…';
-  btn.disabled    = true;
-  var count = 0;
-
-  for (var i = 0; i < _eodPrinters.length; i++) {
-    var p   = _eodPrinters[i];
-    var pid = p.printer_id;
-    var tot = parseInt((document.getElementById('eod-tot-' + pid) || {}).textContent || '0') || 0;
-    if (tot <= 0) continue;
-
-    try {
-      await api('POST', '/requests/print-logs', {
-        printer_id:    pid,   print_count:   tot,
-        a4_single:     eodGetVal(pid,'a4s'), a4_double:     eodGetVal(pid,'a4d'),
-        b4_single:     eodGetVal(pid,'b4s'), b4_double:     eodGetVal(pid,'b4d'),
-        letter_single: eodGetVal(pid,'lts'), letter_double: eodGetVal(pid,'ltd')
-      });
-      var card = document.getElementById('eod-card-' + pid);
-      if (card) card.classList.add('eod-card-done');
-      var tick = document.getElementById('eod-tick-' + pid);
-      if (tick) tick.style.display = '';
-      var sb = document.getElementById('eod-btn-' + pid);
-      if (sb) { sb.textContent = '✅ Saved!'; sb.style.background = 'linear-gradient(135deg,#10b981,#059669)'; }
-      count++;
-    } catch(e) {}
-  }
-
-  btn.textContent = '✓ Save All';
-  btn.disabled    = false;
-
-  if (count > 0) {
-    toast('✅', count + ' printers logged', 'End of day complete!');
-    eodLoadHistory();
-  } else {
-    toast('⚠️', 'Nothing to save', 'Enter at least one print count first');
-  }
+/* ── Summary bar ─────────────────────────────────────────── */
+function eodUpdateSummaryBar() {
+  var logged = document.querySelectorAll('.eod3-done').length;
+  var total  = _eodPrinters.length;
+  var fc = document.getElementById('eod-filled-count');
+  var gt = document.getElementById('eod-grand-total');
+  if (fc) fc.textContent = logged + ' / ' + total;
+  // Grand total from logged-total elements
+  var grand = 0;
+  document.querySelectorAll('.eod3-logged-total').forEach(function(el) {
+    grand += parseInt((el.textContent||'0').replace(/,/g,''))||0;
+  });
+  if (gt) gt.textContent = grand.toLocaleString();
 }
 
 /* ── History ─────────────────────────────────────────────── */
 async function eodLoadHistory() {
-  var tbody = document.getElementById('eod-history-tbody');
-  if (!tbody) return;
+  var wrap = document.getElementById('eod-history-wrap');
+  if (!wrap) return;
   var logs = (await silentApi('GET', '/requests/my-print-logs')) || [];
   if (!logs.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="emptys">No logs yet.</td></tr>';
+    wrap.innerHTML = '<div class="eod3-no-history">No logs yet — start logging!</div>';
     return;
   }
-  tbody.innerHTML = logs.slice(0, 20).map(function(l) {
+  wrap.innerHTML = logs.slice(0,15).map(function(l) {
     var dt = l.log_date
-      ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'})
+      ? new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})
       : '—';
-    var parts = [];
-    if (l.a4_single || l.a4_double)         parts.push('A4: '+(l.a4_single||0)+'S/'+(l.a4_double||0)+'D');
-    if (l.b4_single || l.b4_double)         parts.push('B4: '+(l.b4_single||0)+'S/'+(l.b4_double||0)+'D');
-    if (l.letter_single || l.letter_double) parts.push('LT: '+(l.letter_single||0)+'S/'+(l.letter_double||0)+'D');
-    return '<tr>'
-      + '<td style="font-size:11px;color:var(--t3)">' + dt + '</td>'
-      + '<td style="font-family:var(--m);font-weight:700;color:var(--c1)">' + (l.printer_code||'—') + '</td>'
-      + '<td style="font-size:11px;color:var(--t2)">' + (l.branch_name||'—') + '</td>'
-      + '<td style="font-family:var(--m);font-size:15px;font-weight:800">' + (l.print_count||0).toLocaleString() + '</td>'
-      + '<td style="font-size:10px;color:var(--t3)">' + (parts.join(' · ')||'—') + '</td>'
-      + '</tr>';
+    var papers = [];
+    if (l.a4_single||l.a4_double)         papers.push('A4 '+(l.a4_single||0)+'+'+(l.a4_double||0));
+    if (l.b4_single||l.b4_double)         papers.push('B4 '+(l.b4_single||0)+'+'+(l.b4_double||0));
+    if (l.letter_single||l.letter_double) papers.push('Legal '+(l.letter_single||0)+'+'+(l.letter_double||0));
+    return '<div class="eod3-hist-row">'
+      + '<div class="eod3-hist-date">' + dt + '</div>'
+      + '<div class="eod3-hist-code">' + (l.printer_code||'—') + '</div>'
+      + '<div class="eod3-hist-total">' + (l.print_count||0).toLocaleString() + '</div>'
+      + '<div class="eod3-hist-papers">' + (papers.join(' · ')||'—') + '</div>'
+      + '</div>';
   }).join('');
 }
 

@@ -645,562 +645,161 @@
          ═══════════════════════════════════════════════════════ -->
     <div class="page" id="page-eodlog">
 
-      <!-- Hero banner -->
-      <div class="eod-hero">
-        <div class="eod-hero-left">
-          <div class="eod-hero-icon">📊</div>
-          <div>
-            <div class="eod-hero-title">End of Day Print Log</div>
-            <div class="eod-hero-date" id="eod-date">—</div>
-          </div>
+      <!-- ── Date Selector ────────────────────────────── -->
+      <div class="eod3-date-bar">
+        <div class="eod3-date-label" id="eod-date">Loading...</div>
+        <div class="eod3-date-btns">
+          <button class="eod3-date-btn eod-date-active" id="eod-btn-today"
+            onclick="eodSelectDate('today')">📅 Today</button>
+          <button class="eod3-date-btn" id="eod-btn-yest"
+            onclick="eodSelectDate('yesterday')">◀ Yesterday</button>
         </div>
-        <button class="eod-refresh-btn" onclick="loadEOD()">↺ Refresh</button>
       </div>
 
-      <!-- Branch selector (only shown when no fixed branch) -->
-      <div class="eod-branch-row" id="eod-branch-row" style="display:none">
-        <span style="font-size:18px">🏢</span>
-        <select class="fs" id="eod-branch-sel" onchange="eodBranchChanged()" style="flex:1">
+      <!-- ── Branch (for manager/dba) ─────────────────── -->
+      <div id="eod-branch-row" style="display:none;margin-bottom:12px">
+        <select class="eod3-branch-sel" onchange="eodBranchChanged()" id="eod-branch-sel">
           <option value="">— Select Branch —</option>
         </select>
       </div>
-
-      <!-- Auto-assigned branch badge -->
-      <div id="eod-assigned-wrap" style="display:none;margin-bottom:14px">
-        <div class="eod-branch-badge" id="eod-branch-badge">—</div>
+      <div id="eod-assigned-wrap" style="display:none;margin-bottom:12px">
+        <div class="eod3-branch-badge" id="eod-branch-badge"></div>
       </div>
 
-      <!-- Summary strip -->
-      <div class="eod-summary">
-        <div class="eod-sum-item">
-          <div class="eod-sum-num" id="eod-grand-total">0</div>
-          <div class="eod-sum-lbl">Total Prints Today</div>
+      <!-- ── Summary strip ─────────────────────────────── -->
+      <div class="eod3-summary-strip">
+        <div class="eod3-sum-item">
+          <div class="eod3-sum-num" id="eod-filled-count">0 / 0</div>
+          <div class="eod3-sum-lbl">Printers Logged</div>
         </div>
-        <div class="eod-sum-divider"></div>
-        <div class="eod-sum-item">
-          <div class="eod-sum-num eod-sum-sm" id="eod-filled-count">0 / 0</div>
-          <div class="eod-sum-lbl">Printers Filled</div>
+        <div class="eod3-sum-divider"></div>
+        <div class="eod3-sum-item">
+          <div class="eod3-sum-num" id="eod-grand-total">0</div>
+          <div class="eod3-sum-lbl">Total Prints</div>
         </div>
-        <button class="eod-save-all-btn" id="eod-save-all-btn" onclick="eodSaveAll()">✓ Save All</button>
       </div>
 
-      <!-- Printer cards -->
+      <!-- ── Printer cards ──────────────────────────────── -->
       <div id="eod-printers">
         <div class="eod-loading"><div class="spin"></div> Loading…</div>
       </div>
 
-      <!-- History -->
-      <div class="eod-history">
-        <div class="eod-history-hdr">📅 Recent Logs</div>
-        <div class="scx">
-          <table class="tbl">
-            <thead>
-              <tr><th>Date</th><th>Printer</th><th>Branch</th><th>Total</th><th>Breakdown</th></tr>
-            </thead>
-            <tbody id="eod-history-tbody">
-              <tr><td colspan="5" class="emptys">No logs yet.</td></tr>
-            </tbody>
-          </table>
+      <!-- ── Recent logs ────────────────────────────────── -->
+      <div class="eod3-history-section">
+        <div class="eod3-history-title">📋 Recent Logs</div>
+        <div id="eod-history-wrap">
+          <div class="eod3-no-history">Loading...</div>
         </div>
       </div>
 
-    </div><!-- /page-eodlog -->
+      <!-- ── Printer popup modal ───────────────────────── -->
+      <div class="eod3-pop-overlay" id="eod-pop-overlay"
+           style="display:none" onclick="if(event.target===this) eodClosePop()">
+        <div class="eod3-pop-box" id="eod-pop-box">
 
-    <!-- ── PRINT ACTIVITY REPORT (Manager / DBA) ─────────── -->
-    <div class="page" id="page-printreport">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Print Activity Report</div>
-          <div class="pgs">Daily print counts by branch and printer — logged by service team</div>
-        </div>
-        <div class="pgact">
-          <select class="fs" id="pr-filter-branch-sel" style="background:#fff;min-width:160px" onchange="prFilterBranch(this.value)">
-            <option value="">All Branches</option>
-          </select>
-          <select class="fs" id="pr-filter-date-sel" style="background:#fff;min-width:180px" onchange="prFilterDate(this.value)">
-            <option value="">All Dates</option>
-          </select>
-          <button class="btn btn-g" onclick="loadPrintReport()" style="font-size:12px">↺ Refresh</button>
-        </div>
-      </div>
-
-      <!-- KPI Strip -->
-      <div class="pr-kpi-row">
-        <div class="pr-kpi-card">
-          <div class="pr-kpi-icon" style="background:#eff6ff">🖨️</div>
-          <div>
-            <div class="pr-kpi-num" id="pr-kpi-total">—</div>
-            <div class="pr-kpi-lbl">Total Prints</div>
+          <!-- Header -->
+          <div class="eod3-pop-hdr">
+            <div class="eod3-pop-hdr-left">
+              <div class="eod3-pop-code" id="eod-pop-code"></div>
+              <div class="eod3-pop-model" id="eod-pop-model"></div>
+            </div>
+            <div class="eod3-pop-hdr-right">
+              <div class="eod3-pop-pct" id="eod-pop-pct"></div>
+              <button class="eod3-pop-close" onclick="eodClosePop()">✕</button>
+            </div>
           </div>
-        </div>
-        <div class="pr-kpi-card">
-          <div class="pr-kpi-icon" style="background:#f0fdf4">🏢</div>
-          <div>
-            <div class="pr-kpi-num" id="pr-kpi-branches">—</div>
-            <div class="pr-kpi-lbl">Active Branches</div>
+
+          <!-- Total prints input -->
+          <div class="eod3-pop-section">
+            <div class="eod3-pop-section-title">🖨️ Total Prints Today</div>
+            <div class="eod3-pop-section-sub">Enter the total number shown on the printer counter</div>
+            <input type="number" class="eod3-total-input" id="eod-pop-total"
+              placeholder="e.g. 1250" inputmode="numeric" min="0"
+              oninput="eodPopTotalChanged()">
+            <div class="eod3-total-preview" id="eod-pop-total-preview"></div>
           </div>
-        </div>
-        <div class="pr-kpi-card">
-          <div class="pr-kpi-icon" style="background:#faf5ff">🖥️</div>
-          <div>
-            <div class="pr-kpi-num" id="pr-kpi-printers">—</div>
-            <div class="pr-kpi-lbl">Printers Logged</div>
-          </div>
-        </div>
-        <div class="pr-kpi-card">
-          <div class="pr-kpi-icon" style="background:#fffbeb">📊</div>
-          <div>
-            <div class="pr-kpi-num" id="pr-kpi-avg">—</div>
-            <div class="pr-kpi-lbl">Avg per Printer</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Report body -->
-      <div id="pr-report-container">
-        <div class="loading"><div class="spin"></div>Loading...</div>
-      </div>
-    </div>
+          <!-- Paper type cards -->
+          <div class="eod3-pop-section">
+            <div class="eod3-pop-section-title">📄 Paper Breakdown <span style="font-size:11px;color:#94a3b8;font-weight:500">(Optional)</span></div>
+            <div class="eod3-pop-section-sub">Tap each paper type to enter Single / Double side amounts</div>
 
-    <!-- ── STORE PERSON PAGE ─────────────────────────────── -->
-    <div class="page" id="page-store">
-
-      <!-- Hero -->
-      <div class="svc-hero" style="background:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);box-shadow:0 8px 32px rgba(16,185,129,.22)">
-        <div class="svc-hero-left">
-          <div class="svc-hero-icon">🏪</div>
-          <div>
-            <div class="svc-hero-title">Store Dashboard</div>
-            <div class="svc-hero-sub">Manage warehouse stock — receive, dispatch and track toner &amp; paper</div>
-          </div>
-        </div>
-        <button class="btn" style="background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);font-size:12px" onclick="loadStore()">↺ Refresh</button>
-      </div>
-
-      <!-- KPI strip -->
-      <div class="svc-kpi-row" style="grid-template-columns:repeat(4,1fr)">
-        <div class="svc-kpi svc-kpi-ok">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)"><span>🖨️</span></div>
-          <div class="svc-kpi-body">
-            <div class="svc-kpi-num" id="st-kpi-toner">—</div>
-            <div class="svc-kpi-lbl">Toner Units</div>
-          </div>
-        </div>
-        <div class="svc-kpi svc-kpi-warn" style="--pc:#3b82f6">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)"><span>📄</span></div>
-          <div class="svc-kpi-body">
-            <div class="svc-kpi-num" id="st-kpi-paper">—</div>
-            <div class="svc-kpi-lbl">Paper Stock</div>
-          </div>
-        </div>
-        <div class="svc-kpi svc-kpi-err">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fee2e2,#fecaca)"><span>⚠️</span></div>
-          <div class="svc-kpi-body">
-            <div class="svc-kpi-num" id="st-kpi-low-t">—</div>
-            <div class="svc-kpi-lbl">Low Toner Models</div>
-          </div>
-        </div>
-        <div class="svc-kpi svc-kpi-crit">
-          <div class="svc-kpi-icon-wrap" style="background:linear-gradient(135deg,#fef3c7,#fde68a)"><span>📋</span></div>
-          <div class="svc-kpi-body">
-            <div class="svc-kpi-num" id="st-kpi-low-p">—</div>
-            <div class="svc-kpi-lbl">Low Paper Types</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="svc-main-tabs">
-        <button class="svc-tab svc-tab-act" id="store-tab-dispatch" onclick="switchStoreTab('dispatch')">
-          <span class="svc-tab-icon">📦</span> Dispatch Queue
-        </button>
-        <button class="svc-tab" id="store-tab-overview" onclick="switchStoreTab('overview')">
-          <span class="svc-tab-icon">📊</span> Overview
-        </button>
-        <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')">
-          <span class="svc-tab-icon">🖨️</span> Toner Stock
-        </button>
-        <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')">
-          <span class="svc-tab-icon">📄</span> Paper Stock
-        </button>
-        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">
-          <span class="svc-tab-icon">📋</span> Movement History
-        </button>
-      </div>
-
-      <!-- ── PANEL: OVERVIEW ──────────────────────────── -->
-      <!-- ── DISPATCH QUEUE PANEL ─────────────────────── -->
-      <div id="store-panel-dispatch" style="display:none">
-        <div id="store-panel-dispatch-inner">
-          <div class="loading"><div class="spin"></div>Loading dispatch queue...</div>
-        </div>
-      </div>
-
-      <div id="store-panel-overview" style="display:none">
-        <div class="st-section-title">🖨️ Toner Warehouse</div>
-        <div class="st-stock-grid" id="st-toner-overview"></div>
-        <div class="st-section-title" style="margin-top:20px">📄 Paper Warehouse</div>
-        <div class="st-stock-grid" id="st-paper-overview"></div>
-      </div>
-
-      <!-- ── PANEL: TONER ─────────────────────────────── -->
-      <div id="store-panel-toner" style="display:none">
-        <div class="st-action-layout">
-
-          <!-- Receive form -->
-          <div class="st-action-card">
-            <div class="st-action-hdr">
-              <div class="st-action-icon" style="background:#f0fdf4;color:#16a34a">📦</div>
-              <div>
-                <div class="st-action-title">Receive Toner Stock</div>
-                <div class="st-action-sub">Add toner cartridges into warehouse</div>
+            <!-- A4 -->
+            <div class="eod3-paper-card" id="eod3-paper-a4">
+              <div class="eod3-paper-card-hdr" onclick="eodTogglePaper('a4')">
+                <div class="eod3-paper-icon">📄</div>
+                <div class="eod3-paper-name">A4 Paper</div>
+                <div class="eod3-paper-arrow" id="eod3-arrow-a4">▼</div>
+              </div>
+              <div class="eod3-paper-inputs" id="eod3-inputs-a4" style="display:none">
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Single Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-a4s"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Double Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-a4d"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
               </div>
             </div>
-            <div class="ff"><label class="ffl">Toner Model</label>
-              <select class="fs" id="st-recv-toner-model"><option value="">— Select —</option></select>
+
+            <!-- B4 -->
+            <div class="eod3-paper-card" id="eod3-paper-b4">
+              <div class="eod3-paper-card-hdr" onclick="eodTogglePaper('b4')">
+                <div class="eod3-paper-icon">📋</div>
+                <div class="eod3-paper-name">B4 Paper</div>
+                <div class="eod3-paper-arrow" id="eod3-arrow-b4">▼</div>
+              </div>
+              <div class="eod3-paper-inputs" id="eod3-inputs-b4" style="display:none">
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Single Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-b4s"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Double Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-b4d"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
+              </div>
             </div>
-            <div class="ff" style="margin-top:10px"><label class="ffl">Quantity (units)</label>
-              <input class="fi2" id="st-recv-toner-qty" type="number" min="1" placeholder="e.g. 10">
+
+            <!-- Legal -->
+            <div class="eod3-paper-card" id="eod3-paper-lg">
+              <div class="eod3-paper-card-hdr" onclick="eodTogglePaper('lg')">
+                <div class="eod3-paper-icon">📃</div>
+                <div class="eod3-paper-name">Legal Paper</div>
+                <div class="eod3-paper-arrow" id="eod3-arrow-lg">▼</div>
+              </div>
+              <div class="eod3-paper-inputs" id="eod3-inputs-lg" style="display:none">
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Single Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-lgs"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
+                <div class="eod3-paper-row">
+                  <div class="eod3-paper-side-lbl">Double Side</div>
+                  <input type="number" class="eod3-paper-inp" id="eod-pop-lgd"
+                    placeholder="0" inputmode="numeric" min="0" oninput="eodPopCalcPaper()">
+                </div>
+              </div>
             </div>
-            <div class="ff" style="margin-top:10px"><label class="ffl">Purchase Date</label>
-              <input class="fi2" id="st-recv-toner-date" type="date">
-            </div>
-            <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
-              <input class="fi2" id="st-recv-toner-notes" placeholder="e.g. PO #12345">
-            </div>
-            <button class="st-action-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="storeReceiveToner()">
-              ✓ Receive into Warehouse
+
+            <div class="eod3-paper-total-preview" id="eod-pop-paper-total"></div>
+          </div>
+
+          <!-- Save button -->
+          <div class="eod3-pop-footer">
+            <button class="eod3-pop-save-btn" id="eod-pop-save" onclick="eodPopSave()">
+              ✓ Save This Printer
             </button>
           </div>
 
-          <!-- Stock table -->
-          <div class="card" style="flex:1">
-            <div class="ch"><h3>Current Toner Stock</h3></div>
-            <div class="scx">
-              <table class="tbl">
-                <thead><tr><th>Model</th><th>Brand</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
-                <tbody id="st-toner-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-
         </div>
       </div>
 
-      <!-- ── PANEL: PAPER ─────────────────────────────── -->
-      <div id="store-panel-paper" style="display:none">
-        <div class="st-action-layout">
-
-          <!-- Left column: receive + dispatch -->
-          <div style="display:flex;flex-direction:column;gap:16px">
-
-            <!-- Receive -->
-            <div class="st-action-card">
-              <div class="st-action-hdr">
-                <div class="st-action-icon" style="background:#eff6ff;color:#1d4ed8">📥</div>
-                <div>
-                  <div class="st-action-title">Receive Paper</div>
-                  <div class="st-action-sub">Add reams into warehouse</div>
-                </div>
-              </div>
-              <div class="ff"><label class="ffl">Paper Type</label>
-                <select class="fs" id="st-recv-paper-type"><option value="">— Select —</option></select>
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Reams</label>
-                <input class="fi2" id="st-recv-paper-qty" type="number" min="1" placeholder="e.g. 50">
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Purchase Date</label>
-                <input class="fi2" id="st-recv-paper-date" type="date">
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
-                <input class="fi2" id="st-recv-paper-notes" placeholder="e.g. Supplier delivery">
-              </div>
-              <button class="st-action-btn" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)" onclick="storeReceivePaper()">
-                ✓ Receive into Warehouse
-              </button>
-            </div>
-
-            <!-- Dispatch -->
-            <div class="st-action-card">
-              <div class="st-action-hdr">
-                <div class="st-action-icon" style="background:#fef9c3;color:#a16207">📤</div>
-                <div>
-                  <div class="st-action-title">Dispatch to Branch</div>
-                  <div class="st-action-sub">Send paper reams to a branch</div>
-                </div>
-              </div>
-              <div class="ff"><label class="ffl">Paper Type</label>
-                <select class="fs" id="st-disp-paper-type"><option value="">— Select —</option></select>
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Branch</label>
-                <select class="fs" id="st-disp-branch"><option value="">— Select Branch —</option></select>
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Reams to Send</label>
-                <input class="fi2" id="st-disp-qty" type="number" min="1" placeholder="e.g. 20">
-              </div>
-              <div class="ff" style="margin-top:10px"><label class="ffl">Notes</label>
-                <input class="fi2" id="st-disp-notes" placeholder="e.g. Weekly replenishment">
-              </div>
-              <button class="st-action-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="storeDispatchPaper()">
-                ✓ Dispatch to Branch
-              </button>
-            </div>
-
-          </div>
-
-          <!-- Paper stock table -->
-          <div class="card" style="flex:1">
-            <div class="ch"><h3>Current Paper Stock</h3></div>
-            <div class="scx">
-              <table class="tbl">
-                <thead><tr><th>Name</th><th>Size/GSM</th><th>Qty</th><th>Min</th><th>Status</th></tr></thead>
-                <tbody id="st-paper-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ── PANEL: HISTORY ───────────────────────────── -->
-      <div id="store-panel-history" style="display:none">
-        <div class="card" style="margin-bottom:18px">
-          <div class="ch"><h3>🖨️ Toner Movement History</h3></div>
-          <div class="scx">
-            <table class="tbl">
-              <thead><tr><th>Date/Time</th><th>Type</th><th>Model</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
-              <tbody id="st-toner-history-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card">
-          <div class="ch"><h3>📄 Paper Movement History</h3></div>
-          <div class="scx">
-            <table class="tbl">
-              <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Qty</th><th>By</th></tr></thead>
-              <tbody id="st-paper-history-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── OLD REPLACE PAGE (kept for direct installs) ───── -->
-    <div class="page" id="page-replace">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Toner Replacement</div>
-          <div class="pgs">Log installation — stock auto-deducts</div>
-        </div>
-      </div>
-      <div class="twocol">
-        <div class="fg">
-          <div class="fgt">🔄 New Toner Installation</div>
-          <div class="fr">
-            <div class="ff"><label class="ffl">Branch</label><select class="fs" id="r-branch" onchange="loadRepPrinters()"><option value="">— Select Branch —</option></select></div>
-            <div class="ff"><label class="ffl">Printer</label><select class="fs" id="r-printer"><option value="">— Select Printer —</option></select></div>
-          </div>
-          <div class="ff"><label class="ffl">Toner Model</label><select class="fs" id="r-model"><option value="">— Select Model —</option></select></div>
-          <div class="fr">
-            <div class="ff"><label class="ffl">Yield (copies)</label><input class="fi2" id="r-yield" type="number" value="3000"></div>
-            <div class="ff"><label class="ffl">Avg Daily Copies</label><input class="fi2" id="r-daily" type="number" value="150"></div>
-          </div>
-          <div class="ff"><label class="ffl">Notes (optional)</label><input class="fi2" id="r-notes" type="text" placeholder="Observations or issues..."></div>
-          <button class="sbtn" onclick="submitReplacement()">✓ Confirm Toner Replacement</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div class="card" style="padding:18px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--er)">🔴 Urgent — Replace Now</div>
-            <div id="urgent-list"></div>
-          </div>
-          <div class="card" style="padding:0;overflow:hidden">
-            <div class="ch"><h3>My Recent Replacements</h3></div>
-            <div style="padding:10px 18px 14px" id="my-log"></div>
-          </div>
-          <div class="card" style="padding:18px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:11px;color:var(--tx)">📦 Available Stock</div>
-            <div id="avail-stock"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── PAPER PAGE ───────────────────────────────────── -->
-    <div class="page" id="page-paper">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Paper Stock</div>
-          <div class="pgs">Warehouse inventory &amp; branch dispatch</div>
-        </div>
-        <div class="pgact">
-          <button class="btn btn-g" onclick="openModal('m-paper-type')">+ Paper Type</button>
-          <button class="btn btn-g" onclick="openModal('m-paper-receive')">📄 Receive Paper</button>
-          <button class="btn btn-p" onclick="openModal('m-paper-dispatch')">📦 Dispatch to Branch</button>
-        </div>
-      </div>
-
-      <!-- Warehouse stock cards -->
-      <div class="stgrid" id="paper-grid"></div>
-
-      <!-- Branch stock table -->
-      <div class="card mb20">
-        <div class="ch">
-          <h3>📍 Paper at Branches</h3>
-        </div>
-        <div class="scx">
-          <table class="tbl">
-            <thead><tr><th>Branch</th><th>Paper Type</th><th>Spec</th><th>Qty (reams)</th><th>Last Updated</th></tr></thead>
-            <tbody id="paper-branch-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Movement log -->
-      <div class="card">
-        <div class="ch">
-          <h3>Paper Movement Log</h3>
-          <div class="chr"><span style="font-size:12px;color:var(--t3)" id="paper-log-ct"></span></div>
-        </div>
-        <div class="scx">
-          <table class="tbl">
-            <thead><tr><th>Date/Time</th><th>Type</th><th>Paper</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead>
-            <tbody id="paper-log-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── DBA PAGE ────────────────────────────────────── -->
-    <!-- ── EXCEL IMPORT PAGE (DBA) ──────────────────────── -->
-    <div class="page" id="page-import">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Excel Data Import</div>
-          <div class="pgs">Upload Excel files to add branches, printers and stock — requires manager approval</div>
-        </div>
-        <button class="btn btn-g" onclick="loadImport()" style="font-size:12px">↺ Refresh</button>
-      </div>
-
-      <!-- Tabs -->
-      <div class="svc-main-tabs">
-        <button class="svc-tab svc-tab-act" id="imp-tab-upload"  onclick="switchImportTab('upload')">
-          <span class="svc-tab-icon">📤</span> Upload & Preview
-        </button>
-        <button class="svc-tab" id="imp-tab-pending" onclick="switchImportTab('pending')">
-          <span class="svc-tab-icon">⏳</span> Pending Approval
-        </button>
-        <button class="svc-tab" id="imp-tab-history" onclick="switchImportTab('history')">
-          <span class="svc-tab-icon">📋</span> Import History
-        </button>
-      </div>
-
-      <!-- ── UPLOAD PANEL ───────────────────────────────── -->
-      <div id="imp-panel-upload">
-        <div class="imp-upload-layout">
-
-          <!-- Left: form -->
-          <div class="imp-form-card">
-            <div class="imp-form-title">📂 Upload Excel File</div>
-
-            <div class="ff" style="margin-bottom:16px">
-              <label class="ffl">1. Select Import Type</label>
-              <select class="fs" id="imp-type" onchange="importTypeChanged()">
-                <option value="">— What are you importing? —</option>
-                <option value="branches">🏢 Branches</option>
-                <option value="printers">🖨️ Printers</option>
-                <option value="toner_models">🖨 Toner Models</option>
-                <option value="toner_stock">📦 Toner Stock Quantities</option>
-              </select>
-            </div>
-
-            <div id="imp-template-hint"></div>
-
-            <div class="imp-dropzone" onclick="document.getElementById('imp-file-input').click()">
-              <div class="imp-drop-icon">📊</div>
-              <div class="imp-drop-title">Click to select Excel file</div>
-              <div class="imp-drop-sub">.xlsx or .xls files only</div>
-              <div class="imp-drop-fname" id="imp-filename"></div>
-              <input type="file" id="imp-file-input" accept=".xlsx,.xls"
-                style="display:none" onchange="handleImportFile(this)">
-            </div>
-
-            <div class="imp-rules">
-              <div class="imp-rules-title">📌 Rules</div>
-              <div class="imp-rule">• First row must be the column headers</div>
-              <div class="imp-rule">• One sheet only — data must be on Sheet 1</div>
-              <div class="imp-rule">• Existing records will be updated (not duplicated)</div>
-              <div class="imp-rule">• Manager must approve before data enters the database</div>
-            </div>
-          </div>
-
-          <!-- Right: preview -->
-          <div class="imp-preview-card">
-            <div class="imp-form-title">👁️ Data Preview</div>
-            <div id="imp-preview">
-              <div class="svc-empty" style="padding:60px 20px">
-                <div style="font-size:44px;margin-bottom:14px">📋</div>
-                <div style="font-weight:600;color:var(--tx)">No file selected yet</div>
-                <div style="font-size:13px;color:var(--t3);margin-top:6px">Select import type and upload a file to see a preview here</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ── PENDING PANEL ──────────────────────────────── -->
-      <div id="imp-panel-pending" style="display:none">
-        <div id="imp-pending-container">
-          <div class="loading"><div class="spin"></div>Loading...</div>
-        </div>
-      </div>
-
-      <!-- ── HISTORY PANEL ──────────────────────────────── -->
-      <div id="imp-panel-history" style="display:none">
-        <div class="card">
-          <div class="ch"><h3>📋 All Import Requests</h3></div>
-          <div class="scx">
-            <table class="tbl">
-              <thead><tr><th>Date</th><th>Type</th><th>File</th><th>Rows</th><th>Status</th><th>Submitted By</th></tr></thead>
-              <tbody id="imp-history-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── DBA PAGE ───────────────────────────────────────── -->
-    <div class="page" id="page-dba">
-      <div class="pgh">
-        <div>
-          <div class="pgt">Administration</div>
-          <div class="pgs">Users, audit log, system info</div>
-        </div>
-        <button class="btn btn-p" onclick="openAddUserModal()">+ Add User</button>
-      </div>
-      <div class="card mb20">
-        <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <h3>👥 User Management</h3>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input id="user-search" type="text" placeholder="Search name, username, role…"
-              oninput="searchUsers()"
-              style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:200px;background:var(--bg2,#f9f9f9);color:var(--t1)">
-            <button class="btn btn-sm" onclick="clearSearch()"
-              style="font-size:11px;padding:5px 10px">✕</button>
-          </div>
-        </div>
-        <!-- Desktop table (hidden on mobile) -->
-        <div class="um-table-wrap">
-          <table class="tbl">
-            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="user-tbody"></tbody>
-          </table>
-        </div>
-        <!-- Mobile cards (hidden on desktop) -->
-        <div class="um-cards-wrap" id="user-cards"></div>
-      </div>
-    </div>
 
     <!-- ── TONER REPLACEMENT LOG — Service Person ──────── -->
     <div class="page" id="page-tonerlog">

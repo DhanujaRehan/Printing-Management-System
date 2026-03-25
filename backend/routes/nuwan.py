@@ -4,7 +4,6 @@ Role: 'nuwan' — read-only executive dashboard for branch print monitoring.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
-from pydantic import BaseModel
 from db.database import query
 from middleware.auth import get_current_user, require_role
 from datetime import date, timedelta
@@ -102,9 +101,15 @@ def get_yesterday_prints(current_user: dict = Depends(require_nuwan)):
             b.id            AS branch_id,
             b.code          AS branch_code,
             b.name          AS branch_name,
-            COALESCE(SUM(pl.print_count), 0) AS total_prints,
-            COUNT(DISTINCT pl.printer_id)    AS printers_logged,
-            TRUE                             AS has_submitted
+            COALESCE(SUM(pl.print_count), 0)    AS total_prints,
+            COUNT(DISTINCT pl.printer_id)        AS printers_logged,
+            COALESCE(SUM(pl.a4_single),0)
+              + COALESCE(SUM(pl.a4_double),0)    AS a4_total,
+            COALESCE(SUM(pl.b4_single),0)
+              + COALESCE(SUM(pl.b4_double),0)    AS b4_total,
+            COALESCE(SUM(pl.letter_single),0)
+              + COALESCE(SUM(pl.letter_double),0) AS legal_total,
+            TRUE                                 AS has_submitted
         FROM branches b
         JOIN printers p ON p.branch_id = b.id AND p.is_active = TRUE
         JOIN print_logs pl ON pl.printer_id = p.id AND pl.log_date = %s::date
@@ -137,6 +142,9 @@ def get_yesterday_prints(current_user: dict = Depends(require_nuwan)):
                 "branch_name":     b["branch_name"],
                 "total_prints":    0,
                 "printers_logged": 0,
+                "a4_total":        0,
+                "b4_total":        0,
+                "legal_total":     0,
                 "has_submitted":   False,
             })
 

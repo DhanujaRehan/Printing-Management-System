@@ -648,7 +648,14 @@ async function nwLoadYesterday() {
     var onClick = b.has_submitted
       ? ' onclick="nwShowBranchDetail(' + b.branch_id + ',\'' + (b.branch_code + ' — ' + b.branch_name).replace(/'/g,"\\'") + '\')"'
       : '';
-    return '<div class="' + rowCls + '"' + onClick + '>'      + '<div class="nw-branch-code">' + b.branch_code + '</div>'      + '<div style="flex:1;min-width:0">'      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'      +   (b.has_submitted          ? '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'          : '<div class="nw-branch-sub">No log submitted</div>')      + '</div>'      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'      +   (b.has_submitted ? 'View ›' : '✗ Missing')      + '</span>'      + '</div>';
+    var paperPills = b.has_submitted
+      ? '<div class="nw-paper-pills">'
+        + (b.a4_total    > 0 ? '<span class="nw-pp nw-pp-a4">A4 ' + (b.a4_total||0).toLocaleString() + '</span>' : '')
+        + (b.b4_total    > 0 ? '<span class="nw-pp nw-pp-b4">B4 ' + (b.b4_total||0).toLocaleString() + '</span>' : '')
+        + (b.legal_total > 0 ? '<span class="nw-pp nw-pp-lg">Legal ' + (b.legal_total||0).toLocaleString() + '</span>' : '')
+        + '</div>'
+      : '';
+    return '<div class="' + rowCls + '"' + onClick + '>'      + '<div class="nw-branch-code">' + b.branch_code + '</div>'      + '<div style="flex:1;min-width:0">'      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'      +   (b.has_submitted          ? paperPills + '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'          : '<div class="nw-branch-sub">No log submitted</div>')      + '</div>'      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'      +   (b.has_submitted ? 'View ›' : '✗ Missing')      + '</span>'      + '</div>';
   }).join('');
 }
 
@@ -1222,7 +1229,7 @@ async function nwShowBranchDetail(branchId, branchLabel) {
     var papers = [];
     if (log.a4_single || log.a4_double)         papers.push({ t:'A4',     s: log.a4_single||0, d: log.a4_double||0 });
     if (log.b4_single || log.b4_double)         papers.push({ t:'B4',     s: log.b4_single||0, d: log.b4_double||0 });
-    if (log.letter_single || log.letter_double) papers.push({ t:'Letter', s: log.letter_single||0, d: log.letter_double||0 });
+    if (log.letter_single || log.letter_double) papers.push({ t:'Legal', s: log.letter_single||0, d: log.letter_double||0 });
 
     var paperHtml = papers.map(function(p) {
       return '<div class="nw-dl-paper">'
