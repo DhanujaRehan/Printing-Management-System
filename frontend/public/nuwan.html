@@ -1461,7 +1461,7 @@ async function nwLoadSummary() {
   setKpi('nws-kpi-b4',      d.grand_b4);
   setKpi('nws-kpi-lg',      d.grand_legal);
   setKpi('nws-kpi-records', d.record_count);
-  document.getElementById('nws-kpis').style.display = '';
+  document.getElementById('nws-kpis').style.display = 'grid';
 
   // Branch summary cards
   var bc = document.getElementById('nws-branch-cards');
@@ -1520,7 +1520,7 @@ async function nwLoadSummary() {
         + '<td class="nws-td-time">'    + timeStr + '</td>'
         + '</tr>';
     }).join('');
-    document.getElementById('nws-table-wrap').style.display = '';
+    document.getElementById('nws-table-wrap').style.display = 'block';
   }
 }
 
