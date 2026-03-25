@@ -1374,22 +1374,17 @@ function nwCloseDrawer() {
 var _nwSummaryData = null;
 
 async function nwInitSummary() {
-  // Load branches into filter dropdown using nuwan toner data (always available)
+  // Load branches into filter dropdown
   var sel = document.getElementById('nws-branch');
-  if (sel && sel.options.length <= 1) {
-    var tonerData = await nwApi('/nuwan/toner') || [];
-    var seen = {};
-    var sorted = [];
-    tonerData.forEach(function(p) {
-      if (p.branch_id && !seen[p.branch_id]) {
-        seen[p.branch_id] = true;
-        sorted.push({ id: p.branch_id, code: p.branch_code, name: p.branch_name });
-      }
-    });
-    sorted.sort(function(a,b){ return a.name.localeCompare(b.name); });
-    sorted.forEach(function(b) {
-      sel.add(new Option(b.code + ' — ' + b.name, b.id));
-    });
+  if (sel) {
+    // Always reload if only has default option
+    if (sel.options.length <= 1) {
+      var branches = await nwApi('/nuwan/branches') || [];
+      branches.forEach(function(b) {
+        sel.add(new Option(b.code + ' — ' + b.name, b.id));
+      });
+      console.log('[Summary] Loaded', branches.length, 'branches into dropdown');
+    }
   }
   // Auto-search with current month/year
   var now = new Date();

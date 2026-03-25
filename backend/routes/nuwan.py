@@ -19,6 +19,16 @@ def require_nuwan(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+
+# ── Branches list for Nuwan filters ─────────────────────────────────────────
+@router.get("/branches")
+def get_branches_for_nuwan(current_user: dict = Depends(require_nuwan)):
+    """All active branches — for filter dropdowns."""
+    return query("""
+        SELECT id, code, name FROM branches
+        WHERE is_active = TRUE ORDER BY name
+    """) or []
+
 # ── Toner levels per branch ──────────────────────────────────────────────────
 @router.get("/toner")
 def get_toner_levels(current_user: dict = Depends(require_nuwan)):
