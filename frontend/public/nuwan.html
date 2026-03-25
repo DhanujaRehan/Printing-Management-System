@@ -1374,16 +1374,24 @@ function nwCloseDrawer() {
 var _nwSummaryData = null;
 
 async function nwInitSummary() {
-  // Load branches into filter dropdown
+  // Load branches into filter dropdown — always reload fresh
   var sel = document.getElementById('nws-branch');
   if (sel) {
-    // Always reload if only has default option
-    if (sel.options.length <= 1) {
-      var branches = await nwApi('/nuwan/branches') || [];
+    var branches = await nwApi('/nuwan/branches') || [];
+    console.log('[Summary] branches API result:', branches.length, branches);
+    // Clear existing options except first
+    while (sel.options.length > 1) sel.remove(1);
+    if (branches.length) {
       branches.forEach(function(b) {
         sel.add(new Option(b.code + ' — ' + b.name, b.id));
       });
-      console.log('[Summary] Loaded', branches.length, 'branches into dropdown');
+    } else {
+      // Fallback: try regular branches endpoint
+      var fallback = await nwApi('/branches') || [];
+      console.log('[Summary] fallback branches:', fallback.length);
+      fallback.filter(function(b){ return b.is_active; }).forEach(function(b) {
+        sel.add(new Option(b.code + ' — ' + b.name, b.id));
+      });
     }
   }
   // Auto-search with current month/year
