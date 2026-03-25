@@ -1414,6 +1414,10 @@ async function nwLoadSummary() {
   var month  = (document.getElementById('nws-month')  || {}).value || '';
   var year   = (document.getElementById('nws-year')   || {}).value || '';
   var branch = (document.getElementById('nws-branch') || {}).value || '';
+  console.log('[Summary] nwLoadSummary called:', {from,to,month,year,branch});
+  console.log('[Summary] nws-empty el:', document.getElementById('nws-empty'));
+  console.log('[Summary] nws-kpis el:', document.getElementById('nws-kpis'));
+  console.log('[Summary] nws-branch-cards el:', document.getElementById('nws-branch-cards'));
 
   // Build query string
   var params = [];
@@ -1432,9 +1436,13 @@ async function nwLoadSummary() {
   document.getElementById('nws-table-wrap').style.display = 'none';
 
   var d = await nwApi('/nuwan/prints/summary' + qs);
+  console.log('[Summary] API response:', d);
   if (!d) {
-    document.getElementById('nws-branch-cards').innerHTML = '';
-    document.getElementById('nws-empty').style.display = '';
+    var bc = document.getElementById('nws-branch-cards');
+    var em = document.getElementById('nws-empty');
+    console.log('[Summary] API returned null - bc:', bc, 'em:', em);
+    if (bc) bc.innerHTML = '';
+    if (em) em.style.display = '';
     return;
   }
   _nwSummaryData = d;
