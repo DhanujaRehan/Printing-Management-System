@@ -679,6 +679,7 @@ function nwTab(name) {
   if (name === 'requests')     nwLoadMyRequests();
   if (name === 'replacements') nwLoadReplacements();
   if (name === 'rentals')       nwLoadRentals();
+  if (name === 'summary')       nwInitSummary();
 
   _nwCurrentTab = name;
   if (_nwRefreshInterval) { clearInterval(_nwRefreshInterval); _nwRefreshInterval = null; }
