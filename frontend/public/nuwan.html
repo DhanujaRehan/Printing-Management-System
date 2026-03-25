@@ -1446,6 +1446,10 @@ async function nwLoadSummary() {
     return;
   }
   _nwSummaryData = d;
+  console.log('[Summary] d.grand_total:', d.grand_total);
+  console.log('[Summary] d.branch_totals length:', d.branch_totals ? d.branch_totals.length : 'null');
+  console.log('[Summary] d.record_count:', d.record_count);
+  console.log('[Summary] full d:', JSON.stringify(d).slice(0,300));
 
   // KPI strip
   function setKpi(id, v) {
@@ -1461,9 +1465,10 @@ async function nwLoadSummary() {
 
   // Branch summary cards
   var bc = document.getElementById('nws-branch-cards');
+  console.log('[Summary] branch_totals:', d.branch_totals);
   if (!d.branch_totals || !d.branch_totals.length) {
-    bc.innerHTML = '';
-    document.getElementById('nws-empty').style.display = '';
+    if (bc) bc.innerHTML = '<div class="nws-empty">No data found for this period. Try a different filter.</div>';
+    document.getElementById('nws-empty').style.display = 'none';
     return;
   }
 
