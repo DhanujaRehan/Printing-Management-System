@@ -4,6 +4,8 @@ Role: 'nuwan' — read-only executive dashboard for branch print monitoring.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel
+from typing import Optional
 from db.database import query
 from middleware.auth import get_current_user, require_role
 from datetime import date, timedelta
