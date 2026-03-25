@@ -506,9 +506,12 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function buildMonthSelectors() {
+  var mSel = document.getElementById('mo-month');
+  var ySel_check = document.getElementById('mo-year');
+  if (!mSel || !ySel_check) return; // monthly panel removed, skip
+
   var months = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
-  var mSel = document.getElementById('mo-month');
   months.forEach(function(m, i) {
     var o = new Option(m, i + 1);
     mSel.add(o);
