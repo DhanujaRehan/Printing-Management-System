@@ -14,7 +14,10 @@ async function loadTonerLog() {
   if (prDiv) prDiv.innerHTML = '<div class="tl-loading"><div class="spin"></div> Loading…</div>';
 
   var access   = (APP.user.branch_access || '').trim().toUpperCase();
+  console.log('[TonerLog] branch_access:', APP.user.branch_access, '→ access:', access);
+
   var branches = (await silentApi('GET', '/branches')) || [];
+  console.log('[TonerLog] branches loaded:', branches.length);
 
   if (!branches.length) {
     if (prDiv) prDiv.innerHTML = tlEmpty('❌', 'Could not load branches', 'Check your connection and tap Refresh.');
@@ -27,6 +30,7 @@ async function loadTonerLog() {
     });
     if (branch) {
       _tlBranchId = branch.id;
+      console.log('[TonerLog] branch matched:', branch.code, 'id:', branch.id);
       document.getElementById('tl-branch-badge').textContent = '🏢 ' + branch.code + ' — ' + branch.name;
       document.getElementById('tl-branch-badge-wrap').style.display = '';
       document.getElementById('tl-branch-select-wrap').style.display = 'none';
@@ -65,7 +69,9 @@ async function tlLoadPrinters(branchId) {
   document.getElementById('tl-printers').innerHTML =
     '<div class="tl-loading"><div class="spin"></div> Loading printers…</div>';
 
+  console.log('[TonerLog] loading printers for branchId:', branchId);
   var printers = await silentApi('GET', '/printers/branch-printers-with-toner?branch_id=' + branchId);
+  console.log('[TonerLog] printers result:', printers);
 
   if (printers === null || printers === undefined) {
     document.getElementById('tl-printers').innerHTML = tlEmpty('❌', 'Failed to load printers', 'Check your connection and try Refresh.');
