@@ -10,9 +10,6 @@
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════
-     LOGIN
-     ════════════════════════════════════════════ -->
 <div id="nw-login">
   <div class="nw-login-card">
     <div class="nw-login-logo">
@@ -34,27 +31,17 @@
   </div>
 </div>
 
-
-<!-- ════════════════════════════════════════════
-     APP
-     ════════════════════════════════════════════ -->
 <div id="nw-app">
 
-  <!-- Mobile hamburger -->
   <button class="nw-ham-btn" id="nw-ham-btn" onclick="nwToggleMenu()" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
-  <!-- Mobile tab overlay -->
   <div class="nw-ham-overlay" id="nw-ham-overlay" onclick="nwCloseMenu()"></div>
 
-  <!-- Top nav -->
   <nav class="nw-topnav">
     <div class="nw-topnav-left">
       <img src="/images/logo.png" class="nw-topnav-logo" alt="SoftWave">
-      <div class="nw-topnav-brand">
-        SoftWave
-        <span>Branch Monitor</span>
-      </div>
+      <div class="nw-topnav-brand">SoftWave<span>Branch Monitor</span></div>
     </div>
     <div class="nw-topnav-right">
       <span class="nw-topnav-user" id="nw-uname">—</span>
@@ -62,7 +49,6 @@
     </div>
   </nav>
 
-  <!-- Tab bar -->
   <div class="nw-tabs">
     <button class="nw-tab act" id="tab-yesterday" onclick="nwTab('yesterday')">
       <span class="nw-tab-icon">📊</span> Yesterday's Prints
@@ -73,7 +59,6 @@
     <button class="nw-tab" id="tab-requests" onclick="nwTab('requests')">
       <span class="nw-tab-icon">📋</span> My Requests
     </button>
-
     <button class="nw-tab" id="tab-replacements" onclick="nwTab('replacements')">
       <span class="nw-tab-icon">🔄</span> Toner Replacements
     </button>
@@ -85,40 +70,22 @@
     </button>
   </div>
 
-  <!-- ── YESTERDAY PANEL ─────────────────────── -->
   <div class="nw-main">
 
+    <!-- YESTERDAY -->
     <div class="nw-panel act" id="panel-yesterday">
       <div class="nw-section-hdr">
         <div>
           <div class="nw-section-title">Yesterday's Print Log</div>
           <div class="nw-section-sub" id="yd-date-label">Loading...</div>
         </div>
-        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadYesterday()">
-          ↺ Refresh
-        </button>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadYesterday()">↺ Refresh</button>
       </div>
-
-      <!-- Stat cards -->
       <div class="nw-stat-row">
-        <div class="nw-stat-card nw-stat-c1">
-          <span class="nw-stat-icon">🖨️</span>
-          <div class="nw-stat-num" id="yd-total">—</div>
-          <div class="nw-stat-lbl">Total Prints</div>
-        </div>
-        <div class="nw-stat-card nw-stat-c2">
-          <span class="nw-stat-icon">✅</span>
-          <div class="nw-stat-num" id="yd-submitted">—</div>
-          <div class="nw-stat-lbl">Branches Submitted</div>
-        </div>
-        <div class="nw-stat-card nw-stat-c3">
-          <span class="nw-stat-icon">⚠️</span>
-          <div class="nw-stat-num" id="yd-missing">—</div>
-          <div class="nw-stat-lbl">Missing Reports</div>
-        </div>
+        <div class="nw-stat-card nw-stat-c1"><span class="nw-stat-icon">🖨️</span><div class="nw-stat-num" id="yd-total">—</div><div class="nw-stat-lbl">Total Prints</div></div>
+        <div class="nw-stat-card nw-stat-c2"><span class="nw-stat-icon">✅</span><div class="nw-stat-num" id="yd-submitted">—</div><div class="nw-stat-lbl">Branches Submitted</div></div>
+        <div class="nw-stat-card nw-stat-c3"><span class="nw-stat-icon">⚠️</span><div class="nw-stat-num" id="yd-missing">—</div><div class="nw-stat-lbl">Missing Reports</div></div>
       </div>
-
-      <!-- Missing alert -->
       <div class="nw-missing-banner" id="yd-missing-banner">
         <span class="nw-missing-icon">⚠️</span>
         <div class="nw-missing-text">
@@ -127,181 +94,101 @@
           <div class="nw-missing-chips" id="yd-missing-chips"></div>
         </div>
       </div>
-
-      <!-- Branch table -->
       <div class="nw-card">
-        <div class="nw-card-hdr">
-          <div class="nw-card-title">All Branches</div>
-        </div>
-        <div id="yd-list">
-          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-        </div>
+        <div class="nw-card-hdr"><div class="nw-card-title">All Branches</div></div>
+        <div id="yd-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
       </div>
     </div>
 
-    <!-- ── TONER PANEL ───────────────────────── -->
+    <!-- TONER -->
     <div class="nw-panel" id="panel-toner">
       <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">Toner Levels</div>
-          <div class="nw-section-sub">Current toner % for all printers across all branches</div>
-        </div>
-        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadToner()">
-          ↺ Refresh
-        </button>
+        <div><div class="nw-section-title">Toner Levels</div><div class="nw-section-sub">Current toner % for all printers across all branches</div></div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadToner()">↺ Refresh</button>
       </div>
-
-      <!-- Search bar -->
       <div class="nw-search-wrap">
         <span class="nw-search-icon">🔍</span>
-        <input class="nw-search-input" id="tn-search"
-          placeholder="Search branch name or printer code..."
-          oninput="nwFilterToner(this.value)">
+        <input class="nw-search-input" id="tn-search" placeholder="Search branch name or printer code..." oninput="nwFilterToner(this.value)">
         <button class="nw-search-clear" id="tn-clear" onclick="nwClearTonerSearch()" style="display:none">✕</button>
       </div>
-
-      <!-- Toner summary -->
       <div class="nw-stat-row" style="margin-bottom:16px">
-        <div class="nw-stat-card nw-stat-c1">
-          <span class="nw-stat-icon">🖨️</span>
-          <div class="nw-stat-num" id="tn-total">—</div>
-          <div class="nw-stat-lbl">Total Printers</div>
-        </div>
-        <div class="nw-stat-card nw-stat-c2" style="cursor:pointer" onclick="nwFilterToner('low')" title="Show only Low toner printers">
-          <span class="nw-stat-icon">⚠️</span>
-          <div class="nw-stat-num" id="tn-low">—</div>
-          <div class="nw-stat-lbl">LOW (≤25%) · tap to filter</div>
-        </div>
-        <div class="nw-stat-card nw-stat-c3" style="cursor:pointer" onclick="nwFilterToner('critical')" title="Show only Critical printers">
-          <span class="nw-stat-icon">🚨</span>
-          <div class="nw-stat-num" id="tn-crit">—</div>
-          <div class="nw-stat-lbl">CRITICAL (≤5%) · tap to filter</div>
-        </div>
+        <div class="nw-stat-card nw-stat-c1"><span class="nw-stat-icon">🖨️</span><div class="nw-stat-num" id="tn-total">—</div><div class="nw-stat-lbl">Total Printers</div></div>
+        <div class="nw-stat-card nw-stat-c2" style="cursor:pointer" onclick="nwFilterToner('low')"><span class="nw-stat-icon">⚠️</span><div class="nw-stat-num" id="tn-low">—</div><div class="nw-stat-lbl">LOW (≤25%)</div></div>
+        <div class="nw-stat-card nw-stat-c3" style="cursor:pointer" onclick="nwFilterToner('critical')"><span class="nw-stat-icon">🚨</span><div class="nw-stat-num" id="tn-crit">—</div><div class="nw-stat-lbl">CRITICAL (≤5%)</div></div>
       </div>
-
-      <div id="tn-branches">
-        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-      </div>
+      <div id="tn-branches"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
     </div>
 
-    <!-- ── MONTHLY PANEL ─────────────────────── -->
-    
+    <!-- REQUESTS -->
     <div class="nw-panel" id="panel-requests">
       <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">My Toner Requests</div>
-          <div class="nw-section-sub">Requests you submitted for manager approval</div>
-        </div>
-        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadMyRequests()">
-          ↺ Refresh
-        </button>
+        <div><div class="nw-section-title">My Toner Requests</div><div class="nw-section-sub">Requests you submitted for manager approval</div></div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)" onclick="nwLoadMyRequests()">↺ Refresh</button>
       </div>
-      <div id="nw-req-list">
-        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-      </div>
+      <div id="nw-req-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
     </div>
 
-    <!-- ── TONER REPLACEMENTS PANEL ─────────────────── -->
+    <!-- REPLACEMENTS -->
     <div class="nw-panel" id="panel-replacements">
       <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">Toner Replacements</div>
-          <div class="nw-section-sub">Physical replacements logged by service persons — date, time &amp; who</div>
-        </div>
-        <button class="nw-download-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="nwLoadReplacements()">
-          ↺ Refresh
-        </button>
+        <div><div class="nw-section-title">Toner Replacements</div><div class="nw-section-sub">Physical replacements logged by service persons</div></div>
+        <button class="nw-download-btn" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="nwLoadReplacements()">↺ Refresh</button>
       </div>
-
-      <!-- Filter bar -->
       <div class="nw-search-wrap" style="margin-bottom:16px">
         <span class="nw-search-icon">🔍</span>
-        <input class="nw-search-input" id="repl-search"
-          placeholder="Search branch or printer..."
-          oninput="nwFilterReplacements(this.value)">
+        <input class="nw-search-input" id="repl-search" placeholder="Search branch or printer..." oninput="nwFilterReplacements(this.value)">
         <button class="nw-search-clear" id="repl-clear" onclick="nwClearReplSearch()" style="display:none">✕</button>
       </div>
-
-      <div id="nw-repl-list">
-        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-      </div>
+      <div id="nw-repl-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
     </div>
 
-    <!-- ── RENTAL PRINTERS PANEL ───────────────── -->
+    <!-- RENTALS — with purchased tab -->
     <div class="nw-panel" id="panel-rentals">
       <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">🖨️ Printers Register</div>
-          <div class="nw-section-sub">Rental &amp; Purchased printers — all branches</div>
-        </div>
+        <div><div class="nw-section-title">🖨️ Printers Register</div><div class="nw-section-sub">Rental &amp; Purchased printers — all branches</div></div>
         <button class="nw-download-btn" onclick="nwLoadRentals()">↺ Refresh</button>
       </div>
-
-      <!-- Tabs -->
       <div class="nw-pr-tabs">
-        <button class="nw-pr-tab act" id="nw-pr-tab-rental" onclick="nwPrTab('rental')">
-          📋 Rental
-        </button>
-        <button class="nw-pr-tab" id="nw-pr-tab-purchased" onclick="nwPrTab('purchased')">
-          🏷️ Purchased
-        </button>
+        <button class="nw-pr-tab act" id="nw-pr-tab-rental" onclick="nwPrTab('rental')">📋 Rental</button>
+        <button class="nw-pr-tab" id="nw-pr-tab-purchased" onclick="nwPrTab('purchased')">🏷️ Purchased</button>
       </div>
-
-      <!-- Rental section -->
       <div id="nw-pr-panel-rental">
         <div class="nw-rental-kpis">
           <div class="nw-rental-kpi nw-rk-total"><div class="nw-rk-num" id="nwr-total">—</div><div class="nw-rk-lbl">Total</div></div>
-          <div class="nw-rental-kpi nw-rk-ok">   <div class="nw-rk-num" id="nwr-ok">—</div>   <div class="nw-rk-lbl">Active</div></div>
-          <div class="nw-rental-kpi nw-rk-warn">  <div class="nw-rk-num" id="nwr-warn">—</div>  <div class="nw-rk-lbl">≤6 Mo</div></div>
-          <div class="nw-rental-kpi nw-rk-soon">  <div class="nw-rk-num" id="nwr-soon">—</div>  <div class="nw-rk-lbl">≤90 Days</div></div>
-          <div class="nw-rental-kpi nw-rk-exp">   <div class="nw-rk-num" id="nwr-expired">—</div><div class="nw-rk-lbl">Expired</div></div>
+          <div class="nw-rental-kpi nw-rk-ok"><div class="nw-rk-num" id="nwr-ok">—</div><div class="nw-rk-lbl">Active</div></div>
+          <div class="nw-rental-kpi nw-rk-warn"><div class="nw-rk-num" id="nwr-warn">—</div><div class="nw-rk-lbl">≤6 Mo</div></div>
+          <div class="nw-rental-kpi nw-rk-soon"><div class="nw-rk-num" id="nwr-soon">—</div><div class="nw-rk-lbl">≤90 Days</div></div>
+          <div class="nw-rental-kpi nw-rk-exp"><div class="nw-rk-num" id="nwr-expired">—</div><div class="nw-rk-lbl">Expired</div></div>
         </div>
-        <input class="nw-rental-search" placeholder="🔍 Search branch or serial..."
-          oninput="nwFilterRentals(this.value)">
-        <div class="nw-rental-list" id="nw-rental-list">
-          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-        </div>
+        <input class="nw-rental-search" placeholder="🔍 Search branch or serial..." oninput="nwFilterRentals(this.value)">
+        <div class="nw-rental-list" id="nw-rental-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
       </div>
-
-      <!-- Purchased section -->
       <div id="nw-pr-panel-purchased" style="display:none">
         <div class="nw-rental-kpis">
           <div class="nw-rental-kpi nw-rk-total"><div class="nw-rk-num" id="nwr-pur-total">—</div><div class="nw-rk-lbl">Total</div></div>
-          <div class="nw-rental-kpi nw-rk-ok">   <div class="nw-rk-num" id="nwr-pur-branches">—</div><div class="nw-rk-lbl">Branches</div></div>
-          <div class="nw-rental-kpi nw-rk-warn">  <div class="nw-rk-num" id="nwr-pur-recent">—</div><div class="nw-rk-lbl">2024+</div></div>
-          <div class="nw-rental-kpi nw-rk-soon">  <div class="nw-rk-num" id="nwr-pur-older">—</div><div class="nw-rk-lbl">Before 2020</div></div>
+          <div class="nw-rental-kpi nw-rk-ok"><div class="nw-rk-num" id="nwr-pur-branches">—</div><div class="nw-rk-lbl">Branches</div></div>
+          <div class="nw-rental-kpi nw-rk-warn"><div class="nw-rk-num" id="nwr-pur-recent">—</div><div class="nw-rk-lbl">2024+</div></div>
+          <div class="nw-rental-kpi nw-rk-soon"><div class="nw-rk-num" id="nwr-pur-older">—</div><div class="nw-rk-lbl">Before 2020</div></div>
         </div>
-        <input class="nw-rental-search" placeholder="🔍 Search branch, serial or model..."
-          oninput="nwFilterPurchased(this.value)">
-        <div class="nw-rental-list" id="nw-purchased-list">
-          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-        </div>
+        <input class="nw-rental-search" placeholder="🔍 Search branch, serial or model..." oninput="nwFilterPurchased(this.value)">
+        <div class="nw-rental-list" id="nw-purchased-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
       </div>
+    </div><!-- /panel-rentals CORRECTLY CLOSED HERE -->
 
-
-    <!-- ── PRINT SUMMARY PANEL ────────────────────────────── -->
+    <!-- PRINT SUMMARY — standalone panel, NOT inside rentals -->
     <div class="nw-panel" id="panel-summary">
-
       <div class="nw-section-hdr">
-        <div>
-          <div class="nw-section-title">📈 Print Summary</div>
-          <div class="nw-section-sub">Filter and export daily print logs for audit</div>
-        </div>
+        <div><div class="nw-section-title">📈 Print Summary</div><div class="nw-section-sub">Filter and export daily print logs for audit</div></div>
       </div>
-
-      <!-- Filter bar -->
       <div class="nws-filter-bar">
-        <!-- Date from -->
         <div class="nws-filter-group">
           <label class="nws-filter-lbl">From Date</label>
           <input type="date" class="nws-filter-input" id="nws-from" onchange="nwLoadSummary()">
         </div>
-        <!-- Date to -->
         <div class="nws-filter-group">
           <label class="nws-filter-lbl">To Date</label>
           <input type="date" class="nws-filter-input" id="nws-to" onchange="nwLoadSummary()">
         </div>
-        <!-- Month -->
         <div class="nws-filter-group">
           <label class="nws-filter-lbl">Month</label>
           <select class="nws-filter-input" id="nws-month" onchange="nwLoadSummary()">
@@ -314,7 +201,6 @@
             <option value="11">November</option><option value="12">December</option>
           </select>
         </div>
-        <!-- Year -->
         <div class="nws-filter-group">
           <label class="nws-filter-lbl">Year</label>
           <select class="nws-filter-input" id="nws-year" onchange="nwLoadSummary()">
@@ -325,49 +211,29 @@
             <option value="2027">2027</option>
           </select>
         </div>
-        <!-- Branch -->
         <div class="nws-filter-group">
           <label class="nws-filter-lbl">Branch</label>
           <select class="nws-filter-input" id="nws-branch" onchange="nwLoadSummary()">
             <option value="">All Branches</option>
           </select>
         </div>
-        <!-- Actions -->
         <div class="nws-filter-actions">
           <button class="nws-btn-search" onclick="nwLoadSummary()">🔍 Search</button>
-          <button class="nws-btn-clear"  onclick="nwClearSummaryFilters()">✕ Clear</button>
+          <button class="nws-btn-clear" onclick="nwClearSummaryFilters()">✕ Clear</button>
           <button class="nws-btn-export" onclick="nwExportSummary()">📥 Excel</button>
         </div>
       </div>
 
-      <!-- Grand total KPI strip -->
       <div class="nws-kpi-strip" id="nws-kpis" style="display:none">
-        <div class="nws-kpi nws-kpi-total">
-          <div class="nws-kpi-num" id="nws-kpi-total">—</div>
-          <div class="nws-kpi-lbl">Total Prints</div>
-        </div>
-        <div class="nws-kpi nws-kpi-a4">
-          <div class="nws-kpi-num" id="nws-kpi-a4">—</div>
-          <div class="nws-kpi-lbl">A4 Total</div>
-        </div>
-        <div class="nws-kpi nws-kpi-b4">
-          <div class="nws-kpi-num" id="nws-kpi-b4">—</div>
-          <div class="nws-kpi-lbl">B4 Total</div>
-        </div>
-        <div class="nws-kpi nws-kpi-lg">
-          <div class="nws-kpi-num" id="nws-kpi-lg">—</div>
-          <div class="nws-kpi-lbl">Legal Total</div>
-        </div>
-        <div class="nws-kpi nws-kpi-rec">
-          <div class="nws-kpi-num" id="nws-kpi-records">—</div>
-          <div class="nws-kpi-lbl">Log Entries</div>
-        </div>
+        <div class="nws-kpi nws-kpi-total"><div class="nws-kpi-num" id="nws-kpi-total">—</div><div class="nws-kpi-lbl">Total Prints</div></div>
+        <div class="nws-kpi nws-kpi-a4"><div class="nws-kpi-num" id="nws-kpi-a4">—</div><div class="nws-kpi-lbl">A4 Total</div></div>
+        <div class="nws-kpi nws-kpi-b4"><div class="nws-kpi-num" id="nws-kpi-b4">—</div><div class="nws-kpi-lbl">B4 Total</div></div>
+        <div class="nws-kpi nws-kpi-lg"><div class="nws-kpi-num" id="nws-kpi-lg">—</div><div class="nws-kpi-lbl">Legal Total</div></div>
+        <div class="nws-kpi nws-kpi-rec"><div class="nws-kpi-num" id="nws-kpi-records">—</div><div class="nws-kpi-lbl">Log Entries</div></div>
       </div>
 
-      <!-- Branch summary cards -->
       <div id="nws-branch-cards"></div>
 
-      <!-- Detailed log table -->
       <div class="nws-table-wrap" id="nws-table-wrap" style="display:none">
         <div class="nws-table-hdr">
           <div class="nws-table-title">📋 Detailed Log Entries</div>
@@ -375,1277 +241,501 @@
         </div>
         <div class="nws-table-scroll">
           <table class="nws-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Branch</th>
-                <th>Printer</th>
-                <th>Total</th>
-                <th>A4</th>
-                <th>B4</th>
-                <th>Legal</th>
-                <th>Logged By</th>
-                <th>Time</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Date</th><th>Branch</th><th>Printer</th><th>Total</th><th>A4</th><th>B4</th><th>Legal</th><th>Logged By</th><th>Time</th></tr></thead>
             <tbody id="nws-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Empty state -->
       <div class="nws-empty" id="nws-empty">
         <div style="font-size:48px;margin-bottom:12px">📈</div>
         <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Select filters and search</div>
         <div style="font-size:13px;color:#94a3b8">Choose a date range, month, year or branch then tap Search</div>
-      </div>
+    </div><!-- /panel-summary -->
 
   </div><!-- /nw-main -->
 
-  <!-- ══════════════════════════════════════════
-       TONER REQUEST MODAL
-       ══════════════════════════════════════════ -->
+  <!-- TONER REQUEST MODAL -->
   <div class="nw-modal-bg" id="nw-req-modal" onclick="nwCloseModal(event)">
     <div class="nw-modal">
       <div class="nw-modal-hdr">
         <div class="nw-modal-icon">🖨️</div>
-        <div>
-          <div class="nw-modal-title">Request Toner Refill</div>
-          <div class="nw-modal-sub" id="nw-modal-printer-info">—</div>
-        </div>
+        <div><div class="nw-modal-title">Request Toner Refill</div><div class="nw-modal-sub" id="nw-modal-printer-info">—</div></div>
         <button class="nw-modal-close" onclick="document.getElementById('nw-req-modal').style.display='none'">✕</button>
       </div>
-
       <input type="hidden" id="nw-req-printer-id">
-
-      <!-- Toner model -->
       <div class="nw-modal-field">
         <label class="nw-modal-label">Toner Model</label>
-        <select class="nw-modal-select" id="nw-req-model">
-          <option value="">— Select Toner Model —</option>
-        </select>
+        <select class="nw-modal-select" id="nw-req-model"><option value="">— Select Toner Model —</option></select>
       </div>
-
-      <!-- Priority -->
       <div class="nw-modal-field">
         <label class="nw-modal-label">Priority</label>
         <div class="nw-pri-grid">
-          <label class="nw-pri-opt">
-            <input type="radio" name="nw-pri" value="normal">
-            <div class="nw-pri-card nw-pri-normal">🟢<span>Normal</span></div>
-          </label>
-          <label class="nw-pri-opt">
-            <input type="radio" name="nw-pri" value="urgent" checked>
-            <div class="nw-pri-card nw-pri-urgent">🟡<span>Urgent</span></div>
-          </label>
-          <label class="nw-pri-opt">
-            <input type="radio" name="nw-pri" value="critical">
-            <div class="nw-pri-card nw-pri-critical">🔴<span>Critical</span></div>
-          </label>
+          <label class="nw-pri-opt"><input type="radio" name="nw-pri" value="normal"><div class="nw-pri-card nw-pri-normal">🟢<span>Normal</span></div></label>
+          <label class="nw-pri-opt"><input type="radio" name="nw-pri" value="urgent" checked><div class="nw-pri-card nw-pri-urgent">🟡<span>Urgent</span></div></label>
+          <label class="nw-pri-opt"><input type="radio" name="nw-pri" value="critical"><div class="nw-pri-card nw-pri-critical">🔴<span>Critical</span></div></label>
         </div>
       </div>
-
-      <!-- Notes -->
       <div class="nw-modal-field">
-        <label class="nw-modal-label">Notes for Manager <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
-        <textarea class="nw-modal-textarea" id="nw-req-notes" rows="3"
-          placeholder="e.g. Printer completely out, urgent replacement needed..."></textarea>
+        <label class="nw-modal-label">Notes <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
+        <textarea class="nw-modal-textarea" id="nw-req-notes" rows="3" placeholder="e.g. Printer completely out..."></textarea>
       </div>
-
-      <button class="nw-modal-submit" id="nw-modal-submit-btn" onclick="nwSubmitTonerRequest()">
-        📤 Submit Request to Manager
-      </button>
+      <button class="nw-modal-submit" id="nw-modal-submit-btn" onclick="nwSubmitTonerRequest()">📤 Submit Request to Manager</button>
     </div>
   </div>
-  <!-- ── BRANCH DETAIL DRAWER ──────────────────────────── -->
+
+  <!-- BRANCH DETAIL DRAWER -->
   <div class="nw-drawer-overlay" id="nw-drawer-overlay" onclick="nwCloseDrawer()"></div>
   <div class="nw-drawer" id="nw-drawer">
     <div class="nw-drawer-hdr">
-      <div>
-        <div class="nw-drawer-title" id="nw-drawer-title">Branch Logs</div>
-        <div class="nw-drawer-sub" id="nw-drawer-sub"></div>
-      </div>
+      <div><div class="nw-drawer-title" id="nw-drawer-title">Branch Logs</div><div class="nw-drawer-sub" id="nw-drawer-sub"></div></div>
       <button class="nw-drawer-close" onclick="nwCloseDrawer()">✕</button>
     </div>
-    <div class="nw-drawer-body" id="nw-drawer-body">
-      <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
-    </div>
+    <div class="nw-drawer-body" id="nw-drawer-body"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
   </div>
 
 </div><!-- /nw-app -->
 
-<!-- Toast -->
 <div class="nw-toast" id="nw-toast">
   <span class="nw-toast-ico" id="nw-t-ico">✅</span>
   <span class="nw-toast-txt" id="nw-t-txt"></span>
 </div>
 
-<!-- SheetJS for Excel export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-/* ════════════════════════════════════════════
-   NUWAN DASHBOARD — Standalone JS
-   ════════════════════════════════════════════ */
+var NW = { token: localStorage.getItem('nw_token') || '', user: JSON.parse(localStorage.getItem('nw_user') || 'null') };
+var _monthlyData = null;
 
-var NW = {
-  token: localStorage.getItem('nw_token') || '',
-  user:  JSON.parse(localStorage.getItem('nw_user') || 'null'),
-};
-
-var _monthlyData = null; // cached for Excel export
-
-/* ── Bootstrap ─────────────────────────────── */
 window.addEventListener('DOMContentLoaded', function() {
   buildMonthSelectors();
-  if (NW.token && NW.user) {
-    showApp();
-  }
-  // Enter key on login
-  document.getElementById('nw-lp').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') nwLogin();
-  });
-  document.getElementById('nw-lu').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') nwLogin();
-  });
+  if (NW.token && NW.user) showApp();
+  document.getElementById('nw-lp').addEventListener('keydown', function(e){ if(e.key==='Enter') nwLogin(); });
+  document.getElementById('nw-lu').addEventListener('keydown', function(e){ if(e.key==='Enter') nwLogin(); });
 });
 
 function buildMonthSelectors() {
   var mSel = document.getElementById('mo-month');
   var ySel_check = document.getElementById('mo-year');
-  if (!mSel || !ySel_check) return; // monthly panel removed, skip
-
-  var months = ['January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
-  months.forEach(function(m, i) {
-    var o = new Option(m, i + 1);
-    mSel.add(o);
-  });
-
-  var now = new Date();
-  mSel.value = now.getMonth() + 1;
-
+  if (!mSel || !ySel_check) return;
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  months.forEach(function(m,i){ mSel.add(new Option(m,i+1)); });
+  var now = new Date(); mSel.value = now.getMonth()+1;
   var ySel = document.getElementById('mo-year');
-  for (var y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
-    ySel.add(new Option(y, y));
-  }
+  for(var y=now.getFullYear();y>=now.getFullYear()-3;y--) ySel.add(new Option(y,y));
   ySel.value = now.getFullYear();
 }
 
-/* ── Auth ───────────────────────────────────── */
 async function nwLogin() {
-  var u = document.getElementById('nw-lu').value.trim();
-  var p = document.getElementById('nw-lp').value;
-  var errEl = document.getElementById('nw-err');
-  errEl.style.display = 'none';
-
-  if (!u || !p) { showErr('Please enter username and password.'); return; }
-
+  var u=document.getElementById('nw-lu').value.trim(), p=document.getElementById('nw-lp').value;
+  var errEl=document.getElementById('nw-err'); errEl.style.display='none';
+  if(!u||!p){showErr('Please enter username and password.');return;}
   try {
-    var r = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({username: u, password: p})
-    });
-    var d = await r.json();
-    if (!r.ok) { showErr(d.detail || 'Login failed'); return; }
-
-    // Allow nuwan, manager, dba
-    if (!['nuwan','manager','dba'].includes(d.user.role)) {
-      showErr('This portal is for management only. Please use the main system.');
-      return;
-    }
-
-    NW.token = d.token;
-    NW.user  = d.user;
-    localStorage.setItem('nw_token', d.token);
-    localStorage.setItem('nw_user',  JSON.stringify(d.user));
+    var r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    var d=await r.json();
+    if(!r.ok){showErr(d.detail||'Login failed');return;}
+    if(!['nuwan','manager','dba'].includes(d.user.role)){showErr('This portal is for management only.');return;}
+    NW.token=d.token; NW.user=d.user;
+    localStorage.setItem('nw_token',d.token); localStorage.setItem('nw_user',JSON.stringify(d.user));
     showApp();
-  } catch(e) {
-    showErr('Connection error. Is the server running?');
-  }
+  } catch(e){showErr('Connection error.');}
 }
-
-function showErr(msg) {
-  var el = document.getElementById('nw-err');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function showApp() {
-  document.getElementById('nw-login').style.display = 'none';
-  document.getElementById('nw-app').style.display   = 'block';
-  document.getElementById('nw-uname').textContent = NW.user.full_name || NW.user.username;
+function showErr(msg){var el=document.getElementById('nw-err');el.textContent=msg;el.style.display='block';}
+function showApp(){
+  document.getElementById('nw-login').style.display='none';
+  document.getElementById('nw-app').style.display='block';
+  document.getElementById('nw-uname').textContent=NW.user.full_name||NW.user.username;
   nwLoadYesterday();
 }
+function nwLogout(){NW.token='';NW.user=null;localStorage.removeItem('nw_token');localStorage.removeItem('nw_user');location.reload();}
 
-function nwLogout() {
-  NW.token = ''; NW.user = null;
-  localStorage.removeItem('nw_token');
-  localStorage.removeItem('nw_user');
-  location.reload();
-}
-
-/* ── API helper ─────────────────────────────── */
 async function nwApi(path) {
   try {
-    var r = await fetch('/api' + path, {
-      headers: {'Authorization': 'Bearer ' + NW.token}
-    });
-    if (r.status === 401) { nwLogout(); return null; }
-    if (!r.ok) {
-      var errTxt = '';
-      try { var errJson = await r.json(); errTxt = errJson.detail || ''; } catch(e) {}
-      nwToast('❌', 'Error ' + r.status, errTxt);
-      return null;
-    }
+    var r=await fetch('/api'+path,{headers:{'Authorization':'Bearer '+NW.token}});
+    if(r.status===401){nwLogout();return null;}
+    if(!r.ok){var errTxt='';try{var errJson=await r.json();errTxt=errJson.detail||'';}catch(e){}nwToast('❌','Error '+r.status,errTxt);return null;}
     return r.json();
-  } catch(e) {
-    nwToast('❌', 'Network error', e.message || '');
-    return null;
-  }
+  } catch(e){nwToast('❌','Network error',e.message||'');return null;}
 }
 
-/* ── Tab switching ──────────────────────────── */
-var _nwRefreshInterval = null;
-var _nwCurrentTab      = null;
-var NW_AUTO_REFRESH    = { yesterday:60, toner:90, requests:45, replacements:60, monthly:300 };
-
-/* ── Monthly Report ──────────────────────────── */
-function nwInitMonthSelectors() {
-  var months = ['January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
-  var now = new Date();
-  var mSel = document.getElementById('mo-month');
-  var ySel = document.getElementById('mo-year');
-  if (!mSel || !ySel) return;
-  mSel.innerHTML = months.map(function(m, i) {
-    return '<option value="' + (i+1) + '"' + (i+1 === now.getMonth()+1 ? ' selected' : '') + '>' + m + '</option>';
-  }).join('');
-  ySel.innerHTML = [now.getFullYear()-1, now.getFullYear()].map(function(y) {
-    return '<option value="' + y + '"' + (y === now.getFullYear() ? ' selected' : '') + '>' + y + '</option>';
-  }).join('');
-}
-
-async function nwLoadMonthly() {
-  var mSel = document.getElementById('mo-month');
-  var ySel = document.getElementById('mo-year');
-  var listEl = document.getElementById('mo-list');
-  var totalEl = document.getElementById('mo-total');
-  if (!listEl) return;
-
-  listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var month = mSel ? mSel.value : new Date().getMonth() + 1;
-  var year  = ySel ? ySel.value : new Date().getFullYear();
-
-  var d = await nwApi('/nuwan/prints/monthly?year=' + year + '&month=' + month);
-  if (!d) {
-    listEl.innerHTML = '<div class="nw-spin-wrap">Failed to load. Click Refresh.</div>';
-    return;
-  }
-
-  if (totalEl) totalEl.textContent = (d.grand_total || 0).toLocaleString();
-
-  if (!d.branches || !d.branches.length) {
-    listEl.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
-      + '<div style="font-size:32px">📅</div>'
-      + '<div style="font-weight:600">No print logs for this month</div>'
-      + '<div style="font-size:12px;color:var(--t3)">Service persons need to submit daily print counts</div>'
-      + '</div>';
-    return;
-  }
-
-  var maxTotal = Math.max.apply(null, d.branches.map(function(b){ return b.total || 0; }));
-
-  listEl.innerHTML = d.branches.map(function(b) {
-    var barW = maxTotal > 0 ? Math.round((b.total / maxTotal) * 100) : 0;
-    return '<div class="nw-mo-row">'
-      + '<div class="nw-mo-branch">'
-      +   '<span class="nw-branch-code">' + b.branch_code + '</span>'
-      +   '<span class="nw-mo-name">' + b.branch_name + '</span>'
-      + '</div>'
-      + '<div class="nw-mo-bar-wrap">'
-      +   '<div class="nw-mo-bar" style="width:' + barW + '%"></div>'
-      + '</div>'
-      + '<div class="nw-mo-total">' + (b.total || 0).toLocaleString() + '</div>'
-      + '</div>';
-  }).join('');
-}
+var _nwRefreshInterval=null, _nwCurrentTab=null;
+var NW_AUTO_REFRESH={yesterday:60,toner:90,requests:45,replacements:60};
 
 function nwTab(name) {
-  document.querySelectorAll('.nw-tab').forEach(function(t) { t.classList.remove('act'); });
-  document.querySelectorAll('.nw-panel').forEach(function(p) { p.classList.remove('act'); });
-  document.getElementById('tab-' + name).classList.add('act');
-  document.getElementById('panel-' + name).classList.add('act');
-
-  if (name === 'yesterday')    nwLoadYesterday();
-  if (name === 'toner')        nwLoadToner();
-  if (name === 'requests')     nwLoadMyRequests();
-  if (name === 'replacements') nwLoadReplacements();
-  if (name === 'rentals')       nwLoadRentals();
-  if (name === 'summary')       nwInitSummary();
-
-  _nwCurrentTab = name;
-  if (_nwRefreshInterval) { clearInterval(_nwRefreshInterval); _nwRefreshInterval = null; }
-  var secs = NW_AUTO_REFRESH[name];
-  if (!secs) return;
-  _nwRefreshInterval = setInterval(function() {
-    if (document.hidden) return;
-    if      (_nwCurrentTab === 'yesterday')    nwLoadYesterday();
-    else if (_nwCurrentTab === 'toner')        nwLoadToner();
-    else if (_nwCurrentTab === 'requests')     nwLoadMyRequests();
-    else if (_nwCurrentTab === 'replacements') nwLoadReplacements();
-  }, secs * 1000);
+  document.querySelectorAll('.nw-tab').forEach(function(t){t.classList.remove('act');});
+  document.querySelectorAll('.nw-panel').forEach(function(p){p.classList.remove('act');});
+  document.getElementById('tab-'+name).classList.add('act');
+  document.getElementById('panel-'+name).classList.add('act');
+  if(name==='yesterday')    nwLoadYesterday();
+  if(name==='toner')        nwLoadToner();
+  if(name==='requests')     nwLoadMyRequests();
+  if(name==='replacements') nwLoadReplacements();
+  if(name==='rentals')      nwLoadRentals();
+  if(name==='summary')      nwInitSummary();
+  _nwCurrentTab=name;
+  if(_nwRefreshInterval){clearInterval(_nwRefreshInterval);_nwRefreshInterval=null;}
+  var secs=NW_AUTO_REFRESH[name]; if(!secs)return;
+  _nwRefreshInterval=setInterval(function(){
+    if(document.hidden)return;
+    if(_nwCurrentTab==='yesterday') nwLoadYesterday();
+    else if(_nwCurrentTab==='toner') nwLoadToner();
+    else if(_nwCurrentTab==='requests') nwLoadMyRequests();
+    else if(_nwCurrentTab==='replacements') nwLoadReplacements();
+  },secs*1000);
 }
 
-/* ══════════════════════════════════════════════
-   YESTERDAY'S PRINTS
-   ══════════════════════════════════════════════ */
 async function nwLoadYesterday() {
-  document.getElementById('yd-list').innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var d = await nwApi('/nuwan/prints/yesterday');
-  if (!d) return;
-
-  // Date label
-  var dt = new Date(d.date + 'T00:00:00');
-  var pretty = dt.toLocaleDateString('en-GB', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
-  document.getElementById('yd-date-label').textContent = 'Data for ' + pretty;
-
-  // Stats
-  var submitted = d.branches.filter(function(b) { return b.has_submitted; }).length;
-  document.getElementById('yd-total').textContent     = d.grand_total.toLocaleString();
-  document.getElementById('yd-submitted').textContent = submitted + ' / ' + d.branches.length;
-  document.getElementById('yd-missing').textContent   = d.missing_count;
-
-  // Missing banner
-  var banner = document.getElementById('yd-missing-banner');
-  var missing = d.branches.filter(function(b) { return !b.has_submitted; });
-  if (missing.length === 0) {
-    banner.className = 'nw-missing-banner none';
-    document.getElementById('yd-missing-title').textContent = '✅ All branches submitted their print logs!';
-    document.getElementById('yd-missing-sub').textContent   = 'Great — every branch has reported their daily count.';
-    document.getElementById('yd-missing-chips').innerHTML   = '';
+  document.getElementById('yd-list').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var d=await nwApi('/nuwan/prints/yesterday'); if(!d)return;
+  var dt=new Date(d.date+'T00:00:00');
+  var pretty=dt.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('yd-date-label').textContent='Data for '+pretty;
+  var submitted=d.branches.filter(function(b){return b.has_submitted;}).length;
+  document.getElementById('yd-total').textContent=d.grand_total.toLocaleString();
+  document.getElementById('yd-submitted').textContent=submitted+' / '+d.branches.length;
+  document.getElementById('yd-missing').textContent=d.missing_count;
+  var banner=document.getElementById('yd-missing-banner');
+  var missing=d.branches.filter(function(b){return!b.has_submitted;});
+  if(missing.length===0){
+    banner.className='nw-missing-banner none';
+    document.getElementById('yd-missing-title').textContent='✅ All branches submitted!';
+    document.getElementById('yd-missing-sub').textContent='Every branch has reported their daily count.';
+    document.getElementById('yd-missing-chips').innerHTML='';
   } else {
-    banner.className = 'nw-missing-banner';
-    document.getElementById('yd-missing-title').textContent =
-      missing.length + ' branch' + (missing.length > 1 ? 'es have' : ' has') + ' not submitted yet';
-    document.getElementById('yd-missing-sub').textContent =
-      'These branches have not logged their print count for ' + pretty + ':';
-    document.getElementById('yd-missing-chips').innerHTML = missing.map(function(b) {
-      return '<span class="nw-chip">' + b.branch_code + ' — ' + b.branch_name + '</span>';
-    }).join('');
+    banner.className='nw-missing-banner';
+    document.getElementById('yd-missing-title').textContent=missing.length+' branch'+(missing.length>1?'es have':' has')+' not submitted yet';
+    document.getElementById('yd-missing-sub').textContent='These branches have not logged for '+pretty+':';
+    document.getElementById('yd-missing-chips').innerHTML=missing.map(function(b){return'<span class="nw-chip">'+b.branch_code+' — '+b.branch_name+'</span>';}).join('');
   }
-
-  // Branch list
-  var max = Math.max.apply(null, d.branches.map(function(b) { return b.total_prints; })) || 1;
-  document.getElementById('yd-list').innerHTML = d.branches.map(function(b) {
-    var pct = Math.round((b.total_prints / max) * 100);
-    var rowCls  = b.has_submitted ? 'nw-branch-row nw-branch-clickable' : 'nw-branch-row';
-    var onClick = b.has_submitted
-      ? ' onclick="nwShowBranchDetail(' + b.branch_id + ',\'' + (b.branch_code + ' — ' + b.branch_name).replace(/'/g,"\\'") + '\')"'
-      : '';
-    var paperPills = b.has_submitted
-      ? '<div class="nw-paper-pills">'
-        + (b.a4_total    > 0 ? '<span class="nw-pp nw-pp-a4">A4 ' + (b.a4_total||0).toLocaleString() + '</span>' : '')
-        + (b.b4_total    > 0 ? '<span class="nw-pp nw-pp-b4">B4 ' + (b.b4_total||0).toLocaleString() + '</span>' : '')
-        + (b.legal_total > 0 ? '<span class="nw-pp nw-pp-lg">Legal ' + (b.legal_total||0).toLocaleString() + '</span>' : '')
-        + '</div>'
-      : '';
-    return '<div class="' + rowCls + '"' + onClick + '>'      + '<div class="nw-branch-code">' + b.branch_code + '</div>'      + '<div style="flex:1;min-width:0">'      +   '<div class="nw-branch-name">' + b.branch_name + '</div>'      +   (b.has_submitted          ? paperPills + '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>'          : '<div class="nw-branch-sub">No log submitted</div>')      + '</div>'      + '<div class="nw-branch-count">' + (b.has_submitted ? b.total_prints.toLocaleString() : '—') + '</div>'      + '<span class="nw-branch-submitted ' + (b.has_submitted ? 'nw-sub-yes' : 'nw-sub-no') + '">'      +   (b.has_submitted ? 'View ›' : '✗ Missing')      + '</span>'      + '</div>';
+  var max=Math.max.apply(null,d.branches.map(function(b){return b.total_prints;}))||1;
+  document.getElementById('yd-list').innerHTML=d.branches.map(function(b){
+    var pct=Math.round((b.total_prints/max)*100);
+    var rowCls=b.has_submitted?'nw-branch-row nw-branch-clickable':'nw-branch-row';
+    var onClick=b.has_submitted?' onclick="nwShowBranchDetail('+b.branch_id+',\''+(b.branch_code+' — '+b.branch_name).replace(/'/g,"\\'")+'\''+')"':'';
+    var paperPills=b.has_submitted?'<div class="nw-paper-pills">'+(b.a4_total>0?'<span class="nw-pp nw-pp-a4">A4 '+(b.a4_total||0).toLocaleString()+'</span>':'')+(b.b4_total>0?'<span class="nw-pp nw-pp-b4">B4 '+(b.b4_total||0).toLocaleString()+'</span>':'')+(b.legal_total>0?'<span class="nw-pp nw-pp-lg">Legal '+(b.legal_total||0).toLocaleString()+'</span>':'')+'</div>':'';
+    return '<div class="'+rowCls+'"'+onClick+'><div class="nw-branch-code">'+b.branch_code+'</div><div style="flex:1;min-width:0"><div class="nw-branch-name">'+b.branch_name+'</div>'+(b.has_submitted?paperPills+'<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:6px;max-width:200px"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div></div>':'<div class="nw-branch-sub">No log submitted</div>')+'</div><div class="nw-branch-count">'+(b.has_submitted?b.total_prints.toLocaleString():'—')+'</div><span class="nw-branch-submitted '+(b.has_submitted?'nw-sub-yes':'nw-sub-no')+'">'+(b.has_submitted?'View ›':'✗ Missing')+'</span></div>';
   }).join('');
 }
 
-/* ══════════════════════════════════════════════
-   TONER LEVELS
-   ══════════════════════════════════════════════ */
-var _tonerData  = []; // raw data cache
-var _tonerModels = []; // toner model list for request modal
-
+var _tonerData=[], _tonerModels=[];
 async function nwLoadToner() {
-  document.getElementById('tn-branches').innerHTML =
-    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var data = await nwApi('/nuwan/toner');
-  if (!data) {
-    document.getElementById('tn-branches').innerHTML =
-      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">⚠️</div><div style="font-weight:600">Could not load toner data</div><div style="font-size:12px;color:var(--t3)">Check server logs or click Refresh</div></div>';
-    return;
-  }
-  if (!data.length) {
-    document.getElementById('tn-branches').innerHTML =
-      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">🖨️</div><div style="font-weight:600">No printers found</div><div style="font-size:12px;color:var(--t3)">Run the seed SQL in pgAdmin to load real data</div></div>';
-    return;
-  }
-
-  _tonerData = data;
-
-  // Update stat cards
-  var low      = data.filter(function(r){ return r.status === 'low'; }).length;
-  var critical = data.filter(function(r){ return r.status === 'critical'; }).length;
-  var el_total = document.getElementById('tn-total');
-  var el_low   = document.getElementById('tn-low');
-  var el_crit  = document.getElementById('tn-crit');
-  if (el_total) el_total.textContent = data.length;
-  if (el_low)   el_low.textContent   = low;
-  if (el_crit)  el_crit.textContent  = critical;
-
-  nwBuildTonerHTML(null, null);
+  document.getElementById('tn-branches').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var data=await nwApi('/nuwan/toner'); if(!data){return;}
+  if(!data.length){document.getElementById('tn-branches').innerHTML='<div class="nw-spin-wrap">No printers found.</div>';return;}
+  _tonerData=data;
+  var low=data.filter(function(r){return r.status==='low';}).length;
+  var critical=data.filter(function(r){return r.status==='critical';}).length;
+  var el_total=document.getElementById('tn-total'),el_low=document.getElementById('tn-low'),el_crit=document.getElementById('tn-crit');
+  if(el_total)el_total.textContent=data.length; if(el_low)el_low.textContent=low; if(el_crit)el_crit.textContent=critical;
+  nwBuildTonerHTML(null,null);
 }
-
-function nwBuildTonerHTML(filterStatus, filterText) {
-  var branches = {};
-  _tonerData.forEach(function(r) {
-    if (!branches[r.branch_id]) {
-      branches[r.branch_id] = { branch_code: r.branch_code, branch_name: r.branch_name, printers: [] };
-    }
-    var status = r.status || 'unknown';
-    if (filterStatus && filterStatus !== 'all') {
-      if (filterStatus === 'low'      && status !== 'low')      return;
-      if (filterStatus === 'critical' && status !== 'critical') return;
-      if (filterStatus === 'medium'   && status !== 'medium')   return;
-      if (filterStatus === 'good'     && status !== 'good')     return;
-    }
-    if (filterText) {
-      var q = filterText.toLowerCase();
-      if (!(r.branch_code||'').toLowerCase().includes(q) &&
-          !(r.branch_name||'').toLowerCase().includes(q) &&
-          !(r.printer_code||'').toLowerCase().includes(q) &&
-          !(r.model||'').toLowerCase().includes(q)) return;
-    }
+function nwBuildTonerHTML(filterStatus,filterText) {
+  var branches={};
+  _tonerData.forEach(function(r){
+    if(!branches[r.branch_id]) branches[r.branch_id]={branch_code:r.branch_code,branch_name:r.branch_name,printers:[]};
+    var status=r.status||'unknown';
+    if(filterStatus&&filterStatus!=='all'){if(filterStatus==='low'&&status!=='low')return;if(filterStatus==='critical'&&status!=='critical')return;}
+    if(filterText){var q=filterText.toLowerCase();if(!(r.branch_code||'').toLowerCase().includes(q)&&!(r.branch_name||'').toLowerCase().includes(q)&&!(r.printer_code||'').toLowerCase().includes(q))return;}
     branches[r.branch_id].printers.push(r);
   });
-
-  var branchList = Object.values(branches).filter(function(b){ return b.printers.length > 0; });
-  if (!branchList.length) {
-    document.getElementById('tn-branches').innerHTML =
-      '<div class="nw-empty-state"><div class="nw-empty-ico">🔍</div><div class="nw-empty-title">No printers match</div></div>';
-    return;
-  }
-
-  function pctColor(pct) {
-    if (pct == null) return '#94a3b8';
-    if (pct <= 10)   return '#ef4444';
-    if (pct <= 25)   return '#f59e0b';
-    if (pct <= 50)   return '#f97316';
-    return '#10b981';
-  }
-
-  var html = branchList.map(function(b) {
-    var rows = b.printers.map(function(r) {
-      var pct    = r.current_pct != null ? parseFloat(r.current_pct) : null;
-      var col    = pctColor(pct);
-      var barW   = pct != null ? Math.max(2, Math.min(100, pct)) : 0;
-      var pctTxt = pct != null ? pct.toFixed(1) + '%' : '—';
-      var copies = r.copies_remaining != null ? parseInt(r.copies_remaining).toLocaleString() : '—';
-      var days   = r.days_remaining   != null ? r.days_remaining + 'd left' : '';
-
-      // Status pill
-      var pillBg  = pct == null ? '#f1f5f9' : pct <= 10 ? '#fef2f2' : pct <= 25 ? '#fffbeb' : pct <= 50 ? '#fff7ed' : '#f0fdf4';
-      var pillTxt = pct == null ? 'Unknown' : pct <= 10 ? '🔴 Critical' : pct <= 25 ? '🟠 Low' : pct <= 50 ? '🟡 Monitor' : '🟢 OK';
-
-      return '<div class="tnr-row">'
-        // Left: code + model
-        + '<div class="tnr-left">'
-        +   '<div class="tnr-code">' + r.printer_code + '</div>'
-        +   '<div class="tnr-model">' + (r.model || r.toner_model_code || '—') + '</div>'
-        + '</div>'
-        // Middle: bar + stats
-        + '<div class="tnr-mid">'
-        +   '<div class="tnr-bar-track"><div class="tnr-bar-fill" style="width:' + barW + '%;background:' + col + '"></div></div>'
-        +   '<div class="tnr-stats">'
-        +     '<span class="tnr-stat">' + copies + ' copies</span>'
-        +     (days ? '<span class="tnr-stat-sep">·</span><span class="tnr-stat">' + days + '</span>' : '')
-        +     '<span class="tnr-stat-sep">·</span><span class="tnr-stat">Yield: ' + (r.yield_copies ? parseInt(r.yield_copies).toLocaleString() : '—') + '</span>'
-        +   '</div>'
-        + '</div>'
-        // Right: pct + pill + button
-        + '<div class="tnr-right">'
-        +   '<div class="tnr-pct" style="color:' + col + '">' + pctTxt + '</div>'
-        +   '<div class="tnr-pill" style="background:' + pillBg + ';color:' + col + '">' + pillTxt + '</div>'
-        +   '<button class="tnr-req-btn" onclick="nwOpenRequest(' + r.printer_id + ',\'' + (r.toner_model_code||'') + '\')">📤 Request</button>'
-        + '</div>'
-        + '</div>';
+  var branchList=Object.values(branches).filter(function(b){return b.printers.length>0;});
+  if(!branchList.length){document.getElementById('tn-branches').innerHTML='<div class="nw-empty-state"><div class="nw-empty-ico">🔍</div><div class="nw-empty-title">No printers match</div></div>';return;}
+  function pctColor(pct){if(pct==null)return'#94a3b8';if(pct<=10)return'#ef4444';if(pct<=25)return'#f59e0b';if(pct<=50)return'#f97316';return'#10b981';}
+  document.getElementById('tn-branches').innerHTML=branchList.map(function(b){
+    var rows=b.printers.map(function(r){
+      var pct=r.current_pct!=null?parseFloat(r.current_pct):null;
+      var col=pctColor(pct),barW=pct!=null?Math.max(2,Math.min(100,pct)):0,pctTxt=pct!=null?pct.toFixed(1)+'%':'—';
+      var copies=r.copies_remaining!=null?parseInt(r.copies_remaining).toLocaleString():'—';
+      var days=r.days_remaining!=null?r.days_remaining+'d left':'';
+      var pillBg=pct==null?'#f1f5f9':pct<=10?'#fef2f2':pct<=25?'#fffbeb':pct<=50?'#fff7ed':'#f0fdf4';
+      var pillTxt=pct==null?'Unknown':pct<=10?'🔴 Critical':pct<=25?'🟠 Low':pct<=50?'🟡 Monitor':'🟢 OK';
+      return '<div class="tnr-row"><div class="tnr-left"><div class="tnr-code">'+r.printer_code+'</div><div class="tnr-model">'+(r.model||r.toner_model_code||'—')+'</div></div><div class="tnr-mid"><div class="tnr-bar-track"><div class="tnr-bar-fill" style="width:'+barW+'%;background:'+col+'"></div></div><div class="tnr-stats"><span class="tnr-stat">'+copies+' copies</span>'+(days?'<span class="tnr-stat-sep">·</span><span class="tnr-stat">'+days+'</span>':'')+'</div></div><div class="tnr-right"><div class="tnr-pct" style="color:'+col+'">'+pctTxt+'</div><div class="tnr-pill" style="background:'+pillBg+';color:'+col+'">'+pillTxt+'</div><button class="tnr-req-btn" onclick="nwOpenRequest('+r.printer_id+',\''+(r.toner_model_code||'')+'\')">📤 Request</button></div></div>';
     }).join('');
-
-    return '<div class="tnr-branch">'
-      + '<div class="tnr-branch-hdr">'
-      +   '<div class="tnr-branch-code">' + b.branch_code + '</div>'
-      +   '<div class="tnr-branch-name">' + b.branch_name + '</div>'
-      +   '<div class="tnr-branch-ct">' + b.printers.length + ' printer' + (b.printers.length > 1 ? 's' : '') + '</div>'
-      + '</div>'
-      + '<div class="tnr-rows">' + rows + '</div>'
-      + '</div>';
+    return '<div class="tnr-branch"><div class="tnr-branch-hdr"><div class="tnr-branch-code">'+b.branch_code+'</div><div class="tnr-branch-name">'+b.branch_name+'</div><div class="tnr-branch-ct">'+b.printers.length+' printers</div></div><div class="tnr-rows">'+rows+'</div></div>';
   }).join('');
-
-  document.getElementById('tn-branches').innerHTML = html;
 }
-
-
-async function nwLoadTonerModels() {
-  var sel = document.getElementById('nw-req-model');
-  if (!sel) return;
-  // Always reload if empty
-  if (_tonerModels.length) {
-    sel.innerHTML = '<option value="">— Select Toner Model —</option>';
-    _tonerModels.forEach(function(m) {
-      sel.add(new Option(m.model_code + (m.brand ? ' (' + m.brand + ')' : ''), m.id));
-    });
-    return;
-  }
-  sel.innerHTML = '<option value="">Loading...</option>';
-  var d = await nwApi('/nuwan/toner-models');
-  if (!d || !d.length) {
-    sel.innerHTML = '<option value="">— No toner models found —</option>';
-    return;
-  }
-  _tonerModels = d;
-  sel.innerHTML = '<option value="">— Select Toner Model —</option>';
-  d.forEach(function(m) {
-    sel.add(new Option(m.model_code + (m.brand ? ' (' + m.brand + ')' : ''), m.id));
-  });
+function nwFilterToner(q){
+  var cb=document.getElementById('tn-clear'); if(cb)cb.style.display=q?'flex':'none';
+  if(!q){nwBuildTonerHTML(null,null);return;}
+  if(q==='low'||q==='critical'){nwBuildTonerHTML(q,null);}else{nwBuildTonerHTML(null,q);}
 }
+function nwClearTonerSearch(){var si=document.getElementById('tn-search'),cb=document.getElementById('tn-clear');if(si)si.value='';if(cb)cb.style.display='none';nwBuildTonerHTML(null,null);}
 
-/* Open request modal from a printer card click */
-function nwOpenRequest(printerId, tonerModelCode) {
-  // Convert to number to match API response type
-  printerId = parseInt(printerId);
-  var printer = _tonerData.find(function(r) { return parseInt(r.printer_id) === printerId; });
-  var printerCode = printer ? printer.printer_code : 'Printer ' + printerId;
-  var branchName  = printer ? printer.branch_name  : '';
-  var status      = printer ? (printer.status || 'unknown') : 'unknown';
-  nwOpenRequestModal(printerId, printerCode, branchName, status);
+async function nwLoadTonerModels(){
+  var sel=document.getElementById('nw-req-model'); if(!sel)return;
+  if(_tonerModels.length){sel.innerHTML='<option value="">— Select Toner Model —</option>';_tonerModels.forEach(function(m){sel.add(new Option(m.model_code+(m.brand?' ('+m.brand+')':''),m.id));});return;}
+  sel.innerHTML='<option value="">Loading...</option>';
+  var d=await nwApi('/nuwan/toner-models'); if(!d||!d.length){sel.innerHTML='<option value="">— No models found —</option>';return;}
+  _tonerModels=d; sel.innerHTML='<option value="">— Select Toner Model —</option>';
+  d.forEach(function(m){sel.add(new Option(m.model_code+(m.brand?' ('+m.brand+')':''),m.id));});
 }
-
-function nwOpenRequestModal(printerId, printerCode, branchName, status) {
-  document.getElementById('nw-req-printer-id').value = printerId;
-  document.getElementById('nw-modal-printer-info').textContent =
-    printerCode + ' — ' + branchName;
-
-  // Pre-select priority based on toner status
-  var pri = status === 'critical' ? 'critical' : 'urgent';
-  document.querySelectorAll('input[name="nw-pri"]').forEach(function(r) {
-    r.checked = (r.value === pri);
-  });
-
-  document.getElementById('nw-req-notes').value = '';
-  document.getElementById('nw-modal-submit-btn').textContent = '📤 Submit Request to Manager';
-  document.getElementById('nw-modal-submit-btn').disabled = false;
-
+function nwOpenRequest(printerId,tonerModelCode){
+  printerId=parseInt(printerId);
+  var printer=_tonerData.find(function(r){return parseInt(r.printer_id)===printerId;});
+  nwOpenRequestModal(printerId,printer?printer.printer_code:'Printer '+printerId,printer?printer.branch_name:'',printer?(printer.status||'unknown'):'unknown');
+}
+function nwOpenRequestModal(printerId,printerCode,branchName,status){
+  document.getElementById('nw-req-printer-id').value=printerId;
+  document.getElementById('nw-modal-printer-info').textContent=printerCode+' — '+branchName;
+  var pri=status==='critical'?'critical':'urgent';
+  document.querySelectorAll('input[name="nw-pri"]').forEach(function(r){r.checked=(r.value===pri);});
+  document.getElementById('nw-req-notes').value='';
+  document.getElementById('nw-modal-submit-btn').textContent='📤 Submit Request to Manager';
+  document.getElementById('nw-modal-submit-btn').disabled=false;
   nwLoadTonerModels();
-  document.getElementById('nw-req-modal').style.display = 'flex';
+  document.getElementById('nw-req-modal').style.display='flex';
+}
+function nwCloseModal(e){if(e.target.id==='nw-req-modal')document.getElementById('nw-req-modal').style.display='none';}
+async function nwSubmitTonerRequest(){
+  var printerId=document.getElementById('nw-req-printer-id').value;
+  var modelId=document.getElementById('nw-req-model').value;
+  var notes=document.getElementById('nw-req-notes').value.trim();
+  var priority=(document.querySelector('input[name="nw-pri"]:checked')||{}).value||'urgent';
+  if(!modelId){nwToast('⚠️','Please select a toner model');return;}
+  var btn=document.getElementById('nw-modal-submit-btn');btn.textContent='Submitting...';btn.disabled=true;
+  try{
+    var r=await fetch('/api/nuwan/request-toner',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+NW.token},body:JSON.stringify({printer_id:parseInt(printerId),toner_model_id:parseInt(modelId),priority:priority,notes:notes})});
+    var d=await r.json();
+    if(!r.ok){nwToast('❌',d.detail||'Submit failed');btn.textContent='📤 Submit Request to Manager';btn.disabled=false;return;}
+    document.getElementById('nw-req-modal').style.display='none';
+    nwToast('✅','Request sent to manager!');
+  }catch(e){nwToast('❌','Network error');btn.textContent='📤 Submit Request to Manager';btn.disabled=false;}
 }
 
-function nwCloseModal(e) {
-  if (e.target.id === 'nw-req-modal') {
-    document.getElementById('nw-req-modal').style.display = 'none';
-  }
-}
-
-async function nwSubmitTonerRequest() {
-  var printerId = document.getElementById('nw-req-printer-id').value;
-  var modelId   = document.getElementById('nw-req-model').value;
-  var notes     = document.getElementById('nw-req-notes').value.trim();
-  var priority  = (document.querySelector('input[name="nw-pri"]:checked') || {}).value || 'urgent';
-
-  if (!modelId) { nwToast('⚠️', 'Please select a toner model'); return; }
-
-  var btn = document.getElementById('nw-modal-submit-btn');
-  btn.textContent = 'Submitting...';
-  btn.disabled = true;
-
-  try {
-    var r = await fetch('/api/nuwan/request-toner', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + NW.token,
-      },
-      body: JSON.stringify({
-        printer_id:     parseInt(printerId),
-        toner_model_id: parseInt(modelId),
-        priority:       priority,
-        notes:          notes,
-      })
-    });
-    var d = await r.json();
-    if (!r.ok) { nwToast('❌', d.detail || 'Submit failed'); btn.textContent = '📤 Submit Request to Manager'; btn.disabled = false; return; }
-
-    document.getElementById('nw-req-modal').style.display = 'none';
-    nwToast('✅', 'Request sent to manager!');
-    // Refresh requests tab count
-  } catch(e) {
-    nwToast('❌', 'Network error');
-    btn.textContent = '📤 Submit Request to Manager';
-    btn.disabled = false;
-  }
-}
-
-/* ══════════════════════════════════════════════
-   MY REQUESTS
-   ══════════════════════════════════════════════ */
-async function nwLoadMyRequests() {
-  document.getElementById('nw-req-list').innerHTML =
-    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var rows = await nwApi('/nuwan/my-requests');
-  if (!rows) return;
-
-  if (!rows.length) {
-    document.getElementById('nw-req-list').innerHTML =
-      '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">' +
-      '<div style="font-size:36px">📭</div>' +
-      '<div style="font-size:14px;font-weight:600;color:var(--tx)">No requests yet</div>' +
-      '<div style="font-size:12px;color:var(--t3)">Tap a low/critical printer to request a toner refill</div>' +
-      '</div>';
-    return;
-  }
-
-  var priMap = { critical:'🔴 Critical', urgent:'🟡 Urgent', normal:'🟢 Normal' };
-
-  document.getElementById('nw-req-list').innerHTML = rows.map(function(r) {
-    var dt = new Date(r.requested_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-
-    // Build workflow steps
-    var steps = [
-      { done: true,               icon:'📤', label:'You submitted',    sub: dt },
-      { done: r.status !== 'pending' && r.status !== 'rejected',
-                                  icon:'✅', label:'Manager approved',
-        sub: r.reviewed_by_name ? 'by ' + r.reviewed_by_name : '' },
-      { done: r.status === 'dispatched',
-                                  icon:'📦', label:'Store dispatched',
-        sub: r.dispatched_by_name ? 'by ' + r.dispatched_by_name + (r.dispatch_note ? ' · ' + r.dispatch_note : '') : 'Awaiting store action' },
+async function nwLoadMyRequests(){
+  document.getElementById('nw-req-list').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var rows=await nwApi('/nuwan/my-requests'); if(!rows)return;
+  if(!rows.length){document.getElementById('nw-req-list').innerHTML='<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:36px">📭</div><div>No requests yet</div></div>';return;}
+  var priMap={critical:'🔴 Critical',urgent:'🟡 Urgent',normal:'🟢 Normal'};
+  document.getElementById('nw-req-list').innerHTML=rows.map(function(r){
+    var dt=new Date(r.requested_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    var steps=[
+      {done:true,icon:'📤',label:'You submitted',sub:dt},
+      {done:r.status!=='pending'&&r.status!=='rejected',icon:'✅',label:'Manager approved',sub:r.reviewed_by_name?'by '+r.reviewed_by_name:''},
+      {done:r.status==='dispatched',icon:'📦',label:'Store dispatched',sub:r.dispatched_by_name?'by '+r.dispatched_by_name:'Awaiting store action'},
     ];
-    if (r.status === 'rejected') {
-      steps[1] = { done: true, icon:'❌', label:'Manager rejected', sub: r.review_note || '', col:'#ef4444' };
-      steps[2] = { done: false, icon:'📦', label:'Store dispatch', sub: 'N/A' };
-    }
-
-    var statusInfo = {
-      pending:    { col:'#f59e0b', bg:'#fffbeb', label:'⏳ Awaiting Manager' },
-      approved:   { col:'#3b82f6', bg:'#eff6ff', label:'📋 Awaiting Store Dispatch' },
-      rejected:   { col:'#ef4444', bg:'#fef2f2', label:'❌ Rejected' },
-      dispatched: { col:'#10b981', bg:'#f0fdf4', label:'✅ Toner Dispatched & Stock Updated' },
-    }[r.status] || { col:'#94a3b8', bg:'#f8fafc', label:r.status };
-
-    return '<div class="nw-req-card">'
-      + '<div style="flex:1;min-width:0">'
-      +   '<div class="nw-req-card-top">'
-      +     '<div>'
-      +       '<div class="nw-req-what">🖨 ' + (r.toner_model_code || 'Toner Request') + '</div>'
-      +       '<div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">'
-      +         '<span class="nw-branch-code" style="font-size:10px">' + r.branch_code + '</span>'
-      +         '<span style="font-size:12px;color:var(--t2)">' + r.printer_code + '</span>'
-      +         '<span style="font-size:11px;color:var(--t3)">' + (priMap[r.priority]||r.priority) + '</span>'
-      +       '</div>'
-      +     '</div>'
-      +     '<div class="nw-req-status-pill" style="background:' + statusInfo.bg + ';color:' + statusInfo.col + ';border:1px solid ' + statusInfo.col + '33">' + statusInfo.label + '</div>'
-      +   '</div>'
-      +   (r.notes ? '<div class="nw-req-note">💬 ' + r.notes + '</div>' : '')
-      +   '<div class="nw-req-timeline">'
-      +     steps.map(function(s, i) {
-               return '<div class="nw-tl-step">'
-                 + (i > 0 ? '<div class="nw-tl-line ' + (steps[i-1].done ? 'done' : '') + '"></div>' : '')
-                 + '<div class="nw-tl-dot ' + (s.done ? 'done' : '') + (s.col ? '" style="background:' + s.col : '') + '">' + s.icon + '</div>'
-                 + '<div class="nw-tl-info">'
-                 +   '<div class="nw-tl-label ' + (s.done ? 'done' : '') + '">' + s.label + '</div>'
-                 +   (s.sub ? '<div class="nw-tl-sub">' + s.sub + '</div>' : '')
-                 + '</div>'
-                 + '</div>';
-             }).join('')
-      +   '</div>'
-      + '</div>'
-      + '</div>';
+    if(r.status==='rejected'){steps[1]={done:true,icon:'❌',label:'Manager rejected',sub:r.review_note||'',col:'#ef4444'};steps[2]={done:false,icon:'📦',label:'Store dispatch',sub:'N/A'};}
+    var statusInfo={pending:{col:'#f59e0b',bg:'#fffbeb',label:'⏳ Awaiting Manager'},approved:{col:'#3b82f6',bg:'#eff6ff',label:'📋 Awaiting Dispatch'},rejected:{col:'#ef4444',bg:'#fef2f2',label:'❌ Rejected'},dispatched:{col:'#10b981',bg:'#f0fdf4',label:'✅ Dispatched'}}[r.status]||{col:'#94a3b8',bg:'#f8fafc',label:r.status};
+    return '<div class="nw-req-card"><div style="flex:1;min-width:0"><div class="nw-req-card-top"><div><div class="nw-req-what">🖨 '+(r.toner_model_code||'Toner Request')+'</div><div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap"><span class="nw-branch-code" style="font-size:10px">'+r.branch_code+'</span><span style="font-size:12px;color:var(--t2)">'+r.printer_code+'</span></div></div><div class="nw-req-status-pill" style="background:'+statusInfo.bg+';color:'+statusInfo.col+'">'+statusInfo.label+'</div></div>'+(r.notes?'<div class="nw-req-note">💬 '+r.notes+'</div>':'')+'<div class="nw-req-timeline">'+steps.map(function(s,i){return'<div class="nw-tl-step">'+(i>0?'<div class="nw-tl-line '+(steps[i-1].done?'done':'')+'"></div>':'')+'<div class="nw-tl-dot '+(s.done?'done':'')+(s.col?'" style="background:'+s.col:'')+'">'+s.icon+'</div><div class="nw-tl-info"><div class="nw-tl-label '+(s.done?'done':'')+'">'+s.label+'</div>'+(s.sub?'<div class="nw-tl-sub">'+s.sub+'</div>':'')+'</div></div>';}).join('')+'</div></div></div>';
   }).join('');
 }
 
-/* Update tab routing to include requests */
-/* ══════════════════════════════════════════════
-   TONER REPLACEMENTS
-   ══════════════════════════════════════════════ */
-var _replData = [];
-
-async function nwLoadReplacements() {
-  document.getElementById('nw-repl-list').innerHTML =
-    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var si = document.getElementById('repl-search');
-  var cb = document.getElementById('repl-clear');
-  if (si) si.value = '';
-  if (cb) cb.style.display = 'none';
-
-  var rows = await nwApi('/printers/toner-replacements');
-  if (!rows) return;
-  _replData = rows;
-  nwRenderReplacements(rows);
+var _replData=[];
+async function nwLoadReplacements(){
+  document.getElementById('nw-repl-list').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var si=document.getElementById('repl-search'),cb=document.getElementById('repl-clear');
+  if(si)si.value=''; if(cb)cb.style.display='none';
+  var rows=await nwApi('/printers/toner-replacements'); if(!rows)return;
+  _replData=rows; nwRenderReplacements(rows);
 }
-
-function nwRenderReplacements(rows) {
-  var el = document.getElementById('nw-repl-list');
-
-  if (!rows.length) {
-    el.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
-      + '<div style="font-size:36px">🔄</div>'
-      + '<div style="font-size:14px;font-weight:600;color:var(--tx)">No replacements logged yet</div>'
-      + '<div style="font-size:12px;color:var(--t3)">Service persons will appear here when they log a toner replacement</div>'
-      + '</div>';
-    return;
-  }
-
-  function fmt(dtStr) {
-    if (!dtStr) return null;
-    return new Date(dtStr).toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  }
-
-  el.innerHTML = rows.map(function(r) {
-    var replacedAt = fmt(r.installed_at);
-
-    // Build workflow steps — only show steps that have data
-    var steps = [];
-
-    // Step 1: Requested (if came via request system)
-    if (r.requested_by_name) {
-      steps.push({
-        icon: '📤', col: '#6366f1', bg: '#f5f3ff',
-        label: 'Requested',
-        who: r.requested_by_name,
-        when: fmt(r.requested_at)
-      });
-    }
-
-    // Step 2: Manager approved
-    if (r.approved_by_name) {
-      steps.push({
-        icon: '✅', col: '#10b981', bg: '#f0fdf4',
-        label: 'Approved',
-        who: r.approved_by_name,
-        when: fmt(r.reviewed_at)
-      });
-    }
-
-    // Step 3: Store dispatched
-    if (r.dispatched_by_name) {
-      steps.push({
-        icon: '📦', col: '#3b82f6', bg: '#eff6ff',
-        label: 'Dispatched',
-        who: r.dispatched_by_name,
-        when: fmt(r.dispatched_at)
-      });
-    }
-
-    // Step 4: Service person replaced (always shown)
-    steps.push({
-      icon: '🔄', col: '#f59e0b', bg: '#fffbeb',
-      label: 'Replaced',
-      who: r.installed_by_name || r.installed_by_username || '—',
-      when: replacedAt
-    });
-
-    var stepsHtml = steps.map(function(s, i) {
-      return '<div class="nw-repl-step">'
-        + (i > 0 ? '<div class="nw-repl-step-arrow">→</div>' : '')
-        + '<div class="nw-repl-step-box" style="border-color:' + s.col + ';background:' + s.bg + '">'
-        +   '<div class="nw-repl-step-icon">' + s.icon + '</div>'
-        +   '<div class="nw-repl-step-label" style="color:' + s.col + '">' + s.label + '</div>'
-        +   '<div class="nw-repl-step-who">' + s.who + '</div>'
-        +   (s.when ? '<div class="nw-repl-step-when">' + s.when + '</div>' : '')
-        + '</div>'
-        + '</div>';
-    }).join('');
-
-    return '<div class="nw-repl-card">'
-      + '<div class="nw-repl-card-header">'
-      +   '<div class="nw-repl-card-title">'
-      +     '<div class="nw-repl-printer">' + r.printer_code + '</div>'
-      +     '<div class="nw-repl-model">' + (r.toner_model || '—') + '</div>'
-      +   '</div>'
-      +   '<div class="nw-repl-location">'
-      +     '<span class="nw-branch-code" style="font-size:10px">' + r.branch_code + '</span>'
-      +     '<span class="nw-repl-branch-name">' + r.branch_name + '</span>'
-      +   '</div>'
-      + '</div>'
-      + '<div class="nw-repl-workflow">' + stepsHtml + '</div>'
-      + '</div>';
+function nwRenderReplacements(rows){
+  var el=document.getElementById('nw-repl-list');
+  if(!rows.length){el.innerHTML='<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:36px">🔄</div><div>No replacements logged yet</div></div>';return;}
+  function fmt(dtStr){if(!dtStr)return null;return new Date(dtStr).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+  el.innerHTML=rows.map(function(r){
+    var steps=[];
+    if(r.requested_by_name) steps.push({icon:'📤',col:'#6366f1',bg:'#f5f3ff',label:'Requested',who:r.requested_by_name,when:fmt(r.requested_at)});
+    if(r.approved_by_name)  steps.push({icon:'✅',col:'#10b981',bg:'#f0fdf4',label:'Approved',who:r.approved_by_name,when:fmt(r.reviewed_at)});
+    if(r.dispatched_by_name) steps.push({icon:'📦',col:'#3b82f6',bg:'#eff6ff',label:'Dispatched',who:r.dispatched_by_name,when:fmt(r.dispatched_at)});
+    steps.push({icon:'🔄',col:'#f59e0b',bg:'#fffbeb',label:'Replaced',who:r.installed_by_name||'—',when:fmt(r.installed_at)});
+    var stepsHtml=steps.map(function(s,i){return'<div class="nw-repl-step">'+(i>0?'<div class="nw-repl-step-arrow">→</div>':'')+'<div class="nw-repl-step-box" style="border-color:'+s.col+';background:'+s.bg+'"><div class="nw-repl-step-icon">'+s.icon+'</div><div class="nw-repl-step-label" style="color:'+s.col+'">'+s.label+'</div><div class="nw-repl-step-who">'+s.who+'</div>'+(s.when?'<div class="nw-repl-step-when">'+s.when+'</div>':'')+'</div></div>';}).join('');
+    return '<div class="nw-repl-card"><div class="nw-repl-card-header"><div class="nw-repl-card-title"><div class="nw-repl-printer">'+r.printer_code+'</div><div class="nw-repl-model">'+(r.toner_model||'—')+'</div></div><div class="nw-repl-location"><span class="nw-branch-code" style="font-size:10px">'+r.branch_code+'</span><span class="nw-repl-branch-name">'+r.branch_name+'</span></div></div><div class="nw-repl-workflow">'+stepsHtml+'</div></div>';
   }).join('');
 }
+function nwFilterReplacements(q){var cb=document.getElementById('repl-clear');if(cb)cb.style.display=q?'flex':'none';if(!q.trim()){nwRenderReplacements(_replData);return;}var lower=q.toLowerCase();nwRenderReplacements(_replData.filter(function(r){return r.branch_code.toLowerCase().includes(lower)||r.branch_name.toLowerCase().includes(lower)||r.printer_code.toLowerCase().includes(lower);}));}
+function nwClearReplSearch(){var si=document.getElementById('repl-search'),cb=document.getElementById('repl-clear');if(si)si.value='';if(cb)cb.style.display='none';nwRenderReplacements(_replData);}
 
-function nwFilterReplacements(q) {
-  var cb = document.getElementById('repl-clear');
-  if (cb) cb.style.display = q ? 'flex' : 'none';
-  if (!q.trim()) { nwRenderReplacements(_replData); return; }
-  var lower = q.toLowerCase();
-  var filtered = _replData.filter(function(r) {
-    return r.branch_code.toLowerCase().includes(lower)
-        || r.branch_name.toLowerCase().includes(lower)
-        || r.printer_code.toLowerCase().includes(lower)
-        || (r.installed_by_name||'').toLowerCase().includes(lower);
-  });
-  nwRenderReplacements(filtered);
-}
-
-function nwClearReplSearch() {
-  var si = document.getElementById('repl-search');
-  var cb = document.getElementById('repl-clear');
-  if (si) si.value = '';
-  if (cb) cb.style.display = 'none';
-  nwRenderReplacements(_replData);
-}
-
-/* ── Toast ──────────────────────────────────── */
 var _toastTimer;
-function nwToast(ico, txt) {
-  var el = document.getElementById('nw-toast');
-  document.getElementById('nw-t-ico').textContent = ico;
-  document.getElementById('nw-t-txt').textContent = txt;
-  el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
-}
+function nwToast(ico,txt){var el=document.getElementById('nw-toast');document.getElementById('nw-t-ico').textContent=ico;document.getElementById('nw-t-txt').textContent=txt;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(function(){el.classList.remove('show');},3000);}
 
-/* -- Rental Printers ---------------------------------------- */
-var _nwRentals = [];
-
-async function nwLoadRentals() {
-  var listEl = document.getElementById('nw-rental-list');
-  if (listEl) listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  var summary = (await nwApi('/rentals/summary')) || {};
-  var rentals  = (await nwApi('/rentals'))         || [];
-  _nwRentals   = rentals;
-  function setEl(id, v) { var e = document.getElementById(id); if(e) e.textContent = v||0; }
-  setEl('nwr-total',   summary.total);
-  setEl('nwr-ok',      summary.ok);
-  setEl('nwr-warn',    summary.warning);
-  setEl('nwr-soon',    summary.expiring_soon);
-  setEl('nwr-expired', summary.expired);
+var _nwRentals=[];
+async function nwLoadRentals(){
+  var listEl=document.getElementById('nw-rental-list');
+  if(listEl)listEl.innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var summary=(await nwApi('/rentals/summary'))||{};
+  var rentals=(await nwApi('/rentals'))||[];
+  _nwRentals=rentals;
+  function setEl(id,v){var e=document.getElementById(id);if(e)e.textContent=v||0;}
+  setEl('nwr-total',summary.total); setEl('nwr-ok',summary.ok); setEl('nwr-warn',summary.warning); setEl('nwr-soon',summary.expiring_soon); setEl('nwr-expired',summary.expired);
   nwRenderRentals(rentals);
 }
-
-function nwRenderRentals(data) {
-  var el = document.getElementById('nw-rental-list');
-  if (!el) return;
-  if (!data || !data.length) {
-    el.innerHTML = '<div class="nw-spin-wrap">No rental printers found.</div>';
-    return;
-  }
-  el.innerHTML = data.map(function(r) {
-    var days    = parseInt(r.days_remaining);
-    var daysStr = isNaN(days) ? '--'
-      : days < 0 ? '<span style="color:#ef4444;font-weight:700">Expired</span>'
-      : '<span style="font-weight:700">' + days + ' days</span>';
-    var statusMap = {
-      expired:       '<span class="nw-rental-badge nw-rb-exp">Expired</span>',
-      expiring_soon: '<span class="nw-rental-badge nw-rb-soon">&lt;90 Days</span>',
-      warning:       '<span class="nw-rental-badge nw-rb-warn">&lt;6 Months</span>',
-      ok:            '<span class="nw-rental-badge nw-rb-ok">Active</span>',
-    };
-    var badge   = statusMap[r.status] || '';
-    var endDate = r.end_date
-      ? new Date(r.end_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
-      : '--';
-    return '<div class="nw-rental-row">'
-      + '<div class="nw-rental-serial">' + r.serial_number + '</div>'
-      + '<div class="nw-rental-branch">' + r.branch_name   + '</div>'
-      + '<div class="nw-rental-end">'    + endDate         + '</div>'
-      + '<div class="nw-rental-days">'   + daysStr         + '</div>'
-      + '<div>'                          + badge           + '</div>'
-      + '</div>';
+function nwRenderRentals(data){
+  var el=document.getElementById('nw-rental-list'); if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div class="nw-spin-wrap">No rental printers found.</div>';return;}
+  el.innerHTML=data.map(function(r){
+    var days=parseInt(r.days_remaining);
+    var daysStr=isNaN(days)?'--':days<0?'<span style="color:#ef4444;font-weight:700">Expired</span>':'<span style="font-weight:700">'+days+' days</span>';
+    var statusMap={expired:'<span class="nw-rental-badge nw-rb-exp">Expired</span>',expiring_soon:'<span class="nw-rental-badge nw-rb-soon">&lt;90 Days</span>',warning:'<span class="nw-rental-badge nw-rb-warn">&lt;6 Months</span>',ok:'<span class="nw-rental-badge nw-rb-ok">Active</span>'};
+    var badge=statusMap[r.status]||'';
+    var endDate=r.end_date?new Date(r.end_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'--';
+    return '<div class="nw-rental-row"><div class="nw-rental-serial">'+r.serial_number+'</div><div class="nw-rental-branch">'+r.branch_name+'</div><div class="nw-rental-end">'+endDate+'</div><div class="nw-rental-days">'+daysStr+'</div><div>'+badge+'</div></div>';
   }).join('');
 }
+function nwFilterRentals(q){if(!q.trim()){nwRenderRentals(_nwRentals);return;}var lower=q.toLowerCase();nwRenderRentals(_nwRentals.filter(function(r){return r.serial_number.toLowerCase().includes(lower)||r.branch_name.toLowerCase().includes(lower);}));}
 
-function nwFilterRentals(q) {
-  if (!q.trim()) { nwRenderRentals(_nwRentals); return; }
-  var lower = q.toLowerCase();
-  nwRenderRentals(_nwRentals.filter(function(r) {
-    return r.serial_number.toLowerCase().includes(lower)
-        || r.branch_name.toLowerCase().includes(lower);
-  }));
-}
+function nwToggleMenu(){var tabs=document.querySelector('.nw-tabs'),overlay=document.getElementById('nw-ham-overlay'),btn=document.getElementById('nw-ham-btn'),isOpen=tabs.classList.contains('nw-tabs-open');tabs.classList.toggle('nw-tabs-open',!isOpen);if(overlay)overlay.classList.toggle('vis',!isOpen);if(btn)btn.classList.toggle('open',!isOpen);}
+function nwCloseMenu(){var tabs=document.querySelector('.nw-tabs'),overlay=document.getElementById('nw-ham-overlay'),btn=document.getElementById('nw-ham-btn');if(tabs)tabs.classList.remove('nw-tabs-open');if(overlay)overlay.classList.remove('vis');if(btn)btn.classList.remove('open');}
 
-/* -- Mobile Hamburger --------------------------------------- */
-function nwToggleMenu() {
-  var tabs    = document.querySelector('.nw-tabs');
-  var overlay = document.getElementById('nw-ham-overlay');
-  var btn     = document.getElementById('nw-ham-btn');
-  var isOpen  = tabs.classList.contains('nw-tabs-open');
-  tabs.classList.toggle('nw-tabs-open', !isOpen);
-  if (overlay) overlay.classList.toggle('vis',  !isOpen);
-  if (btn)     btn.classList.toggle('open',     !isOpen);
-}
-
-function nwCloseMenu() {
-  var tabs    = document.querySelector('.nw-tabs');
-  var overlay = document.getElementById('nw-ham-overlay');
-  var btn     = document.getElementById('nw-ham-btn');
-  if (tabs)    tabs.classList.remove('nw-tabs-open');
-  if (overlay) overlay.classList.remove('vis');
-  if (btn)     btn.classList.remove('open');
-}
-
-/* -- Branch Detail Drawer ----------------------------------- */
-async function nwShowBranchDetail(branchId, branchLabel) {
-  var overlay = document.getElementById('nw-drawer-overlay');
-  var drawer  = document.getElementById('nw-drawer');
-  var body    = document.getElementById('nw-drawer-body');
-  var title   = document.getElementById('nw-drawer-title');
-  var sub     = document.getElementById('nw-drawer-sub');
-
-  title.textContent = branchLabel;
-  sub.textContent   = 'Loading...';
-  body.innerHTML    = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  overlay.classList.add('vis');
-  drawer.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  var d = await nwApi('/nuwan/prints/branch-detail/' + branchId);
-  if (!d) {
-    body.innerHTML = '<div class="nw-spin-wrap">Failed to load. Try again.</div>';
-    return;
-  }
-
-  var dt = new Date(d.log_date + 'T00:00:00');
-  var pretty = dt.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  sub.textContent = pretty + ' — ' + d.logs.length + ' printer' + (d.logs.length !== 1 ? 's' : '') + ' logged';
-
-  if (!d.logs.length) {
-    body.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
-      + '<div style="font-size:32px">📋</div>'
-      + '<div>No print logs found for this date.</div>'
-      + '</div>';
-    return;
-  }
-
-  body.innerHTML = d.logs.map(function(log) {
-    var time = log.created_at
-      ? new Date(log.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-      : '--';
-
-    var papers = [];
-    if (log.a4_single || log.a4_double)         papers.push({ t:'A4',     s: log.a4_single||0, d: log.a4_double||0 });
-    if (log.b4_single || log.b4_double)         papers.push({ t:'B4',     s: log.b4_single||0, d: log.b4_double||0 });
-    if (log.letter_single || log.letter_double) papers.push({ t:'Legal', s: log.letter_single||0, d: log.letter_double||0 });
-
-    var paperHtml = papers.map(function(p) {
-      return '<div class="nw-dl-paper">'
-        + '<div class="nw-dl-paper-type">' + p.t + '</div>'
-        + '<div class="nw-dl-paper-counts">'
-        +   '<span class="nw-dl-side">Single <strong>' + p.s + '</strong></span>'
-        +   '<span class="nw-dl-side">Double <strong>' + p.d + '</strong></span>'
-        + '</div>'
-        + '</div>';
-    }).join('');
-
-    if (!paperHtml) {
-      paperHtml = '<div class="nw-dl-paper" style="color:#94a3b8">No paper breakdown recorded</div>';
-    }
-
-    return '<div class="nw-dl-card">'
-      + '<div class="nw-dl-card-hdr">'
-      +   '<div class="nw-dl-printer">'
-      +     '<div class="nw-dl-printer-code">' + log.printer_code + '</div>'
-      +     '<div class="nw-dl-printer-model">' + (log.printer_model||'') + '</div>'
-      +   '</div>'
-      +   '<div class="nw-dl-total">'
-      +     '<div class="nw-dl-total-num">' + (log.print_count||0).toLocaleString() + '</div>'
-      +     '<div class="nw-dl-total-lbl">Total Prints</div>'
-      +   '</div>'
-      + '</div>'
-      + '<div class="nw-dl-meta">'
-      +   '<span class="nw-dl-who">👤 ' + log.logged_by_name + '</span>'
-      +   '<span class="nw-dl-when">🕐 ' + time + '</span>'
-      + '</div>'
-      + '<div class="nw-dl-papers">' + paperHtml + '</div>'
-      + '</div>';
+async function nwShowBranchDetail(branchId,branchLabel){
+  var overlay=document.getElementById('nw-drawer-overlay'),drawer=document.getElementById('nw-drawer'),body=document.getElementById('nw-drawer-body'),title=document.getElementById('nw-drawer-title'),sub=document.getElementById('nw-drawer-sub');
+  title.textContent=branchLabel; sub.textContent='Loading...'; body.innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  overlay.classList.add('vis'); drawer.classList.add('open'); document.body.style.overflow='hidden';
+  var d=await nwApi('/nuwan/prints/branch-detail/'+branchId); if(!d){body.innerHTML='<div class="nw-spin-wrap">Failed to load.</div>';return;}
+  var dt=new Date(d.log_date+'T00:00:00');
+  var pretty=dt.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  sub.textContent=pretty+' — '+d.logs.length+' printer'+(d.logs.length!==1?'s':'')+' logged';
+  if(!d.logs.length){body.innerHTML='<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">📋</div><div>No print logs found.</div></div>';return;}
+  body.innerHTML=d.logs.map(function(log){
+    var time=log.created_at?new Date(log.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'--';
+    var papers=[];
+    if(log.a4_single||log.a4_double)papers.push({t:'A4',s:log.a4_single||0,d:log.a4_double||0});
+    if(log.b4_single||log.b4_double)papers.push({t:'B4',s:log.b4_single||0,d:log.b4_double||0});
+    if(log.letter_single||log.letter_double)papers.push({t:'Legal',s:log.letter_single||0,d:log.letter_double||0});
+    var paperHtml=papers.map(function(p){return'<div class="nw-dl-paper"><div class="nw-dl-paper-type">'+p.t+'</div><div class="nw-dl-paper-counts"><span class="nw-dl-side">Single <strong>'+p.s+'</strong></span><span class="nw-dl-side">Double <strong>'+p.d+'</strong></span></div></div>';}).join('');
+    if(!paperHtml)paperHtml='<div class="nw-dl-paper" style="color:#94a3b8">No paper breakdown</div>';
+    return '<div class="nw-dl-card"><div class="nw-dl-card-hdr"><div class="nw-dl-printer"><div class="nw-dl-printer-code">'+log.printer_code+'</div><div class="nw-dl-printer-model">'+(log.printer_model||'')+'</div></div><div class="nw-dl-total"><div class="nw-dl-total-num">'+(log.print_count||0).toLocaleString()+'</div><div class="nw-dl-total-lbl">Total Prints</div></div></div><div class="nw-dl-meta"><span class="nw-dl-who">👤 '+log.logged_by_name+'</span><span class="nw-dl-when">🕐 '+time+'</span></div><div class="nw-dl-papers">'+paperHtml+'</div></div>';
   }).join('');
-
-  // Total summary at bottom
-  body.innerHTML += '<div class="nw-dl-grand-total">'
-    + '<span>Total Prints for Branch</span>'
-    + '<span class="nw-dl-grand-num">' + d.total.toLocaleString() + '</span>'
-    + '</div>';
+  body.innerHTML+='<div class="nw-dl-grand-total"><span>Total Prints for Branch</span><span class="nw-dl-grand-num">'+d.total.toLocaleString()+'</span></div>';
 }
+function nwCloseDrawer(){document.getElementById('nw-drawer-overlay').classList.remove('vis');document.getElementById('nw-drawer').classList.remove('open');document.body.style.overflow='';}
 
-function nwCloseDrawer() {
-  document.getElementById('nw-drawer-overlay').classList.remove('vis');
-  document.getElementById('nw-drawer').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-
-/* ── Print Summary ───────────────────────────────────────── */
-var _nwSummaryData = null;
-
-async function nwInitSummary() {
-  // Load branches into filter dropdown — always reload fresh
-  var sel = document.getElementById('nws-branch');
-  if (sel) {
-    var branches = await nwApi('/nuwan/branches') || [];
-    console.log('[Summary] branches API result:', branches.length, branches);
-    // Clear existing options except first
-    while (sel.options.length > 1) sel.remove(1);
-    if (branches.length) {
-      branches.forEach(function(b) {
-        sel.add(new Option(b.code + ' — ' + b.name, b.id));
-      });
-    } else {
-      // Fallback: try regular branches endpoint
-      var fallback = await nwApi('/branches') || [];
-      console.log('[Summary] fallback branches:', fallback.length);
-      fallback.filter(function(b){ return b.is_active; }).forEach(function(b) {
-        sel.add(new Option(b.code + ' — ' + b.name, b.id));
-      });
-    }
+/* ── PRINT SUMMARY ────────────────────────────────────────── */
+var _nwSummaryData=null;
+async function nwInitSummary(){
+  var sel=document.getElementById('nws-branch');
+  if(sel){
+    var branches=await nwApi('/nuwan/branches')||[];
+    while(sel.options.length>1)sel.remove(1);
+    branches.forEach(function(b){sel.add(new Option(b.code+' — '+b.name,b.id));});
   }
-  // Auto-search with current month/year
-  var now = new Date();
-  var mSel = document.getElementById('nws-month');
-  var ySel = document.getElementById('nws-year');
-  if (mSel && !mSel.value) mSel.value = now.getMonth() + 1;
-  if (ySel && !ySel.value) ySel.value = now.getFullYear();
+  var now=new Date();
+  var mSel=document.getElementById('nws-month'),ySel=document.getElementById('nws-year');
+  if(mSel&&!mSel.value)mSel.value=now.getMonth()+1;
+  if(ySel&&!ySel.value)ySel.value=now.getFullYear();
   await nwLoadSummary();
 }
 
-async function nwLoadSummary() {
-  var from   = (document.getElementById('nws-from')   || {}).value || '';
-  var to     = (document.getElementById('nws-to')     || {}).value || '';
-  var month  = (document.getElementById('nws-month')  || {}).value || '';
-  var year   = (document.getElementById('nws-year')   || {}).value || '';
-  var branch = (document.getElementById('nws-branch') || {}).value || '';
-  console.log('[Summary] nwLoadSummary called:', {from,to,month,year,branch});
-  console.log('[Summary] nws-empty el:', document.getElementById('nws-empty'));
-  console.log('[Summary] nws-kpis el:', document.getElementById('nws-kpis'));
-  console.log('[Summary] nws-branch-cards el:', document.getElementById('nws-branch-cards'));
+async function nwLoadSummary(){
+  var from=(document.getElementById('nws-from')||{}).value||'';
+  var to=(document.getElementById('nws-to')||{}).value||'';
+  var month=(document.getElementById('nws-month')||{}).value||'';
+  var year=(document.getElementById('nws-year')||{}).value||'';
+  var branch=(document.getElementById('nws-branch')||{}).value||'';
+  var params=[];
+  if(from)params.push('date_from='+from);
+  if(to)params.push('date_to='+to);
+  if(month)params.push('month='+month);
+  if(year)params.push('year='+year);
+  if(branch)params.push('branch_id='+branch);
+  var qs=params.length?'?'+params.join('&'):'';
 
-  // Build query string
-  var params = [];
-  if (from)   params.push('date_from=' + from);
-  if (to)     params.push('date_to='   + to);
-  if (month)  params.push('month='     + month);
-  if (year)   params.push('year='      + year);
-  if (branch) params.push('branch_id=' + branch);
-  var qs = params.length ? '?' + params.join('&') : '';
+  document.getElementById('nws-empty').style.display='none';
+  document.getElementById('nws-kpis').style.display='none';
+  document.getElementById('nws-branch-cards').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  document.getElementById('nws-table-wrap').style.display='none';
 
-  // Show loading
-  document.getElementById('nws-empty').style.display = 'none';
-  document.getElementById('nws-kpis').style.display  = 'none';
-  document.getElementById('nws-branch-cards').innerHTML =
-    '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  document.getElementById('nws-table-wrap').style.display = 'none';
-
-  var d = await nwApi('/nuwan/prints/summary' + qs);
-  console.log('[Summary] API response:', d);
-  if (!d) {
-    var bc = document.getElementById('nws-branch-cards');
-    var em = document.getElementById('nws-empty');
-    console.log('[Summary] API returned null - bc:', bc, 'em:', em);
-    if (bc) bc.innerHTML = '';
-    if (em) em.style.display = '';
+  var d=await nwApi('/nuwan/prints/summary'+qs);
+  if(!d){
+    document.getElementById('nws-branch-cards').innerHTML='';
+    document.getElementById('nws-empty').style.display='';
     return;
   }
-  _nwSummaryData = d;
-  console.log('[Summary] d.grand_total:', d.grand_total);
-  console.log('[Summary] d.branch_totals length:', d.branch_totals ? d.branch_totals.length : 'null');
-  console.log('[Summary] d.record_count:', d.record_count);
-  console.log('[Summary] full d:', JSON.stringify(d).slice(0,300));
+  _nwSummaryData=d;
 
-  // KPI strip — use var fn to avoid strict mode issues inside async
-  var setKpi = function(id, v) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = typeof v === 'number' ? v.toLocaleString() : v;
-  };
-  setKpi('nws-kpi-total',   d.grand_total);
-  setKpi('nws-kpi-a4',      d.grand_a4);
-  setKpi('nws-kpi-b4',      d.grand_b4);
-  setKpi('nws-kpi-lg',      d.grand_legal);
-  setKpi('nws-kpi-records', d.record_count);
-  document.getElementById('nws-kpis').style.display = 'grid';
+  var setKpi=function(id,v){var el=document.getElementById(id);if(el)el.textContent=typeof v==='number'?v.toLocaleString():v;};
+  setKpi('nws-kpi-total',d.grand_total);
+  setKpi('nws-kpi-a4',d.grand_a4);
+  setKpi('nws-kpi-b4',d.grand_b4);
+  setKpi('nws-kpi-lg',d.grand_legal);
+  setKpi('nws-kpi-records',d.record_count);
+  document.getElementById('nws-kpis').style.display='grid';
 
-  // Branch summary cards
-  var bc = document.getElementById('nws-branch-cards');
-  console.log('[Summary] branch_totals:', d.branch_totals);
-  if (!d.branch_totals || !d.branch_totals.length) {
-    if (bc) bc.innerHTML = '<div class="nws-empty">No data found for this period. Try a different filter.</div>';
-    document.getElementById('nws-empty').style.display = 'none';
+  var bc=document.getElementById('nws-branch-cards');
+  if(!d.branch_totals||!d.branch_totals.length){
+    bc.innerHTML='<div class="nws-empty"><div style="font-size:40px;margin-bottom:10px">📊</div><div>No data found for this period.</div></div>';
     return;
   }
 
-  var maxPrints = Math.max.apply(null, d.branch_totals.map(function(b){ return b.total_prints||0; })) || 1;
+  var maxPrints=Math.max.apply(null,d.branch_totals.map(function(b){return b.total_prints||0;}))||1;
+  bc.innerHTML='<div class="nws-branch-grid">'+d.branch_totals.map(function(b){
+    var barW=Math.round((b.total_prints/maxPrints)*100);
+    return '<div class="nws-branch-card"><div class="nws-bc-top"><div><span class="nws-bc-code">'+b.branch_code+'</span><span class="nws-bc-name">'+b.branch_name+'</span></div><div class="nws-bc-total">'+(b.total_prints||0).toLocaleString()+'</div></div><div class="nws-bc-bar-wrap"><div class="nws-bc-bar" style="width:'+barW+'%"></div></div><div class="nws-bc-pills">'+(b.a4_total>0?'<span class="nws-pill nws-pill-a4">A4 '+(b.a4_total||0).toLocaleString()+'</span>':'')+(b.b4_total>0?'<span class="nws-pill nws-pill-b4">B4 '+(b.b4_total||0).toLocaleString()+'</span>':'')+(b.legal_total>0?'<span class="nws-pill nws-pill-lg">Legal '+(b.legal_total||0).toLocaleString()+'</span>':'')+'<span class="nws-pill nws-pill-days">'+(b.days_logged||0)+' days</span></div></div>';
+  }).join('')+'</div>';
 
-  bc.innerHTML = '<div class="nws-branch-grid">'
-    + d.branch_totals.map(function(b) {
-        var barW = Math.round((b.total_prints / maxPrints) * 100);
-        return '<div class="nws-branch-card">'
-          + '<div class="nws-bc-top">'
-          +   '<div>'
-          +     '<span class="nws-bc-code">' + b.branch_code + '</span>'
-          +     '<span class="nws-bc-name">' + b.branch_name + '</span>'
-          +   '</div>'
-          +   '<div class="nws-bc-total">' + (b.total_prints||0).toLocaleString() + '</div>'
-          + '</div>'
-          + '<div class="nws-bc-bar-wrap"><div class="nws-bc-bar" style="width:' + barW + '%"></div></div>'
-          + '<div class="nws-bc-pills">'
-          +   (b.a4_total    > 0 ? '<span class="nws-pill nws-pill-a4">A4 ' + (b.a4_total||0).toLocaleString() + '</span>' : '')
-          +   (b.b4_total    > 0 ? '<span class="nws-pill nws-pill-b4">B4 ' + (b.b4_total||0).toLocaleString() + '</span>' : '')
-          +   (b.legal_total > 0 ? '<span class="nws-pill nws-pill-lg">Legal ' + (b.legal_total||0).toLocaleString() + '</span>' : '')
-          +   '<span class="nws-pill nws-pill-days">' + (b.days_logged||0) + ' days</span>'
-          + '</div>'
-          + '</div>';
-      }).join('')
-    + '</div>';
-
-  // Detailed table
-  var tbody = document.getElementById('nws-tbody');
-  var label = document.getElementById('nws-record-label');
-  if (label) label.textContent = d.record_count + ' entries';
-
-  if (tbody && d.logs && d.logs.length) {
-    tbody.innerHTML = d.logs.slice(0, 500).map(function(l) {
-      var dateStr = l.log_date ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-      var timeStr = l.created_at ? new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
-      var a4  = (l.a4_single||0) + (l.a4_double||0);
-      var b4  = (l.b4_single||0) + (l.b4_double||0);
-      var lg  = (l.letter_single||0) + (l.letter_double||0);
-      return '<tr>'
-        + '<td class="nws-td-date">' + dateStr + '</td>'
-        + '<td><span class="nws-td-code">' + (l.branch_code||'—') + '</span></td>'
-        + '<td class="nws-td-printer">' + (l.printer_code||'—') + '</td>'
-        + '<td class="nws-td-total">'   + (l.print_count||0).toLocaleString() + '</td>'
-        + '<td class="nws-td-paper">'   + (a4||'—') + '</td>'
-        + '<td class="nws-td-paper">'   + (b4||'—') + '</td>'
-        + '<td class="nws-td-paper">'   + (lg||'—') + '</td>'
-        + '<td class="nws-td-user">'    + (l.logged_by||'—') + '</td>'
-        + '<td class="nws-td-time">'    + timeStr + '</td>'
-        + '</tr>';
+  var tbody=document.getElementById('nws-tbody'),label=document.getElementById('nws-record-label');
+  if(label)label.textContent=d.record_count+' entries';
+  if(tbody&&d.logs&&d.logs.length){
+    tbody.innerHTML=d.logs.slice(0,500).map(function(l){
+      var dateStr=l.log_date?new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+      var timeStr=l.created_at?new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
+      var a4=(l.a4_single||0)+(l.a4_double||0),b4=(l.b4_single||0)+(l.b4_double||0),lg=(l.letter_single||0)+(l.letter_double||0);
+      return '<tr><td class="nws-td-date">'+dateStr+'</td><td><span class="nws-td-code">'+(l.branch_code||'—')+'</span></td><td class="nws-td-printer">'+(l.printer_code||'—')+'</td><td class="nws-td-total">'+(l.print_count||0).toLocaleString()+'</td><td class="nws-td-paper">'+(a4||'—')+'</td><td class="nws-td-paper">'+(b4||'—')+'</td><td class="nws-td-paper">'+(lg||'—')+'</td><td class="nws-td-user">'+(l.logged_by||'—')+'</td><td class="nws-td-time">'+timeStr+'</td></tr>';
     }).join('');
-    document.getElementById('nws-table-wrap').style.display = 'block';
+    document.getElementById('nws-table-wrap').style.display='block';
   }
 }
 
-function nwClearSummaryFilters() {
-  ['nws-from','nws-to'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.value = '';
-  });
-  var now = new Date();
-  var mSel = document.getElementById('nws-month');
-  var ySel = document.getElementById('nws-year');
-  var bSel = document.getElementById('nws-branch');
-  if (mSel) mSel.value = now.getMonth() + 1;
-  if (ySel) ySel.value = now.getFullYear();
-  if (bSel) bSel.value = '';
+function nwClearSummaryFilters(){
+  ['nws-from','nws-to'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var now=new Date();
+  var mSel=document.getElementById('nws-month'),ySel=document.getElementById('nws-year'),bSel=document.getElementById('nws-branch');
+  if(mSel)mSel.value=now.getMonth()+1; if(ySel)ySel.value=now.getFullYear(); if(bSel)bSel.value='';
   nwLoadSummary();
 }
 
-async function nwExportSummary() {
-  var from   = (document.getElementById('nws-from')   || {}).value || '';
-  var to     = (document.getElementById('nws-to')     || {}).value || '';
-  var month  = (document.getElementById('nws-month')  || {}).value || '';
-  var year   = (document.getElementById('nws-year')   || {}).value || '';
-  var branch = (document.getElementById('nws-branch') || {}).value || '';
-
-  var params = [];
-  if (from)   params.push('date_from=' + from);
-  if (to)     params.push('date_to='   + to);
-  if (month)  params.push('month='     + month);
-  if (year)   params.push('year='      + year);
-  if (branch) params.push('branch_id=' + branch);
-  var qs = params.length ? '?' + params.join('&') : '';
-
-  var btn = document.querySelector('.nws-btn-export');
-  if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
-
-  try {
-    var res = await fetch('/api/nuwan/prints/summary/export' + qs, {
-      headers: { 'Authorization': 'Bearer ' + NW.token }
-    });
-    if (!res.ok) { nwToast('❌', 'Export failed', 'Server error'); return; }
-    var blob = await res.blob();
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    var cd   = res.headers.get('Content-Disposition') || '';
-    var fn   = (cd.match(/filename=([^;]+)/) || [])[1] || 'print_summary.xlsx';
-    a.href = url; a.download = fn.replace(/"/g,''); a.click();
-    URL.revokeObjectURL(url);
-    nwToast('✅', 'Downloaded!', 'Print Summary Excel saved');
-  } catch(e) {
-    nwToast('❌', 'Download failed', e.message || '');
-  } finally {
-    if (btn) { btn.textContent = '📥 Excel'; btn.disabled = false; }
-  }
+async function nwExportSummary(){
+  var from=(document.getElementById('nws-from')||{}).value||'',to=(document.getElementById('nws-to')||{}).value||'';
+  var month=(document.getElementById('nws-month')||{}).value||'',year=(document.getElementById('nws-year')||{}).value||'';
+  var branch=(document.getElementById('nws-branch')||{}).value||'';
+  var params=[];
+  if(from)params.push('date_from='+from); if(to)params.push('date_to='+to);
+  if(month)params.push('month='+month); if(year)params.push('year='+year);
+  if(branch)params.push('branch_id='+branch);
+  var qs=params.length?'?'+params.join('&'):'';
+  var btn=document.querySelector('.nws-btn-export');
+  if(btn){btn.textContent='⏳ Generating...';btn.disabled=true;}
+  try{
+    var res=await fetch('/api/nuwan/prints/summary/export'+qs,{headers:{'Authorization':'Bearer '+NW.token}});
+    if(!res.ok){nwToast('❌','Export failed');return;}
+    var blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+    var cd=res.headers.get('Content-Disposition')||'',fn=(cd.match(/filename=([^;]+)/)||[])[1]||'print_summary.xlsx';
+    a.href=url;a.download=fn.replace(/"/g,'');a.click();URL.revokeObjectURL(url);
+    nwToast('✅','Downloaded!');
+  }catch(e){nwToast('❌','Download failed');}
+  finally{if(btn){btn.textContent='📥 Excel';btn.disabled=false;}}
 }
 
-
-/* -- Printers Register Tabs (Nuwan) ─────────────────────── */
-var _nwPurchased = [];
-
-function nwPrTab(tab) {
-  ['rental','purchased'].forEach(function(t) {
-    var btn   = document.getElementById('nw-pr-tab-'       + t);
-    var panel = document.getElementById('nw-pr-panel-'     + t);
-    if (btn)   btn.classList.toggle('act', t === tab);
-    if (panel) panel.style.display = (t === tab) ? '' : 'none';
+/* ── PURCHASED PRINTERS ───────────────────────────────────── */
+var _nwPurchased=[];
+function nwPrTab(tab){
+  ['rental','purchased'].forEach(function(t){
+    var btn=document.getElementById('nw-pr-tab-'+t),panel=document.getElementById('nw-pr-panel-'+t);
+    if(btn)btn.classList.toggle('act',t===tab);
+    if(panel)panel.style.display=(t===tab)?'':'none';
   });
-  if (tab === 'purchased' && !_nwPurchased.length) {
-    nwLoadPurchased();
-  }
+  if(tab==='purchased'&&!_nwPurchased.length)nwLoadPurchased();
 }
-
-async function nwLoadPurchased() {
-  var listEl = document.getElementById('nw-purchased-list');
-  if (listEl) listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-
-  var summary  = (await nwApi('/rentals/purchased/summary'))  || {};
-  var printers = (await nwApi('/rentals/purchased'))          || [];
-  _nwPurchased = printers;
-
-  function setEl(id,v){ var e=document.getElementById(id); if(e) e.textContent=v||0; }
-  setEl('nwr-pur-total',    summary.total);
-  setEl('nwr-pur-branches', summary.branches);
-  setEl('nwr-pur-recent',   summary.recent);
-  setEl('nwr-pur-older',    summary.older);
-
+async function nwLoadPurchased(){
+  var listEl=document.getElementById('nw-purchased-list');
+  if(listEl)listEl.innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  var summary=(await nwApi('/rentals/purchased/summary'))||{};
+  var printers=(await nwApi('/rentals/purchased'))||[];
+  _nwPurchased=printers;
+  function setEl(id,v){var e=document.getElementById(id);if(e)e.textContent=v||0;}
+  setEl('nwr-pur-total',summary.total); setEl('nwr-pur-branches',summary.branches);
+  setEl('nwr-pur-recent',summary.recent); setEl('nwr-pur-older',summary.older);
   nwRenderPurchased(printers);
 }
-
-function nwRenderPurchased(data) {
-  var el = document.getElementById('nw-purchased-list');
-  if (!el) return;
-  if (!data || !data.length) {
-    el.innerHTML = '<div class="nw-spin-wrap">No purchased printers found.</div>';
-    return;
-  }
-  el.innerHTML = data.map(function(p) {
-    var purDate = p.purchased_date
-      ? new Date(p.purchased_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '--';
-    var yrs = p.years_in_use || 0;
-    var badge = yrs >= 7
-      ? '<span class="nw-rental-badge nw-rb-exp">' + yrs + ' yrs</span>'
-      : yrs >= 5
-      ? '<span class="nw-rental-badge nw-rb-warn">' + yrs + ' yrs</span>'
-      : '<span class="nw-rental-badge nw-rb-ok">' + yrs + ' yrs</span>';
-
-    return '<div class="nw-rental-row">'
-      + '<div class="nw-rental-serial">' + p.serial_number + '</div>'
-      + '<div class="nw-rental-branch">' + p.branch_name   + '</div>'
-      + '<div class="nw-rental-end">'    + (p.model||'—')  + '</div>'
-      + '<div class="nw-rental-days">'   + purDate         + '</div>'
-      + '<div>'                          + badge           + '</div>'
-      + '</div>';
+function nwRenderPurchased(data){
+  var el=document.getElementById('nw-purchased-list'); if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div class="nw-spin-wrap">No purchased printers found.</div>';return;}
+  el.innerHTML=data.map(function(p){
+    var purDate=p.purchased_date?new Date(p.purchased_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'--';
+    var yrs=p.years_in_use||0;
+    var badge=yrs>=7?'<span class="nw-rental-badge nw-rb-exp">'+yrs+' yrs</span>':yrs>=5?'<span class="nw-rental-badge nw-rb-warn">'+yrs+' yrs</span>':'<span class="nw-rental-badge nw-rb-ok">'+yrs+' yrs</span>';
+    return '<div class="nw-rental-row"><div class="nw-rental-serial">'+p.serial_number+'</div><div class="nw-rental-branch">'+p.branch_name+'</div><div class="nw-rental-end">'+(p.model||'—')+'</div><div class="nw-rental-days">'+purDate+'</div><div>'+badge+'</div></div>';
   }).join('');
 }
-
-function nwFilterPurchased(q) {
-  if (!q.trim()) { nwRenderPurchased(_nwPurchased); return; }
-  var lower = q.toLowerCase();
-  nwRenderPurchased(_nwPurchased.filter(function(p) {
-    return p.serial_number.toLowerCase().includes(lower)
-        || p.branch_name.toLowerCase().includes(lower)
-        || (p.model||'').toLowerCase().includes(lower);
-  }));
-}
-
+function nwFilterPurchased(q){if(!q.trim()){nwRenderPurchased(_nwPurchased);return;}var lower=q.toLowerCase();nwRenderPurchased(_nwPurchased.filter(function(p){return p.serial_number.toLowerCase().includes(lower)||p.branch_name.toLowerCase().includes(lower)||(p.model||'').toLowerCase().includes(lower);}));}
 </script>
 </body>
 </html>
