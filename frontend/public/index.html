@@ -1077,13 +1077,11 @@
         <div class="ch" style="flex-wrap:wrap;gap:10px">
           <h3>Filters</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <select class="fs" id="pr-filter-branch-sel" onchange="loadPrintReport()" style="min-width:180px">
+            <select class="fs" id="pr-filter-branch-sel" onchange="prFilterBranch(this.value)" style="min-width:180px">
               <option value="">All Branches</option>
             </select>
-            <select class="fs" id="pr-filter-date-sel" onchange="loadPrintReport()">
-              <option value="7">Last 7 days</option>
-              <option value="30" selected>Last 30 days</option>
-              <option value="90">Last 90 days</option>
+            <select class="fs" id="pr-filter-date-sel" onchange="prFilterDate(this.value)">
+              <option value="">All Dates</option>
             </select>
           </div>
         </div>
@@ -1190,12 +1188,14 @@
         <button class="svc-tab" id="store-tab-overview" onclick="switchStoreTab('overview')">📊 Overview</button>
         <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')">🖨️ Toner Stock</button>
         <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')">📄 Paper Stock</button>
-        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">📋 Movement History</button>
+        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">📋 History</button>
       </div>
-      <!-- Dispatch -->
+
+      <!-- Dispatch Queue -->
       <div id="store-panel-dispatch" class="store-panel act">
         <div id="store-dispatch-container"></div>
       </div>
+
       <!-- Overview -->
       <div id="store-panel-overview" class="store-panel" style="display:none">
         <div class="krow mb20">
@@ -1209,11 +1209,12 @@
           <div class="card"><div class="ch"><h3>📄 Paper Overview</h3></div><div class="stgrid" id="st-paper-overview"></div></div>
         </div>
       </div>
-      <!-- Toner stock -->
+
+      <!-- Toner Stock -->
       <div id="store-panel-toner" class="store-panel" style="display:none">
-        <div class="card">
+        <div class="card mb20">
           <div class="ch" style="flex-wrap:wrap;gap:10px">
-            <h3>🖨️ Toner Stock</h3>
+            <h3>📥 Receive Toner</h3>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <select class="fs" id="st-recv-toner-model" style="min-width:180px"><option value="">— Select model —</option></select>
               <input type="number" class="fi2" id="st-recv-toner-qty" placeholder="Qty" min="1" style="width:80px">
@@ -1230,19 +1231,59 @@
           </div>
         </div>
       </div>
-      <!-- Paper stock -->
+
+      <!-- Paper Stock -->
       <div id="store-panel-paper" class="store-panel" style="display:none">
-        <div class="card"><div class="ch"><h3>📄 Paper Stock</h3></div><div class="stgrid" id="st-paper-grid"></div></div>
+        <div class="card mb20">
+          <div class="ch" style="flex-wrap:wrap;gap:10px">
+            <h3>📥 Receive Paper</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="fs" id="st-recv-paper-type" style="min-width:180px"><option value="">— Select type —</option></select>
+              <input type="number" class="fi2" id="st-recv-paper-qty" placeholder="Reams" min="1" style="width:80px">
+              <input type="date" class="fi2" id="st-recv-paper-date" style="width:140px">
+              <input type="text" class="fi2" id="st-recv-paper-notes" placeholder="Notes" style="width:160px">
+              <button class="btn btn-p" onclick="stReceivePaper()">+ Receive</button>
+            </div>
+          </div>
+          <div class="ch" style="flex-wrap:wrap;gap:10px;margin-top:10px">
+            <h3>📤 Dispatch to Branch</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="fs" id="st-disp-paper-type" style="min-width:180px"><option value="">— Select type —</option></select>
+              <select class="fs" id="st-disp-branch" style="min-width:180px"><option value="">— Select branch —</option></select>
+              <input type="number" class="fi2" id="st-disp-qty" placeholder="Qty" min="1" style="width:80px">
+              <input type="text" class="fi2" id="st-disp-notes" placeholder="Notes" style="width:160px">
+              <button class="btn btn-g" onclick="stDispatchPaper()">📦 Dispatch</button>
+            </div>
+          </div>
+          <div class="scx mt16">
+            <table class="tbl">
+              <thead><tr><th>Type</th><th>Stock</th><th>Min</th><th>Status</th></tr></thead>
+              <tbody id="st-paper-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
       <!-- History -->
       <div id="store-panel-history" class="store-panel" style="display:none">
-        <div class="card">
-          <div class="ch"><h3>📋 Movement History</h3></div>
-          <div class="scx">
-            <table class="tbl">
-              <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Qty</th><th>Branch</th><th>By</th></tr></thead>
-              <tbody id="st-history-tbody"></tbody>
-            </table>
+        <div class="twocol">
+          <div class="card">
+            <div class="ch"><h3>🖨️ Toner Movements</h3></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Date</th><th>Type</th><th>Model</th><th>Qty</th><th>Branch</th><th>By</th></tr></thead>
+                <tbody id="st-toner-history-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>📄 Paper Movements</h3></div>
+            <div class="scx">
+              <table class="tbl">
+                <thead><tr><th>Date</th><th>Type</th><th>Paper</th><th>Qty</th><th>Branch</th><th>By</th></tr></thead>
+                <tbody id="st-paper-history-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
