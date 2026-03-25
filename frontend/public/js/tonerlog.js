@@ -10,8 +10,16 @@ var _tlPrinters   = [];
 
 /* ── Entry point ─────────────────────────────────────────── */
 async function loadTonerLog() {
+  var prDiv = document.getElementById('tl-printers');
+  if (prDiv) prDiv.innerHTML = '<div class="tl-loading"><div class="spin"></div> Loading…</div>';
+
   var access   = (APP.user.branch_access || '').trim().toUpperCase();
   var branches = (await silentApi('GET', '/branches')) || [];
+
+  if (!branches.length) {
+    if (prDiv) prDiv.innerHTML = tlEmpty('❌', 'Could not load branches', 'Check your connection and tap Refresh.');
+    return;
+  }
 
   if (access && access !== 'ALL') {
     var branch = branches.find(function(b) {
@@ -24,7 +32,10 @@ async function loadTonerLog() {
       document.getElementById('tl-branch-select-wrap').style.display = 'none';
       await tlLoadPrinters(branch.id);
     } else {
-      document.getElementById('tl-printers').innerHTML = tlEmpty('⚠️', 'Branch not found', 'Contact your administrator.');
+      document.getElementById('tl-branch-badge-wrap').style.display = '';
+      document.getElementById('tl-branch-select-wrap').style.display = 'none';
+      document.getElementById('tl-branch-badge').textContent = '⚠️ Branch "' + access + '" not found';
+      if (prDiv) prDiv.innerHTML = tlEmpty('⚠️', 'Branch not assigned', 'Your account branch code "' + access + '" was not found. Contact your administrator to fix your account.');
     }
   } else {
     // Manager/DBA — show branch selector
@@ -35,7 +46,7 @@ async function loadTonerLog() {
     branches.filter(function(b){ return b.is_active; }).forEach(function(b) {
       sel.add(new Option(b.code + ' — ' + b.name, b.id));
     });
-    document.getElementById('tl-printers').innerHTML = tlEmpty('🏢', 'Select a branch above', '');
+    if (prDiv) prDiv.innerHTML = tlEmpty('🏢', 'Select a branch above', '');
   }
 }
 
