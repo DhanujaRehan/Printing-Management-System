@@ -1451,11 +1451,11 @@ async function nwLoadSummary() {
   console.log('[Summary] d.record_count:', d.record_count);
   console.log('[Summary] full d:', JSON.stringify(d).slice(0,300));
 
-  // KPI strip
-  function setKpi(id, v) {
+  // KPI strip — use var fn to avoid strict mode issues inside async
+  var setKpi = function(id, v) {
     var el = document.getElementById(id);
     if (el) el.textContent = typeof v === 'number' ? v.toLocaleString() : v;
-  }
+  };
   setKpi('nws-kpi-total',   d.grand_total);
   setKpi('nws-kpi-a4',      d.grand_a4);
   setKpi('nws-kpi-b4',      d.grand_b4);
