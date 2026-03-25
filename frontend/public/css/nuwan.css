@@ -1274,3 +1274,21 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .nws-bc-total       { font-size: 18px; }
   .nws-kpi-num        { font-size: 18px; }
 }
+
+/* Nuwan Printers Register tabs */
+.nw-pr-tabs {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.nw-pr-tab {
+  padding: 9px 18px; border-radius: 11px;
+  border: 2px solid #e2e8f0;
+  background: #fff; color: #475569;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+}
+.nw-pr-tab:hover { border-color: #0ea5e9; color: #0ea5e9; }
+.nw-pr-tab.act {
+  background: linear-gradient(135deg,#0ea5e9,#6366f1);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 3px 12px rgba(14,165,233,.3);
+}

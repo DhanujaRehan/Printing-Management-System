@@ -231,46 +231,52 @@
     <div class="nw-panel" id="panel-rentals">
       <div class="nw-section-hdr">
         <div>
-          <div class="nw-section-title">Rental Printers</div>
-          <div class="nw-section-sub">Gestetner 3-year rental agreements — all branches</div>
+          <div class="nw-section-title">🖨️ Printers Register</div>
+          <div class="nw-section-sub">Rental &amp; Purchased printers — all branches</div>
         </div>
         <button class="nw-download-btn" onclick="nwLoadRentals()">↺ Refresh</button>
       </div>
 
-      <!-- KPI cards -->
-      <div class="nw-rental-kpis" id="nw-rental-kpis">
-        <div class="nw-rental-kpi nw-rk-total">
-          <div class="nw-rk-num" id="nwr-total">—</div>
-          <div class="nw-rk-lbl">Total</div>
+      <!-- Tabs -->
+      <div class="nw-pr-tabs">
+        <button class="nw-pr-tab act" id="nw-pr-tab-rental" onclick="nwPrTab('rental')">
+          📋 Rental
+        </button>
+        <button class="nw-pr-tab" id="nw-pr-tab-purchased" onclick="nwPrTab('purchased')">
+          🏷️ Purchased
+        </button>
+      </div>
+
+      <!-- Rental section -->
+      <div id="nw-pr-panel-rental">
+        <div class="nw-rental-kpis">
+          <div class="nw-rental-kpi nw-rk-total"><div class="nw-rk-num" id="nwr-total">—</div><div class="nw-rk-lbl">Total</div></div>
+          <div class="nw-rental-kpi nw-rk-ok">   <div class="nw-rk-num" id="nwr-ok">—</div>   <div class="nw-rk-lbl">Active</div></div>
+          <div class="nw-rental-kpi nw-rk-warn">  <div class="nw-rk-num" id="nwr-warn">—</div>  <div class="nw-rk-lbl">≤6 Mo</div></div>
+          <div class="nw-rental-kpi nw-rk-soon">  <div class="nw-rk-num" id="nwr-soon">—</div>  <div class="nw-rk-lbl">≤90 Days</div></div>
+          <div class="nw-rental-kpi nw-rk-exp">   <div class="nw-rk-num" id="nwr-expired">—</div><div class="nw-rk-lbl">Expired</div></div>
         </div>
-        <div class="nw-rental-kpi nw-rk-ok">
-          <div class="nw-rk-num" id="nwr-ok">—</div>
-          <div class="nw-rk-lbl">Active</div>
-        </div>
-        <div class="nw-rental-kpi nw-rk-warn">
-          <div class="nw-rk-num" id="nwr-warn">—</div>
-          <div class="nw-rk-lbl">≤6 Months</div>
-        </div>
-        <div class="nw-rental-kpi nw-rk-soon">
-          <div class="nw-rk-num" id="nwr-soon">—</div>
-          <div class="nw-rk-lbl">≤90 Days</div>
-        </div>
-        <div class="nw-rental-kpi nw-rk-exp">
-          <div class="nw-rk-num" id="nwr-expired">—</div>
-          <div class="nw-rk-lbl">Expired</div>
+        <input class="nw-rental-search" placeholder="🔍 Search branch or serial..."
+          oninput="nwFilterRentals(this.value)">
+        <div class="nw-rental-list" id="nw-rental-list">
+          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
         </div>
       </div>
 
-      <!-- Search -->
-      <input class="nw-rental-search" id="nw-rental-search"
-        placeholder="🔍 Search branch or serial number..."
-        oninput="nwFilterRentals(this.value)">
-
-      <!-- Table -->
-      <div class="nw-rental-list" id="nw-rental-list">
-        <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+      <!-- Purchased section -->
+      <div id="nw-pr-panel-purchased" style="display:none">
+        <div class="nw-rental-kpis">
+          <div class="nw-rental-kpi nw-rk-total"><div class="nw-rk-num" id="nwr-pur-total">—</div><div class="nw-rk-lbl">Total</div></div>
+          <div class="nw-rental-kpi nw-rk-ok">   <div class="nw-rk-num" id="nwr-pur-branches">—</div><div class="nw-rk-lbl">Branches</div></div>
+          <div class="nw-rental-kpi nw-rk-warn">  <div class="nw-rk-num" id="nwr-pur-recent">—</div><div class="nw-rk-lbl">2024+</div></div>
+          <div class="nw-rental-kpi nw-rk-soon">  <div class="nw-rk-num" id="nwr-pur-older">—</div><div class="nw-rk-lbl">Before 2020</div></div>
+        </div>
+        <input class="nw-rental-search" placeholder="🔍 Search branch, serial or model..."
+          oninput="nwFilterPurchased(this.value)">
+        <div class="nw-rental-list" id="nw-purchased-list">
+          <div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>
+        </div>
       </div>
-    </div>
 
 
     <!-- ── PRINT SUMMARY PANEL ────────────────────────────── -->
@@ -1557,6 +1563,76 @@ async function nwExportSummary() {
   } finally {
     if (btn) { btn.textContent = '📥 Excel'; btn.disabled = false; }
   }
+}
+
+
+/* -- Printers Register Tabs (Nuwan) ─────────────────────── */
+var _nwPurchased = [];
+
+function nwPrTab(tab) {
+  ['rental','purchased'].forEach(function(t) {
+    var btn   = document.getElementById('nw-pr-tab-'       + t);
+    var panel = document.getElementById('nw-pr-panel-'     + t);
+    if (btn)   btn.classList.toggle('act', t === tab);
+    if (panel) panel.style.display = (t === tab) ? '' : 'none';
+  });
+  if (tab === 'purchased' && !_nwPurchased.length) {
+    nwLoadPurchased();
+  }
+}
+
+async function nwLoadPurchased() {
+  var listEl = document.getElementById('nw-purchased-list');
+  if (listEl) listEl.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var summary  = (await nwApi('/rentals/purchased/summary'))  || {};
+  var printers = (await nwApi('/rentals/purchased'))          || [];
+  _nwPurchased = printers;
+
+  function setEl(id,v){ var e=document.getElementById(id); if(e) e.textContent=v||0; }
+  setEl('nwr-pur-total',    summary.total);
+  setEl('nwr-pur-branches', summary.branches);
+  setEl('nwr-pur-recent',   summary.recent);
+  setEl('nwr-pur-older',    summary.older);
+
+  nwRenderPurchased(printers);
+}
+
+function nwRenderPurchased(data) {
+  var el = document.getElementById('nw-purchased-list');
+  if (!el) return;
+  if (!data || !data.length) {
+    el.innerHTML = '<div class="nw-spin-wrap">No purchased printers found.</div>';
+    return;
+  }
+  el.innerHTML = data.map(function(p) {
+    var purDate = p.purchased_date
+      ? new Date(p.purchased_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '--';
+    var yrs = p.years_in_use || 0;
+    var badge = yrs >= 7
+      ? '<span class="nw-rental-badge nw-rb-exp">' + yrs + ' yrs</span>'
+      : yrs >= 5
+      ? '<span class="nw-rental-badge nw-rb-warn">' + yrs + ' yrs</span>'
+      : '<span class="nw-rental-badge nw-rb-ok">' + yrs + ' yrs</span>';
+
+    return '<div class="nw-rental-row">'
+      + '<div class="nw-rental-serial">' + p.serial_number + '</div>'
+      + '<div class="nw-rental-branch">' + p.branch_name   + '</div>'
+      + '<div class="nw-rental-end">'    + (p.model||'—')  + '</div>'
+      + '<div class="nw-rental-days">'   + purDate         + '</div>'
+      + '<div>'                          + badge           + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function nwFilterPurchased(q) {
+  if (!q.trim()) { nwRenderPurchased(_nwPurchased); return; }
+  var lower = q.toLowerCase();
+  nwRenderPurchased(_nwPurchased.filter(function(p) {
+    return p.serial_number.toLowerCase().includes(lower)
+        || p.branch_name.toLowerCase().includes(lower)
+        || (p.model||'').toLowerCase().includes(lower);
+  }));
 }
 
 </script>

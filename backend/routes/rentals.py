@@ -53,3 +53,38 @@ def get_rental_summary(current_user: dict = Depends(_allowed)):
         FROM rental_printers
         WHERE is_active = TRUE
     """, fetch="one")
+
+
+# ── Purchased Printers ────────────────────────────────────────────────────────
+
+@router.get("/purchased")
+def get_purchased_printers(current_user: dict = Depends(_allowed)):
+    """All purchased printers — no expiry."""
+    return query("""
+        SELECT
+            id,
+            serial_number,
+            branch_name,
+            model,
+            purchased_date,
+            notes,
+            is_active,
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, purchased_date))::int AS years_in_use
+        FROM purchased_printers
+        WHERE is_active = TRUE
+        ORDER BY branch_name, serial_number
+    """) or []
+
+
+@router.get("/purchased/summary")
+def get_purchased_summary(current_user: dict = Depends(_allowed)):
+    """Summary stats for purchased printers."""
+    return query("""
+        SELECT
+            COUNT(*)                                                AS total,
+            COUNT(*) FILTER (WHERE purchased_date >= '2024-01-01') AS recent,
+            COUNT(*) FILTER (WHERE purchased_date < '2020-01-01')  AS older,
+            COUNT(DISTINCT branch_name)                             AS branches
+        FROM purchased_printers
+        WHERE is_active = TRUE
+    """, fetch="one")

@@ -835,62 +835,111 @@
     <div class="page" id="page-rentals">
       <div class="pgh">
         <div>
-          <div class="pgt">📋 Rental Printers</div>
-          <div class="pgs">Gestetner rental agreements — 3 year contracts</div>
+          <div class="pgt">🖨️ Printers Register</div>
+          <div class="pgs">Rental &amp; Purchased printers across all branches</div>
         </div>
         <button class="btn btn-g" onclick="loadRentals()" style="font-size:12px">↺ Refresh</button>
       </div>
 
-      <!-- KPI cards -->
-      <div class="rental-kpi-row">
-        <div class="rental-kpi rental-kpi-total">
-          <div class="rental-kpi-num" id="rnt-total">—</div>
-          <div class="rental-kpi-lbl">Total Printers</div>
+      <!-- Tab switcher -->
+      <div class="pr-tabs mb20">
+        <button class="pr-tab act" id="pr-tab-rental" onclick="prSwitchTab('rental')">
+          📋 Rental Printers <span class="pr-tab-count" id="pr-tab-rental-count"></span>
+        </button>
+        <button class="pr-tab" id="pr-tab-purchased" onclick="prSwitchTab('purchased')">
+          🏷️ Purchased Printers <span class="pr-tab-count" id="pr-tab-purchased-count"></span>
+        </button>
+      </div>
+
+      <!-- ── RENTAL TAB ── -->
+      <div id="pr-panel-rental">
+        <!-- KPI cards -->
+        <div class="rental-kpi-row">
+          <div class="rental-kpi rental-kpi-total">
+            <div class="rental-kpi-num" id="rnt-total">—</div>
+            <div class="rental-kpi-lbl">Total Rental</div>
+          </div>
+          <div class="rental-kpi rental-kpi-ok">
+            <div class="rental-kpi-num" id="rnt-ok">—</div>
+            <div class="rental-kpi-lbl">Active</div>
+          </div>
+          <div class="rental-kpi rental-kpi-warn">
+            <div class="rental-kpi-num" id="rnt-warn">—</div>
+            <div class="rental-kpi-lbl">≤6 Months</div>
+          </div>
+          <div class="rental-kpi rental-kpi-soon">
+            <div class="rental-kpi-num" id="rnt-soon">—</div>
+            <div class="rental-kpi-lbl">≤90 Days</div>
+          </div>
+          <div class="rental-kpi rental-kpi-expired">
+            <div class="rental-kpi-num" id="rnt-expired">—</div>
+            <div class="rental-kpi-lbl">Expired</div>
+          </div>
         </div>
-        <div class="rental-kpi rental-kpi-ok">
-          <div class="rental-kpi-num" id="rnt-ok">—</div>
-          <div class="rental-kpi-lbl">Active</div>
-        </div>
-        <div class="rental-kpi rental-kpi-warn">
-          <div class="rental-kpi-num" id="rnt-warn">—</div>
-          <div class="rental-kpi-lbl">Expiring ≤6 months</div>
-        </div>
-        <div class="rental-kpi rental-kpi-soon">
-          <div class="rental-kpi-num" id="rnt-soon">—</div>
-          <div class="rental-kpi-lbl">Expiring ≤90 days</div>
-        </div>
-        <div class="rental-kpi rental-kpi-expired">
-          <div class="rental-kpi-num" id="rnt-expired">—</div>
-          <div class="rental-kpi-lbl">Expired</div>
+        <div class="card">
+          <div class="ch">
+            <h3>Gestetner Rental Agreements</h3>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search branch or serial..."
+                oninput="filterRentals(this.value)">
+            </div>
+          </div>
+          <div class="scx">
+            <table class="tbl" id="rental-table">
+              <thead>
+                <tr>
+                  <th>Serial No.</th><th>Branch</th><th>Agreement Date</th>
+                  <th>End Date</th><th>Days Left</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rental-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="card">
-        <div class="ch">
-          <h3>All Rental Printers</h3>
-          <div class="chr">
-            <input class="searchi" placeholder="🔍 Search branch or serial..."
-              oninput="filterRentals(this.value)">
+      <!-- ── PURCHASED TAB ── -->
+      <div id="pr-panel-purchased" style="display:none">
+        <!-- KPI cards -->
+        <div class="rental-kpi-row">
+          <div class="rental-kpi rental-kpi-total">
+            <div class="rental-kpi-num" id="pur-total">—</div>
+            <div class="rental-kpi-lbl">Total Owned</div>
+          </div>
+          <div class="rental-kpi rental-kpi-ok">
+            <div class="rental-kpi-num" id="pur-branches">—</div>
+            <div class="rental-kpi-lbl">Branches</div>
+          </div>
+          <div class="rental-kpi rental-kpi-warn">
+            <div class="rental-kpi-num" id="pur-recent">—</div>
+            <div class="rental-kpi-lbl">Purchased 2024+</div>
+          </div>
+          <div class="rental-kpi rental-kpi-soon">
+            <div class="rental-kpi-num" id="pur-older">—</div>
+            <div class="rental-kpi-lbl">Before 2020</div>
           </div>
         </div>
-        <div class="scx">
-          <table class="tbl" id="rental-table">
-            <thead>
-              <tr>
-                <th>Serial No.</th>
-                <th>Branch</th>
-                <th>Agreement Date</th>
-                <th>End Date</th>
-                <th>Days Left</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="rental-tbody"></tbody>
-          </table>
+        <div class="card">
+          <div class="ch">
+            <h3>Purchased Printers</h3>
+            <div class="chr">
+              <input class="searchi" placeholder="🔍 Search branch, serial or model..."
+                oninput="filterPurchased(this.value)">
+            </div>
+          </div>
+          <div class="scx">
+            <table class="tbl" id="purchased-table">
+              <thead>
+                <tr>
+                  <th>Serial No.</th><th>Branch</th><th>Model</th>
+                  <th>Purchased Date</th><th>Years in Use</th>
+                </tr>
+              </thead>
+              <tbody id="purchased-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
 
     <!-- ── USER AUDIT LOG ────────────────────────────────── -->
