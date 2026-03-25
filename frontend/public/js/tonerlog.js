@@ -10,7 +10,11 @@ var _tlPrinters   = [];
 
 /* ── Entry point ─────────────────────────────────────────── */
 async function loadTonerLog() {
+  // Wait for page to be visible in DOM
+  await new Promise(function(r){ setTimeout(r, 50); });
+
   var prDiv = document.getElementById('tl-printers');
+  console.log('[TonerLog] prDiv at start:', prDiv);
   if (prDiv) prDiv.innerHTML = '<div class="tl-loading"><div class="spin"></div> Loading…</div>';
 
   var access   = (APP.user.branch_access || '').trim().toUpperCase();
@@ -90,6 +94,9 @@ async function tlLoadPrinters(branchId) {
 
 /* ── Render printer cards ────────────────────────────────── */
 function renderTlPrinters() {
+  console.log('[TonerLog] renderTlPrinters called, count:', _tlPrinters.length);
+  var el = document.getElementById('tl-printers');
+  console.log('[TonerLog] tl-printers element:', el);
   var html = _tlPrinters.map(function(p) {
     var pct     = p.current_pct != null ? Math.round(p.current_pct) : null;
     var pctTxt  = pct != null ? pct + '%' : '—';
@@ -139,7 +146,13 @@ function renderTlPrinters() {
       + '</div>';
   }).join('');
 
-  document.getElementById('tl-printers').innerHTML = html;
+  var prDiv = document.getElementById('tl-printers');
+  if (prDiv) {
+    prDiv.innerHTML = html;
+    console.log('[TonerLog] HTML set, length:', html.length);
+  } else {
+    console.error('[TonerLog] tl-printers div NOT FOUND');
+  }
 }
 
 /* ── Mark toner replaced ─────────────────────────────────── */
