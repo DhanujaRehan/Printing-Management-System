@@ -1019,6 +1019,235 @@
       </div>
     </div>
 
+
+    <!-- ── PAPER STOCK ──────────────────────────────────────── -->
+    <div class="page" id="page-paper">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Paper Stock</div>
+          <div class="pgs">Warehouse paper inventory</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-g" onclick="loadPaper()" style="font-size:12px">↺ Refresh</button>
+          <button class="btn btn-p" onclick="openModal('m-paper-type')">+ Paper Type</button>
+          <button class="btn btn-g" onclick="openModal('m-paper-receive')">📄 Receive Paper</button>
+          <button class="btn btn-p" onclick="openModal('m-paper-dispatch')">📦 Dispatch to Branch</button>
+        </div>
+      </div>
+      <div class="stgrid" id="paper-grid"></div>
+      <div class="card mb20">
+        <div class="ch"><h3>📍 Paper at Branches</h3></div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Branch</th><th>A4 80gsm</th><th>B4 80gsm</th><th>Letter 75gsm</th></tr></thead>
+            <tbody id="paper-branch-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <h3>📋 Stock Movement Log</h3>
+          <span class="badge" id="paper-log-ct"></span>
+        </div>
+        <div class="scx">
+          <table class="tbl">
+            <thead><tr><th>Date/Time</th><th>Type</th><th>Paper Type</th><th>Branch</th><th>Printer</th><th>Qty</th><th>By</th></tr></thead>
+            <tbody id="paper-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRINT REPORT ──────────────────────────────────────── -->
+    <div class="page" id="page-printreport">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Print Activity Report</div>
+          <div class="pgs">Daily print counts by branch and printer</div>
+        </div>
+        <button class="btn btn-g" onclick="loadPrintReport()" style="font-size:12px">↺ Refresh</button>
+      </div>
+      <div class="krow mb20">
+        <div class="kcard"><div class="knum" id="pr-kpi-total">—</div><div class="klbl">Total Prints</div></div>
+        <div class="kcard"><div class="knum" id="pr-kpi-branches">—</div><div class="klbl">Active Branches</div></div>
+        <div class="kcard"><div class="knum" id="pr-kpi-printers">—</div><div class="klbl">Printers Logged</div></div>
+        <div class="kcard"><div class="knum" id="pr-kpi-avg">—</div><div class="klbl">Avg Per Printer</div></div>
+      </div>
+      <div class="card mb20">
+        <div class="ch" style="flex-wrap:wrap;gap:10px">
+          <h3>Filters</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select class="fs" id="pr-filter-branch-sel" onchange="loadPrintReport()" style="min-width:180px">
+              <option value="">All Branches</option>
+            </select>
+            <select class="fs" id="pr-filter-date-sel" onchange="loadPrintReport()">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="pr-report-container"></div>
+    </div>
+
+    <!-- ── IMPORT APPROVALS ───────────────────────────────────── -->
+    <div class="page" id="page-import">
+      <div class="pgh">
+        <div>
+          <div class="pgt">Excel Import</div>
+          <div class="pgs">Upload and manage bulk data imports</div>
+        </div>
+      </div>
+      <div class="svc-main-tabs mb20">
+        <button class="svc-tab act" id="imp-tab-upload" onclick="switchImportTab('upload')">📤 Upload</button>
+        <button class="svc-tab" id="imp-tab-pending" onclick="switchImportTab('pending')">⏳ Pending <span class="nav-badge" id="import-badge" style="display:none">0</span></button>
+        <button class="svc-tab" id="imp-tab-history" onclick="switchImportTab('history')">📋 History</button>
+      </div>
+      <div id="imp-panel-upload" class="imp-panel act">
+        <div class="card">
+          <div class="ch"><h3>📤 Upload Excel File</h3></div>
+          <div class="imp-upload-layout">
+            <div>
+              <div class="ff mb16">
+                <label class="ffl">Import Type</label>
+                <select class="fs" id="imp-type" onchange="importTypeChanged()">
+                  <option value="">— Select type —</option>
+                  <option value="print_logs">Print Logs</option>
+                  <option value="toner_updates">Toner Updates</option>
+                  <option value="printers">Printers</option>
+                </select>
+              </div>
+              <div id="imp-template-hint" class="imp-hint mb16"></div>
+              <div class="imp-dropzone" onclick="document.getElementById('imp-file-input').click()">
+                <div style="font-size:36px;margin-bottom:10px">📂</div>
+                <div style="font-weight:700;margin-bottom:6px">Click to select Excel file</div>
+                <div style="font-size:12px;color:var(--t3)">.xlsx or .xls files only</div>
+                <input type="file" id="imp-file-input" accept=".xlsx,.xls" style="display:none" onchange="importFileSelected(this)">
+              </div>
+              <div id="imp-filename" style="font-size:12px;color:var(--t3);margin-top:8px;text-align:center"></div>
+            </div>
+            <div>
+              <div id="imp-preview" class="imp-preview-area"></div>
+              <button class="btn btn-p imp-submit-btn" onclick="submitImport()" style="width:100%;margin-top:12px;display:none">📤 Submit for Approval</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="imp-panel-pending" class="imp-panel" style="display:none">
+        <div id="imp-pending-container"></div>
+      </div>
+      <div id="imp-panel-history" class="imp-panel" style="display:none">
+        <div class="card">
+          <div class="ch"><h3>📋 Import History</h3></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Type</th><th>File</th><th>Rows</th><th>Status</th><th>By</th></tr></thead>
+              <tbody id="imp-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DBA ADMINISTRATION ─────────────────────────────────── -->
+    <div class="page" id="page-dba">
+      <div class="pgh">
+        <div>
+          <div class="pgt">User Management</div>
+          <div class="pgs">Manage system users and access</div>
+        </div>
+        <button class="btn btn-p" onclick="openAddUserModal()">+ Add User</button>
+      </div>
+      <div class="card mb20">
+        <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <h3>👥 User Management</h3>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="user-search" type="text" placeholder="Search name, username, role…"
+              oninput="searchUsers()"
+              style="padding:6px 10px;border:1px solid var(--bd,#ddd);border-radius:6px;font-size:12px;width:200px;background:var(--bg2,#f9f9f9);color:var(--t1)">
+            <button class="btn btn-sm" onclick="clearSearch()" style="font-size:11px;padding:5px 10px">✕</button>
+          </div>
+        </div>
+        <div class="um-table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+        <div class="um-cards-wrap" id="user-cards"></div>
+      </div>
+    </div>
+
+    <!-- ── STORE ──────────────────────────────────────────────── -->
+    <div class="page" id="page-store">
+      <div class="pgh">
+        <div><div class="pgt">Warehouse</div><div class="pgs">Stock management and dispatch</div></div>
+        <button class="btn btn-g" onclick="loadStore()" style="font-size:12px">↺ Refresh</button>
+      </div>
+      <div class="svc-main-tabs mb20">
+        <button class="svc-tab act" id="store-tab-dispatch" onclick="switchStoreTab('dispatch')">📦 Dispatch Queue <span class="nav-badge" id="store-dispatch-badge" style="display:none">0</span></button>
+        <button class="svc-tab" id="store-tab-overview" onclick="switchStoreTab('overview')">📊 Overview</button>
+        <button class="svc-tab" id="store-tab-toner" onclick="switchStoreTab('toner')">🖨️ Toner Stock</button>
+        <button class="svc-tab" id="store-tab-paper" onclick="switchStoreTab('paper')">📄 Paper Stock</button>
+        <button class="svc-tab" id="store-tab-history" onclick="switchStoreTab('history')">📋 Movement History</button>
+      </div>
+      <!-- Dispatch -->
+      <div id="store-panel-dispatch" class="store-panel act">
+        <div id="store-dispatch-container"></div>
+      </div>
+      <!-- Overview -->
+      <div id="store-panel-overview" class="store-panel" style="display:none">
+        <div class="krow mb20">
+          <div class="kcard"><div class="knum" id="st-kpi-toner">—</div><div class="klbl">Toner Models</div></div>
+          <div class="kcard"><div class="knum" id="st-kpi-paper">—</div><div class="klbl">Paper Stock</div></div>
+          <div class="kcard"><div class="knum" id="st-kpi-low-t">—</div><div class="klbl">Low Toner</div></div>
+          <div class="kcard"><div class="knum" id="st-kpi-low-p">—</div><div class="klbl">Low Paper</div></div>
+        </div>
+        <div class="twocol">
+          <div class="card"><div class="ch"><h3>🖨️ Toner Overview</h3></div><div class="stgrid" id="st-toner-overview"></div></div>
+          <div class="card"><div class="ch"><h3>📄 Paper Overview</h3></div><div class="stgrid" id="st-paper-overview"></div></div>
+        </div>
+      </div>
+      <!-- Toner stock -->
+      <div id="store-panel-toner" class="store-panel" style="display:none">
+        <div class="card">
+          <div class="ch" style="flex-wrap:wrap;gap:10px">
+            <h3>🖨️ Toner Stock</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="fs" id="st-recv-toner-model" style="min-width:180px"><option value="">— Select model —</option></select>
+              <input type="number" class="fi2" id="st-recv-toner-qty" placeholder="Qty" min="1" style="width:80px">
+              <input type="date" class="fi2" id="st-recv-toner-date" style="width:140px">
+              <input type="text" class="fi2" id="st-recv-toner-notes" placeholder="Notes" style="width:160px">
+              <button class="btn btn-p" onclick="stReceiveToner()">+ Receive</button>
+            </div>
+          </div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Model</th><th>Brand</th><th>Yield</th><th>Stock</th><th>Min</th><th>Status</th></tr></thead>
+              <tbody id="st-toner-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Paper stock -->
+      <div id="store-panel-paper" class="store-panel" style="display:none">
+        <div class="card"><div class="ch"><h3>📄 Paper Stock</h3></div><div class="stgrid" id="st-paper-grid"></div></div>
+      </div>
+      <!-- History -->
+      <div id="store-panel-history" class="store-panel" style="display:none">
+        <div class="card">
+          <div class="ch"><h3>📋 Movement History</h3></div>
+          <div class="scx">
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Qty</th><th>Branch</th><th>By</th></tr></thead>
+              <tbody id="st-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /app -->
 
