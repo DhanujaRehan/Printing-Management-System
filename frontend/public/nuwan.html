@@ -664,7 +664,12 @@ async function nwLoadSummary(){
   var tbody=document.getElementById('nws-tbody'),label=document.getElementById('nws-record-label');
   if(label)label.textContent=d.record_count+' entries';
   if(tbody&&d.logs&&d.logs.length){
-    tbody.innerHTML=d.logs.slice(0,500).map(function(l){
+    // Sort client-side: latest date+time first
+    var sortedLogs = d.logs.slice().sort(function(a,b){
+      var da = new Date(a.created_at||a.log_date), db = new Date(b.created_at||b.log_date);
+      return db - da;
+    });
+    tbody.innerHTML=sortedLogs.slice(0,500).map(function(l){
       var dateStr=l.log_date?new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
       var timeStr=l.created_at?new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
       var a4=(l.a4_single||0)+(l.a4_double||0),b4=(l.b4_single||0)+(l.b4_double||0),lg=(l.letter_single||0)+(l.letter_double||0);
