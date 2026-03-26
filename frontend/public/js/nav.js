@@ -16,13 +16,10 @@ var NAVS = {
     ]},
     { s: 'Management', items: [
       { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
-      { i: '📥', l: 'Import Approvals', p: 'importapprove',badge: 'import-badge'    },
       { i: '📊', l: 'Print Report',     p: 'printreport'  },
       { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
-      { i: '🔬', l: 'Toner Audit',       p: 'toneraudit'   },
-      { i: '📊', l: 'Branch Report',     p: 'branchreport' },
-      { i: '🔬', l: 'Toner Audit',       p: 'toneraudit'   },
-      { i: '📊', l: 'Branch Report',     p: 'branchreport' },
+      { i: '🔬', l: 'Toner Audit',      p: 'toneraudit'   },
+      { i: '📊', l: 'Branch Report',    p: 'branchreport' },
     ]},
   ],
 
