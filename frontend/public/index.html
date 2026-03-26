@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Separated CSS files -->
-<link rel="stylesheet" href="/css/main.css?v=1774512605">
-<link rel="stylesheet" href="/css/login.css?v=1774512605">
-<link rel="stylesheet" href="/css/pages.css?v=1774512605">
+<link rel="stylesheet" href="/css/main.css?v=1774513083">
+<link rel="stylesheet" href="/css/login.css?v=1774513083">
+<link rel="stylesheet" href="/css/pages.css?v=1774513083">
 </head>
 <body>
 
@@ -1337,6 +1337,30 @@
           </div>
         </div>
       </div>
+      <!-- Mobile bottom nav (hidden on desktop) -->
+      <nav class="store-mobile-nav" id="store-mobile-nav">
+        <button class="store-mobile-nav-btn smn-act" id="smn-dispatch" onclick="switchStoreTab('dispatch');smnSetActive('dispatch')" style="position:relative">
+          <span class="smn-icon">📦</span>
+          <span class="smn-label">Dispatch</span>
+          <span class="store-mobile-nav-badge" id="smn-badge" style="display:none">0</span>
+        </button>
+        <button class="store-mobile-nav-btn" id="smn-overview" onclick="switchStoreTab('overview');smnSetActive('overview')">
+          <span class="smn-icon">📊</span>
+          <span class="smn-label">Overview</span>
+        </button>
+        <button class="store-mobile-nav-btn" id="smn-toner" onclick="switchStoreTab('toner');smnSetActive('toner')">
+          <span class="smn-icon">🖨️</span>
+          <span class="smn-label">Toner</span>
+        </button>
+        <button class="store-mobile-nav-btn" id="smn-paper" onclick="switchStoreTab('paper');smnSetActive('paper')">
+          <span class="smn-icon">📄</span>
+          <span class="smn-label">Paper</span>
+        </button>
+        <button class="store-mobile-nav-btn" id="smn-history" onclick="switchStoreTab('history');smnSetActive('history')">
+          <span class="smn-icon">📋</span>
+          <span class="smn-label">History</span>
+        </button>
+      </nav>
     </div><!-- /page-store -->
 
     <!-- ── TONER AUDIT TRAIL ─────────────────────────────── -->
@@ -1813,6 +1837,31 @@ function toggleSidebar() {
     document.body.style.overflow = 'hidden';
   }
 }
+/* ── Store Mobile Nav ──────────────────────────────────── */
+function smnSetActive(tab) {
+  var tabs = ['dispatch','overview','toner','paper','history'];
+  tabs.forEach(function(t) {
+    var btn = document.getElementById('smn-' + t);
+    if (btn) btn.classList.toggle('smn-act', t === tab);
+  });
+}
+/* Sync dispatch badge to mobile nav badge */
+function smnSyncBadge() {
+  var src = document.getElementById('store-dispatch-badge');
+  var dst = document.getElementById('smn-badge');
+  if (!src || !dst) return;
+  dst.style.display = src.style.display;
+  dst.textContent   = src.textContent;
+}
+/* Observe badge changes */
+if (typeof MutationObserver !== 'undefined') {
+  var _smnObs = new MutationObserver(smnSyncBadge);
+  document.addEventListener('DOMContentLoaded', function() {
+    var b = document.getElementById('store-dispatch-badge');
+    if (b) _smnObs.observe(b, { attributes:true, childList:true, characterData:true });
+  });
+}
+
 function closeSidebar() {
   var sb  = document.querySelector('.sb');
   var ov  = document.getElementById('sb-overlay');
