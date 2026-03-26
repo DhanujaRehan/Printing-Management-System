@@ -340,9 +340,19 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .appr-hero { border-radius:14px; padding:16px 18px; }
   .appr-hero-title { font-size:17px; }
 
-  /* Tab bars — horizontal scroll */
-  .svc-main-tabs { overflow-x:auto; width:100%; border-radius:12px; }
-  .svc-tab { padding:9px 16px; font-size:12px; }
+  /* Tab bars — horizontal scroll, hide scrollbar */
+  .svc-main-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+    flex-wrap: nowrap;
+  }
+  .svc-main-tabs::-webkit-scrollbar { display: none; }
+  .svc-tab { padding:9px 12px; font-size:11px; flex-shrink:0; white-space:nowrap; }
+  .svc-tab-icon { font-size:13px; }
   .pr-tabs { overflow-x:auto; width:100%; }
 
   /* Tables — horizontal scroll container */
