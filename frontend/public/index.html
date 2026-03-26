@@ -1337,6 +1337,113 @@
           </div>
         </div>
       </div>
+
+    <!-- ── TONER AUDIT TRAIL ─────────────────────────────── -->
+    <div class="page" id="page-toneraudit">
+      <div class="pgh">
+        <div>
+          <div class="pgt">🔬 Toner Audit Trail</div>
+          <div class="pgs">Full lifecycle of every toner cartridge — copies made, cost per copy</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fs" id="ta-branch-sel" onchange="loadTonerAudit()" style="min-width:180px">
+            <option value="">All Branches</option>
+          </select>
+          <button class="btn btn-g" onclick="loadTonerAudit()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="krow mb20" id="ta-kpis" style="display:none">
+        <div class="kcard"><div class="knum" id="ta-kpi-installs">—</div><div class="klbl">Total Installations</div></div>
+        <div class="kcard"><div class="knum" id="ta-kpi-copies">—</div><div class="klbl">Total Copies Made</div></div>
+        <div class="kcard"><div class="knum" id="ta-kpi-cost">—</div><div class="klbl">Total Toner Cost (LKR)</div></div>
+        <div class="kcard"><div class="knum" id="ta-kpi-cpc">—</div><div class="klbl">Avg Cost / Copy (LKR)</div></div>
+      </div>
+
+      <div class="card">
+        <div class="scx">
+          <table class="tbl" id="ta-table">
+            <thead>
+              <tr>
+                <th>Printer</th>
+                <th>Branch</th>
+                <th>Toner Model</th>
+                <th>Installed</th>
+                <th>Replaced</th>
+                <th>Duration</th>
+                <th>Copies Made</th>
+                <th>% Used</th>
+                <th>Price (LKR)</th>
+                <th>Cost/Copy</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ta-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BRANCH PERFORMANCE REPORT ──────────────────────── -->
+    <div class="page" id="page-branchreport">
+      <div class="pgh">
+        <div>
+          <div class="pgt">📊 Branch Performance Report</div>
+          <div class="pgs">Monthly prints, toner usage and cost per copy by branch</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fs" id="br-month-sel" onchange="loadBranchReport()" style="min-width:130px">
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+          <select class="fs" id="br-year-sel" onchange="loadBranchReport()" style="min-width:90px">
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+          </select>
+          <button class="btn btn-g" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:12px" onclick="exportBranchReport()">📥 Excel</button>
+          <button class="btn btn-g" onclick="loadBranchReport()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Grand KPIs -->
+      <div class="krow mb20" id="br-grand-kpis" style="display:none">
+        <div class="kcard"><div class="knum" id="br-kpi-prints">—</div><div class="klbl">Total Prints</div></div>
+        <div class="kcard"><div class="knum" id="br-kpi-cost">—</div><div class="klbl">Total Toner Cost (LKR)</div></div>
+        <div class="kcard"><div class="knum" id="br-kpi-cpc">—</div><div class="klbl">Overall Cost/Copy (LKR)</div></div>
+      </div>
+
+      <!-- Branch cards grid -->
+      <div class="br-cards-grid" id="br-cards"></div>
+
+      <!-- Detail table -->
+      <div class="card" id="br-table-wrap" style="display:none">
+        <div class="ch"><h3>Branch Detail</h3></div>
+        <div class="scx">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Branch</th>
+                <th>Total Prints</th>
+                <th>Days Logged</th>
+                <th>Avg/Day</th>
+                <th>Replacements</th>
+                <th>Toner Cost (LKR)</th>
+                <th>Cost/Copy (LKR)</th>
+                <th>Printers</th>
+              </tr>
+            </thead>
+            <tbody id="br-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1691,6 +1798,7 @@
 <script src="/js/paper.js"></script>
 <script src="/js/tonerlog.js"></script>
   <script src="/js/rentals.js"></script>
+<script src="/js/toneraudit.js"></script>
 
 <script>
 /* ── Mobile Sidebar Toggle ─────────────────────────────── */

@@ -142,6 +142,13 @@ def review_request(
         fetch="none"
     )
 
+    # Send status notification email to Nuwan
+    try:
+        from scheduler import send_request_status_email
+        import threading
+        threading.Thread(target=send_request_status_email, args=(request_id,), daemon=True).start()
+    except Exception: pass
+
     if body.status == "approved":
         # NOTE: Toner stock deduction happens at DISPATCH time (store keeper),
         # not at approval time. Approval just signals the store to prepare.
@@ -251,11 +258,25 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
             fetch="one"
         )
 
+    # Update avg daily copies
     query(
         "UPDATE toner_installations SET avg_daily_copies = %s "
         "WHERE printer_id = %s AND is_current = TRUE",
         (body.print_count, body.printer_id), fetch="none"
     )
+
+    # Recalculate total_copies_done from ALL print_logs for this printer
+    # since the current toner was installed
+    query("""
+        UPDATE toner_installations ti
+        SET total_copies_done = COALESCE((
+            SELECT SUM(pl.print_count)
+            FROM print_logs pl
+            WHERE pl.printer_id = ti.printer_id
+              AND pl.log_date >= ti.installed_at::date
+        ), 0)
+        WHERE ti.printer_id = %s AND ti.is_current = TRUE
+    """, (body.printer_id,), fetch="none")
 
     return {"message": "Print count logged", "id": result["id"]}
 

@@ -19,6 +19,10 @@ var NAVS = {
       { i: '📥', l: 'Import Approvals', p: 'importapprove',badge: 'import-badge'    },
       { i: '📊', l: 'Print Report',     p: 'printreport'  },
       { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
+      { i: '🔬', l: 'Toner Audit',       p: 'toneraudit'   },
+      { i: '📊', l: 'Branch Report',     p: 'branchreport' },
+      { i: '🔬', l: 'Toner Audit',       p: 'toneraudit'   },
+      { i: '📊', l: 'Branch Report',     p: 'branchreport' },
     ]},
   ],
 
@@ -155,6 +159,8 @@ function showPage(id, btn) {
     eodlog:      loadEOD,
     tonerlog:    loadTonerLog,
     rentals:     loadRentals,
+    toneraudit:  loadTonerAudit,
+    branchreport: loadBranchReport,
     "dba-audit":  loadDbaAudit,
     "dba-health": loadDbaHealth,
   };

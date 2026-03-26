@@ -574,6 +574,270 @@ def export_print_summary(
         headers={"Content-Disposition": f"attachment; filename={fname}"}
     )
 
+
+
+# ── Toner Audit Trail ────────────────────────────────────────────────────────
+@router.get("/toner/audit")
+def get_toner_audit(
+    branch_id: int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """Full lifecycle of every toner installation — cost per copy included."""
+    filters = ["1=1"]
+    params  = []
+    if branch_id:
+        filters.append("b.id = %s")
+        params.append(branch_id)
+
+    where = " AND ".join(filters)
+
+    rows = query(f"""
+        SELECT
+            ti.id              AS installation_id,
+            p.printer_code,
+            p.model            AS printer_model,
+            b.id               AS branch_id,
+            b.code             AS branch_code,
+            b.name             AS branch_name,
+            tm.model_code      AS toner_model,
+            tm.brand,
+            tm.yield_copies,
+            COALESCE(tm.price_lkr, 0) AS price_lkr,
+            ti.installed_at,
+            u_inst.full_name   AS installed_by,
+            -- Find next installation date for this printer (= replaced date)
+            (SELECT ti2.installed_at FROM toner_installations ti2
+             WHERE ti2.printer_id = ti.printer_id AND ti2.installed_at > ti.installed_at
+             ORDER BY ti2.installed_at ASC LIMIT 1) AS replaced_at,
+            -- Total prints logged during this installation
+            COALESCE((
+                SELECT SUM(pl.print_count) FROM print_logs pl
+                WHERE pl.printer_id = ti.printer_id
+                  AND pl.log_date >= ti.installed_at::date
+                  AND (
+                    pl.log_date < (
+                        SELECT ti2.installed_at::date FROM toner_installations ti2
+                        WHERE ti2.printer_id = ti.printer_id AND ti2.installed_at > ti.installed_at
+                        ORDER BY ti2.installed_at ASC LIMIT 1
+                    ) OR (
+                        SELECT COUNT(*) FROM toner_installations ti2
+                        WHERE ti2.printer_id = ti.printer_id AND ti2.installed_at > ti.installed_at
+                    ) = 0
+                  )
+            ), 0) AS copies_made,
+            ti.is_current
+        FROM toner_installations ti
+        JOIN printers p  ON p.id  = ti.printer_id
+        JOIN branches b  ON b.id  = p.branch_id
+        LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+        LEFT JOIN users u_inst ON u_inst.id = ti.installed_by
+        WHERE {where}
+        ORDER BY ti.installed_at DESC
+        LIMIT 500
+    """, tuple(params)) or []
+
+    # Calculate cost per copy for each row
+    result = []
+    for r in rows:
+        copies = int(r.get("copies_made") or 0)
+        price  = float(r.get("price_lkr") or 0)
+        cost_per_copy = round(price / copies, 2) if copies > 0 and price > 0 else None
+        pct_used = round((copies / r["yield_copies"]) * 100, 1) if r.get("yield_copies") and copies > 0 else 0
+        result.append({**r, "cost_per_copy": cost_per_copy, "pct_used": pct_used})
+
+    return result
+
+
+# ── Branch Performance Report ────────────────────────────────────────────────
+@router.get("/reports/branch-performance")
+def get_branch_performance(
+    year:  int = None,
+    month: int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """Monthly branch performance — prints, toner replacements, cost per copy."""
+    from datetime import date as dt
+    y = year  or dt.today().year
+    m = month or dt.today().month
+
+    branches = query("""
+        SELECT
+            b.id, b.code AS branch_code, b.name AS branch_name,
+            -- Total prints this month
+            COALESCE((
+                SELECT SUM(pl.print_count) FROM print_logs pl
+                JOIN printers p ON p.id = pl.printer_id
+                WHERE p.branch_id = b.id
+                  AND EXTRACT(YEAR  FROM pl.log_date) = %s
+                  AND EXTRACT(MONTH FROM pl.log_date) = %s
+            ), 0) AS total_prints,
+            -- Days logged this month
+            COALESCE((
+                SELECT COUNT(DISTINCT pl.log_date) FROM print_logs pl
+                JOIN printers p ON p.id = pl.printer_id
+                WHERE p.branch_id = b.id
+                  AND EXTRACT(YEAR  FROM pl.log_date) = %s
+                  AND EXTRACT(MONTH FROM pl.log_date) = %s
+            ), 0) AS days_logged,
+            -- Toner replacements this month
+            COALESCE((
+                SELECT COUNT(*) FROM toner_installations ti
+                JOIN printers p ON p.id = ti.printer_id
+                WHERE p.branch_id = b.id
+                  AND EXTRACT(YEAR  FROM ti.installed_at) = %s
+                  AND EXTRACT(MONTH FROM ti.installed_at) = %s
+            ), 0) AS toner_replacements,
+            -- Toner cost this month
+            COALESCE((
+                SELECT SUM(COALESCE(tm.price_lkr, 0)) FROM toner_installations ti
+                JOIN printers p ON p.id = ti.printer_id
+                LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+                WHERE p.branch_id = b.id
+                  AND EXTRACT(YEAR  FROM ti.installed_at) = %s
+                  AND EXTRACT(MONTH FROM ti.installed_at) = %s
+            ), 0) AS toner_cost_lkr,
+            -- Active printers
+            (SELECT COUNT(*) FROM printers p WHERE p.branch_id = b.id AND p.is_active = TRUE) AS printer_count
+        FROM branches b
+        WHERE b.is_active = TRUE
+        ORDER BY total_prints DESC
+    """, (y, m, y, m, y, m, y, m)) or []
+
+    # Add cost per copy
+    result = []
+    for b in branches:
+        tp   = int(b["total_prints"] or 0)
+        cost = float(b["toner_cost_lkr"] or 0)
+        result.append({
+            **b,
+            "cost_per_copy": round(cost / tp, 2) if tp > 0 and cost > 0 else None,
+            "avg_daily_prints": round(tp / b["days_logged"], 0) if b["days_logged"] > 0 else 0,
+        })
+
+    grand_prints = sum(r["total_prints"] for r in result)
+    grand_cost   = sum(float(r["toner_cost_lkr"]) for r in result)
+
+    return {
+        "year": y, "month": m,
+        "branches": result,
+        "grand_total_prints": grand_prints,
+        "grand_toner_cost":   grand_cost,
+        "grand_cost_per_copy": round(grand_cost / grand_prints, 2) if grand_prints > 0 and grand_cost > 0 else None,
+    }
+
+
+
+# ── Branch Performance Excel Export ─────────────────────────────────────────
+@router.get("/reports/branch-performance/export")
+def export_branch_performance(
+    year:  int = None,
+    month: int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    from fastapi.responses import StreamingResponse
+    from datetime import date as dt, datetime as dtt
+    import io
+    y = year  or dt.today().year
+    m = month or dt.today().month
+
+    try:
+        from openpyxl import Workbook # type: ignore
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side # type: ignore
+    except ImportError:
+        return {"error": "openpyxl not installed"}
+
+    # Get data
+    branches = query("""
+        SELECT b.id, b.code AS branch_code, b.name AS branch_name,
+            COALESCE((SELECT SUM(pl.print_count) FROM print_logs pl JOIN printers p ON p.id=pl.printer_id
+             WHERE p.branch_id=b.id AND EXTRACT(YEAR FROM pl.log_date)=%s AND EXTRACT(MONTH FROM pl.log_date)=%s),0) AS total_prints,
+            COALESCE((SELECT COUNT(DISTINCT pl.log_date) FROM print_logs pl JOIN printers p ON p.id=pl.printer_id
+             WHERE p.branch_id=b.id AND EXTRACT(YEAR FROM pl.log_date)=%s AND EXTRACT(MONTH FROM pl.log_date)=%s),0) AS days_logged,
+            COALESCE((SELECT COUNT(*) FROM toner_installations ti JOIN printers p ON p.id=ti.printer_id
+             WHERE p.branch_id=b.id AND EXTRACT(YEAR FROM ti.installed_at)=%s AND EXTRACT(MONTH FROM ti.installed_at)=%s),0) AS toner_replacements,
+            COALESCE((SELECT SUM(COALESCE(tm.price_lkr,0)) FROM toner_installations ti JOIN printers p ON p.id=ti.printer_id
+             LEFT JOIN toner_models tm ON tm.id=ti.toner_model_id
+             WHERE p.branch_id=b.id AND EXTRACT(YEAR FROM ti.installed_at)=%s AND EXTRACT(MONTH FROM ti.installed_at)=%s),0) AS toner_cost_lkr,
+            (SELECT COUNT(*) FROM printers p WHERE p.branch_id=b.id AND p.is_active=TRUE) AS printer_count
+        FROM branches b WHERE b.is_active=TRUE ORDER BY total_prints DESC
+    """, (y,m,y,m,y,m,y,m)) or []
+
+    month_names = ["","January","February","March","April","May","June",
+                   "July","August","September","October","November","December"]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"{month_names[m]} {y}"
+
+    NAVY = "1E3A5F"; BLUE = "0EA5E9"; GREEN = "10B981"; WHITE = "FFFFFF"; ALTROW = "F8FAFC"
+    def fill(c): return PatternFill("solid", start_color=c, fgColor=c)
+    def border():
+        s = Side(style="thin", color="D1D5DB")
+        return Border(left=s, right=s, top=s, bottom=s)
+    def ctr(): return Alignment(horizontal="center", vertical="center")
+    def lft(): return Alignment(horizontal="left", vertical="center")
+
+    ws.merge_cells("A1:H1")
+    ws["A1"] = f"SoftWave — Branch Performance Report: {month_names[m]} {y}"
+    ws["A1"].font = Font(name="Arial", size=13, bold=True, color=WHITE)
+    ws["A1"].fill = fill(NAVY); ws["A1"].alignment = ctr()
+    ws.row_dimensions[1].height = 26
+
+    ws.merge_cells("A2:H2")
+    ws["A2"] = f"Generated: {dtt.now().strftime('%d %B %Y at %H:%M')}"
+    ws["A2"].font = Font(name="Arial", size=9, italic=True, color="64748B")
+    ws["A2"].fill = fill("F1F5F9"); ws["A2"].alignment = ctr()
+
+    headers = ["Branch Code","Branch Name","Total Prints","Days Logged","Avg Prints/Day",
+               "Toner Replacements","Toner Cost (LKR)","Cost Per Copy (LKR)"]
+    for j, h in enumerate(headers, 1):
+        c = ws.cell(3, j, h)
+        c.font = Font(name="Arial", size=9, bold=True, color=WHITE)
+        c.fill = fill(BLUE); c.alignment = ctr(); c.border = border()
+    ws.row_dimensions[3].height = 22
+
+    total_prints = 0; total_cost = 0
+    for i, b in enumerate(branches):
+        row = 4 + i
+        bg = WHITE if i%2==0 else ALTROW
+        tp = int(b["total_prints"] or 0)
+        dl = int(b["days_logged"] or 0)
+        cost = float(b["toner_cost_lkr"] or 0)
+        avg_day = round(tp/dl, 0) if dl > 0 else 0
+        cpc = round(cost/tp, 2) if tp > 0 and cost > 0 else ""
+        vals = [b["branch_code"], b["branch_name"], tp, dl, avg_day,
+                int(b["toner_replacements"] or 0), round(cost, 2), cpc]
+        for j, v in enumerate(vals, 1):
+            c = ws.cell(row, j, v)
+            c.font = Font(name="Arial", size=9, bold=(j==3))
+            c.fill = fill(bg); c.alignment = ctr() if j != 2 else lft()
+            c.border = border()
+        total_prints += tp; total_cost += cost
+
+    # Grand total row
+    gr = 4 + len(branches)
+    ws.merge_cells(f"A{gr}:B{gr}")
+    ws[f"A{gr}"] = "GRAND TOTAL"
+    ws[f"A{gr}"].font = Font(name="Arial", size=10, bold=True, color=WHITE)
+    ws[f"A{gr}"].fill = fill(NAVY); ws[f"A{gr}"].alignment = ctr()
+    for col, val in [(3, total_prints), (7, round(total_cost, 2)),
+                     (8, round(total_cost/total_prints, 2) if total_prints > 0 and total_cost > 0 else "")]:
+        c = ws.cell(gr, col, val)
+        c.font = Font(name="Arial", size=10, bold=True, color=WHITE)
+        c.fill = fill(NAVY); c.alignment = ctr(); c.border = border()
+
+    ws.column_dimensions["A"].width = 12
+    ws.column_dimensions["B"].width = 22
+    for col in "CDEFGH": ws.column_dimensions[col].width = 14
+    ws.freeze_panes = "A4"
+
+    buf = io.BytesIO()
+    wb.save(buf); buf.seek(0)
+    fname = f"BranchReport_{y}_{str(m).zfill(2)}.xlsx"
+    return StreamingResponse(buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={fname}"})
+
 # ── Monthly print totals ─────────────────────────────────────────────────────
 @router.get("/prints/monthly")
 def get_monthly_prints(

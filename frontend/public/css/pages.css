@@ -624,7 +624,7 @@
 .eod-side-lbl:first-of-type { margin-top:0; }
 .eod-input { width:100%; padding:12px 6px; border:2px solid var(--sb); border-radius:10px;
   font-family:var(--m); font-size:20px; font-weight:700; color:var(--tx);
-  background:#f8fafc; text-align:center; transition:all .18s; appearance:textfield; -moz-appearance:textfield; }
+  background:#f8fafc; text-align:center; transition:all .18s; appearance:textfield; }
 .eod-input::-webkit-outer-spin-button,
 .eod-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .eod-input:focus { outline:none; border-color:var(--c1); background:#fff; box-shadow:0 0 0 4px rgba(14,165,233,.12); }
@@ -955,7 +955,6 @@
   text-align: center;
   transition: all .2s;
   appearance: textfield;
-  -moz-appearance: textfield;
   box-sizing: border-box;
 }
 .eod2-input::-webkit-outer-spin-button,
@@ -1440,7 +1439,6 @@
   font-family: var(--m); box-sizing: border-box;
   transition: border-color .2s, box-shadow .2s;
   appearance: textfield;
-  -moz-appearance: textfield;
 }
 .eod3-total-input::-webkit-outer-spin-button,
 .eod3-total-input::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -1488,7 +1486,6 @@
   font-family: var(--m); outline: none;
   transition: border-color .2s; box-sizing: border-box;
   appearance: textfield;
-  -moz-appearance: textfield;
 }
 .eod3-paper-inp::-webkit-outer-spin-button,
 .eod3-paper-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -1577,4 +1574,58 @@
 }
 @media (max-width: 480px) {
   .pr-tab { padding: 9px 14px; font-size: 13px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   BRANCH PERFORMANCE REPORT
+   ══════════════════════════════════════════════════════════ */
+.br-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px; margin-bottom: 24px;
+}
+.br-card {
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 16px; padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  transition: box-shadow .2s;
+}
+.br-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.09); }
+.br-card-top {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 10px;
+}
+.br-code {
+  background: #dbeafe; color: #1d4ed8;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 5px;
+  font-family: monospace; margin-right: 7px;
+}
+.br-name  { font-size: 13px; font-weight: 700; color: #0f172a; }
+.br-prints { font-size: 22px; font-weight: 900; color: #0ea5e9; white-space: nowrap; }
+.br-bar-wrap {
+  height: 6px; background: #f1f5f9;
+  border-radius: 3px; overflow: hidden; margin-bottom: 10px;
+}
+.br-bar {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #0ea5e9, #6366f1);
+  transition: width .6s ease;
+}
+.br-stats {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.br-stat {
+  font-size: 11px; color: #64748b; font-weight: 500;
+  background: #f8fafc; padding: 2px 8px; border-radius: 5px;
+}
+.br-cpc-badge {
+  font-size: 11px; font-weight: 700;
+  background: #f0fdf4; color: #15803d;
+  padding: 2px 8px; border-radius: 5px;
+}
+
+@media (max-width: 640px) {
+  .br-grid { grid-template-columns: 1fr; }
+  .br-prints { font-size: 18px; }
 }
