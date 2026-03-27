@@ -187,8 +187,8 @@ function eodOpenPrinter(pid) {
   var btn=document.getElementById('eod-pop-save');
   btn.textContent='✓ Save This Printer'; btn.disabled=false; btn.style.background='';
 
-  /* Scroll page to top so overlay covers the visible area */
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  /* Lock scroll and show popup — same as paper popup */
+  eodLockScroll();
 
   var overlay=document.getElementById('eod-pop-overlay');
   overlay.style.display='flex';
@@ -203,6 +203,7 @@ function eodClosePop() {
   box.classList.remove('open');
   setTimeout(function(){
     document.getElementById('eod-pop-overlay').style.display='none';
+    eodUnlockScroll();
   },300);
 }
 

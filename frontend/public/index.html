@@ -695,45 +695,44 @@
         </div>
       </div>
 
-      <!-- ── Printer popup modal ───────────────────────── -->
-      <div class="eod3-pop-overlay" id="eod-pop-overlay"
-           style="display:none" onclick="if(event.target===this) eodClosePop()">
-        <div class="eod3-pop-box" id="eod-pop-box">
+    </div><!-- /page-eodlog -->
 
-          <!-- Header -->
-          <div class="eod3-pop-hdr">
-            <div class="eod3-pop-hdr-left">
-              <div class="eod3-pop-code" id="eod-pop-code"></div>
-              <div class="eod3-pop-model" id="eod-pop-model"></div>
-            </div>
-            <div class="eod3-pop-hdr-right">
-              <div class="eod3-pop-pct" id="eod-pop-pct"></div>
-              <button class="eod3-pop-close" onclick="eodClosePop()">✕</button>
-            </div>
+    <!-- ── PRINTER POPUP (outside page for correct mobile overlay) ── -->
+    <div class="eod3-pop-overlay" id="eod-pop-overlay"
+         style="display:none" onclick="if(event.target===this) eodClosePop()">
+      <div class="eod3-pop-box" id="eod-pop-box">
+
+        <!-- Header -->
+        <div class="eod3-pop-hdr">
+          <div class="eod3-pop-hdr-left">
+            <div class="eod3-pop-code" id="eod-pop-code"></div>
+            <div class="eod3-pop-model" id="eod-pop-model"></div>
           </div>
-
-          <!-- Total prints input -->
-          <div class="eod3-pop-section">
-            <div class="eod3-pop-section-title">🖨️ Total Prints Today</div>
-            <div class="eod3-pop-section-sub">Enter the total number shown on the printer counter</div>
-            <input type="number" class="eod3-total-input" id="eod-pop-total"
-              placeholder="e.g. 1250" inputmode="numeric" min="0"
-              oninput="eodPopTotalChanged()">
-            <div class="eod3-total-preview" id="eod-pop-total-preview"></div>
+          <div class="eod3-pop-hdr-right">
+            <div class="eod3-pop-pct" id="eod-pop-pct"></div>
+            <button class="eod3-pop-close" onclick="eodClosePop()">✕</button>
           </div>
-
-
-
-          <!-- Save button -->
-          <div class="eod3-pop-footer">
-            <button class="eod3-pop-save-btn" id="eod-pop-save" onclick="eodPopSave()">
-              ✓ Save This Printer
-            </button>
-          </div>
-
         </div>
+
+        <!-- Total prints input -->
+        <div class="eod3-pop-section">
+          <div class="eod3-pop-section-title">🖨️ Total Prints Today</div>
+          <div class="eod3-pop-section-sub">Enter the total number shown on the printer counter</div>
+          <input type="number" class="eod3-total-input" id="eod-pop-total"
+            placeholder="e.g. 1250" inputmode="numeric" min="0"
+            oninput="eodPopTotalChanged()">
+          <div class="eod3-total-preview" id="eod-pop-total-preview"></div>
+        </div>
+
+        <!-- Save button -->
+        <div class="eod3-pop-footer">
+          <button class="eod3-pop-save-btn" id="eod-pop-save" onclick="eodPopSave()">
+            ✓ Save This Printer
+          </button>
+        </div>
+
       </div>
-    </div><!-- /eod3-pop-overlay -->
+    </div><!-- /eod-pop-overlay -->
 
     <!-- ── PAPER POPUP ────────────────────────────────── -->
     <div class="eod3-pop-overlay" id="eod-paper-pop-overlay"
