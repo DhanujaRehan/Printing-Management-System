@@ -11,7 +11,7 @@ var _eodLogDate    = null;
 var _eodActivePid  = null;
 var _eodPaperData  = { a4: null, b4: null, legal: null };
 var _eodPaperActive = null;
-var _eodScrollY    = 0;   // remember scroll before popup
+var _eodScrollY    = 0;
 
 var PAPER_META = {
   a4:    { icon: '📄', label: 'A4 Paper',    color: '#0ea5e9' },
@@ -33,14 +33,14 @@ function eodEmpty(icon, title, sub) {
     +(sub?'<div class="eod-empty-sub">'+sub+'</div>':'')+'</div>';
 }
 
-/* ── Popup scroll lock helpers ───────────────────────────── */
+/* ── Paper popup scroll lock (only for paper popup) ─────── */
 function eodLockScroll() {
   _eodScrollY = window.scrollY || window.pageYOffset;
-  document.body.style.position   = 'fixed';
-  document.body.style.top        = '-' + _eodScrollY + 'px';
-  document.body.style.left       = '0';
-  document.body.style.right      = '0';
-  document.body.style.overflow   = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top      = '-' + _eodScrollY + 'px';
+  document.body.style.left     = '0';
+  document.body.style.right    = '0';
+  document.body.style.overflow = 'hidden';
 }
 function eodUnlockScroll() {
   document.body.style.position = '';
@@ -166,7 +166,7 @@ function eodUpdateSummaryBar() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   PRINTER POPUP — total prints only
+   PRINTER POPUP — scroll to top then show
    ══════════════════════════════════════════════════════════ */
 function eodOpenPrinter(pid) {
   _eodActivePid = pid;
@@ -182,17 +182,16 @@ function eodOpenPrinter(pid) {
   var ti=document.getElementById('eod-pop-total');
   if(ti) ti.value='';
   var prev=document.getElementById('eod-pop-total-preview');
-  if(prev){ prev.textContent=''; }
+  if(prev) prev.textContent='';
 
   var btn=document.getElementById('eod-pop-save');
   btn.textContent='✓ Save This Printer'; btn.disabled=false; btn.style.background='';
 
-  /* Lock scroll so popup appears at top of viewport */
-  eodLockScroll();
+  /* Scroll page to top so overlay covers the visible area */
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   var overlay=document.getElementById('eod-pop-overlay');
   overlay.style.display='flex';
-  /* Reset popup scroll to top */
   var box=document.getElementById('eod-pop-box');
   box.scrollTop=0;
   setTimeout(function(){ box.classList.add('open'); },10);
@@ -204,7 +203,6 @@ function eodClosePop() {
   box.classList.remove('open');
   setTimeout(function(){
     document.getElementById('eod-pop-overlay').style.display='none';
-    eodUnlockScroll();
   },300);
 }
 
@@ -276,7 +274,7 @@ function eodRenderPaperCards(show) {
     +'</div>';
 }
 
-/* ── Paper popup ─────────────────────────────────────────── */
+/* ── Paper popup — uses scroll lock (lives outside .main) ── */
 function eodOpenPaperPop(type) {
   if(!_eodBranchId){ toast('⚠️','Select a branch first',''); return; }
   _eodPaperActive=type;
@@ -298,9 +296,7 @@ function eodOpenPaperPop(type) {
   var btn=document.getElementById('eod-paper-pop-save');
   if(btn){ btn.textContent='✓ Save '+m.label; btn.disabled=false; btn.style.background=''; }
 
-  /* Lock scroll so popup appears at top of viewport */
   eodLockScroll();
-
   var overlay=document.getElementById('eod-paper-pop-overlay');
   overlay.style.display='flex';
   var box=document.getElementById('eod-paper-pop-box');
