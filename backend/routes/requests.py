@@ -35,6 +35,18 @@ class PrintLogBody(BaseModel):
     letter_double:  Optional[int] = 0
 
 
+class DailyPaperLogBody(BaseModel):
+    branch_id:   int
+    log_date:    str
+    paper_type:  str
+    single_side: int = 0
+    double_side: int = 0
+
+
+class DispatchBody(BaseModel):
+    dispatch_note: Optional[str] = None
+
+
 @router.get("/pending-count")
 def get_pending_count(current_user: dict = Depends(get_current_user)):
     try:
@@ -142,16 +154,14 @@ def review_request(
         fetch="none"
     )
 
-    # Send status notification email to Nuwan
     try:
         from scheduler import send_request_status_email
         import threading
         threading.Thread(target=send_request_status_email, args=(request_id,), daemon=True).start()
-    except Exception: pass
+    except Exception:
+        pass
 
     if body.status == "approved":
-        # NOTE: Toner stock deduction happens at DISPATCH time (store keeper),
-        # not at approval time. Approval just signals the store to prepare.
         if req["request_type"] == "paper" and req["pt_id"]:
             try:
                 branch_stock = query(
@@ -258,15 +268,12 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
             fetch="one"
         )
 
-    # Update avg daily copies
     query(
         "UPDATE toner_installations SET avg_daily_copies = %s "
         "WHERE printer_id = %s AND is_current = TRUE",
         (body.print_count, body.printer_id), fetch="none"
     )
 
-    # Recalculate total_copies_done from ALL print_logs for this printer
-    # since the current toner was installed
     query("""
         UPDATE toner_installations ti
         SET total_copies_done = COALESCE((
@@ -281,17 +288,12 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
     return {"message": "Print count logged", "id": result["id"]}
 
 
-class DispatchBody(BaseModel):
-    dispatch_note: Optional[str] = None
-
-
 @router.patch("/{request_id}/dispatch")
 def dispatch_request(
     request_id: int,
     body: DispatchBody,
     current_user: dict = Depends(require_role("store", "manager", "dba"))
 ):
-    """Store keeper dispatches toner — deducts stock and updates printer installation."""
     req = query(
         "SELECT rr.*, p.branch_id "
         "FROM replacement_requests rr "
@@ -304,7 +306,6 @@ def dispatch_request(
     if req["status"] != "approved":
         raise HTTPException(status_code=400, detail="Only approved requests can be dispatched")
 
-    # ── Deduct toner stock ────────────────────────────────────
     if req["toner_model_id"]:
         stock = query(
             "SELECT quantity FROM toner_stock WHERE toner_model_id=%s",
@@ -315,22 +316,16 @@ def dispatch_request(
                 status_code=400,
                 detail=f"Insufficient stock. Available: {stock['quantity'] if stock else 0}"
             )
-
-        # Deduct from warehouse
         query(
             "UPDATE toner_stock SET quantity = quantity - %s, updated_at=NOW() "
             "WHERE toner_model_id=%s",
             (req["quantity"], req["toner_model_id"]), fetch="none"
         )
-
-        # Update printer toner installation — mark old as not current
         query(
             "UPDATE toner_installations SET is_current=FALSE "
             "WHERE printer_id=%s AND is_current=TRUE",
             (req["printer_id"],), fetch="none"
         )
-
-        # Create new installation record (full toner = 100%)
         install = query(
             "INSERT INTO toner_installations "
             "(printer_id, toner_model_id, installed_by, yield_copies, avg_daily_copies, current_pct, current_copies, is_current) "
@@ -338,8 +333,6 @@ def dispatch_request(
             (req["printer_id"], req["toner_model_id"], int(current_user["sub"])),
             fetch="one"
         )
-
-        # Log stock movement
         query(
             "INSERT INTO stock_movements "
             "(toner_model_id, movement_type, quantity, branch_id, printer_id, installation_id, performed_by, notes) "
@@ -350,7 +343,6 @@ def dispatch_request(
             fetch="none"
         )
 
-    # ── Mark as dispatched ────────────────────────────────────
     query(
         "UPDATE replacement_requests SET status='dispatched', dispatched_by=%s, "
         "dispatched_at=NOW(), dispatch_note=%s WHERE id=%s",
@@ -362,7 +354,6 @@ def dispatch_request(
 
 @router.get("/approved-toner")
 def get_approved_toner_requests(current_user: dict = Depends(require_role("store", "manager", "dba"))):
-    """Returns approved toner requests awaiting dispatch — for store keeper."""
     return query(
         "SELECT rr.*, p.printer_code, b.code AS branch_code, b.name AS branch_name, "
         "tm.model_code AS toner_model_code, "
@@ -379,24 +370,12 @@ def get_approved_toner_requests(current_user: dict = Depends(require_role("store
         "ORDER BY CASE rr.status WHEN 'approved' THEN 0 ELSE 1 END, rr.reviewed_at DESC "
         "LIMIT 100"
     ) or []
-    # ════════════════════════════════════════════════════════════
-# ADD THESE TO THE BOTTOM OF backend/routes/requests.py
-# ════════════════════════════════════════════════════════════
-
-class DailyPaperLogBody(BaseModel):
-    branch_id:   int
-    log_date:    str
-    paper_type:  str   # 'a4' | 'b4' | 'legal'
-    single_side: int = 0
-    double_side: int = 0
 
 
 @router.post("/daily-paper-log")
 def save_daily_paper_log(body: DailyPaperLogBody, current_user: dict = Depends(get_current_user)):
-    """Save or update daily paper totals for a branch (upsert by branch+date+type)."""
     if body.paper_type not in ('a4', 'b4', 'legal'):
         raise HTTPException(status_code=400, detail="paper_type must be a4, b4 or legal")
-
     result = query("""
         INSERT INTO daily_paper_logs (branch_id, logged_by, log_date, paper_type, single_side, double_side)
         VALUES (%s, %s, %s::date, %s, %s, %s)
@@ -409,7 +388,6 @@ def save_daily_paper_log(body: DailyPaperLogBody, current_user: dict = Depends(g
         RETURNING id
     """, (body.branch_id, int(current_user["sub"]), body.log_date,
           body.paper_type, body.single_side, body.double_side), fetch="one")
-
     return {"message": "saved", "id": result["id"] if result else None}
 
 
@@ -419,7 +397,6 @@ def get_daily_paper_log(
     log_date: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get paper logs for a branch on a given date."""
     rows = query("""
         SELECT dpl.paper_type, dpl.single_side, dpl.double_side,
                u.full_name AS logged_by_name, dpl.created_at
