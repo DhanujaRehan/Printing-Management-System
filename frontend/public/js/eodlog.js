@@ -11,6 +11,7 @@ var _eodLogDate    = null;
 var _eodActivePid  = null;
 var _eodPaperData  = { a4: null, b4: null, legal: null };
 var _eodPaperActive = null;
+var _eodScrollY    = 0;   // remember scroll before popup
 
 var PAPER_META = {
   a4:    { icon: '📄', label: 'A4 Paper',    color: '#0ea5e9' },
@@ -30,6 +31,24 @@ function eodEmpty(icon, title, sub) {
   return '<div class="eod-empty"><div class="eod-empty-icon">'+icon+'</div>'
     +'<div class="eod-empty-title">'+title+'</div>'
     +(sub?'<div class="eod-empty-sub">'+sub+'</div>':'')+'</div>';
+}
+
+/* ── Popup scroll lock helpers ───────────────────────────── */
+function eodLockScroll() {
+  _eodScrollY = window.scrollY || window.pageYOffset;
+  document.body.style.position   = 'fixed';
+  document.body.style.top        = '-' + _eodScrollY + 'px';
+  document.body.style.left       = '0';
+  document.body.style.right      = '0';
+  document.body.style.overflow   = 'hidden';
+}
+function eodUnlockScroll() {
+  document.body.style.position = '';
+  document.body.style.top      = '';
+  document.body.style.left     = '';
+  document.body.style.right    = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, _eodScrollY);
 }
 
 /* ── Entry point ─────────────────────────────────────────── */
@@ -147,36 +166,54 @@ function eodUpdateSummaryBar() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   PRINTER POPUP — total prints only, no paper inputs
+   PRINTER POPUP — total prints only
    ══════════════════════════════════════════════════════════ */
 function eodOpenPrinter(pid) {
   _eodActivePid = pid;
   var p=_eodPrinters.find(function(x){ return x.printer_id===pid; });
   var pct=Math.round((p&&p.current_pct)||0);
   var tc=pct<=10?'#ef4444':pct<=25?'#f59e0b':'#10b981';
+
   document.getElementById('eod-pop-code').textContent  = p?p.printer_code:'';
   document.getElementById('eod-pop-model').textContent = p?(p.printer_model||''):'';
   document.getElementById('eod-pop-pct').textContent   = pct+'% Toner';
   document.getElementById('eod-pop-pct').style.color   = tc;
+
   var ti=document.getElementById('eod-pop-total');
   if(ti) ti.value='';
   var prev=document.getElementById('eod-pop-total-preview');
   if(prev){ prev.textContent=''; }
+
   var btn=document.getElementById('eod-pop-save');
   btn.textContent='✓ Save This Printer'; btn.disabled=false; btn.style.background='';
-  document.getElementById('eod-pop-overlay').style.display='flex';
-  setTimeout(function(){ document.getElementById('eod-pop-box').classList.add('open'); },10);
-  setTimeout(function(){ if(ti) ti.focus(); },200);
+
+  /* Lock scroll so popup appears at top of viewport */
+  eodLockScroll();
+
+  var overlay=document.getElementById('eod-pop-overlay');
+  overlay.style.display='flex';
+  /* Reset popup scroll to top */
+  var box=document.getElementById('eod-pop-box');
+  box.scrollTop=0;
+  setTimeout(function(){ box.classList.add('open'); },10);
+  setTimeout(function(){ if(ti) ti.focus(); },300);
 }
+
 function eodClosePop() {
-  document.getElementById('eod-pop-box').classList.remove('open');
-  setTimeout(function(){ document.getElementById('eod-pop-overlay').style.display='none'; },300);
+  var box=document.getElementById('eod-pop-box');
+  box.classList.remove('open');
+  setTimeout(function(){
+    document.getElementById('eod-pop-overlay').style.display='none';
+    eodUnlockScroll();
+  },300);
 }
+
 function eodPopTotalChanged() {
   var val=parseInt(document.getElementById('eod-pop-total').value)||0;
   var preview=document.getElementById('eod-pop-total-preview');
   if(preview){ preview.textContent=val>0?val.toLocaleString()+' prints':''; preview.style.color=val>0?'#0ea5e9':'#94a3b8'; }
 }
+
 async function eodPopSave() {
   var pid=_eodActivePid, total=parseInt(document.getElementById('eod-pop-total').value)||0;
   if(total<=0){ toast('⚠️','Enter total prints','Please enter the total print count'); return; }
@@ -244,33 +281,50 @@ function eodOpenPaperPop(type) {
   if(!_eodBranchId){ toast('⚠️','Select a branch first',''); return; }
   _eodPaperActive=type;
   var m=PAPER_META[type], data=_eodPaperData[type];
+
   var hdr=document.getElementById('eod-paper-pop-hdr');
   if(hdr) hdr.style.background='linear-gradient(135deg,'+m.color+','+m.color+'bb)';
   var title=document.getElementById('eod-paper-pop-title');
   if(title) title.textContent=m.icon+' '+m.label;
   var sub=document.getElementById('eod-paper-pop-sub');
   if(sub) sub.textContent='Branch daily total — '+eodFmtDate(_eodLogDate);
+
   var ss=document.getElementById('eod-paper-pop-single');
   var ds=document.getElementById('eod-paper-pop-double');
   if(ss) ss.value=data?(data.single_side||''):'';
   if(ds) ds.value=data?(data.double_side||''):'';
   eodPaperPopCalc();
+
   var btn=document.getElementById('eod-paper-pop-save');
   if(btn){ btn.textContent='✓ Save '+m.label; btn.disabled=false; btn.style.background=''; }
-  document.getElementById('eod-paper-pop-overlay').style.display='flex';
-  setTimeout(function(){ document.getElementById('eod-paper-pop-box').classList.add('open'); },10);
-  setTimeout(function(){ if(ss) ss.focus(); },200);
+
+  /* Lock scroll so popup appears at top of viewport */
+  eodLockScroll();
+
+  var overlay=document.getElementById('eod-paper-pop-overlay');
+  overlay.style.display='flex';
+  var box=document.getElementById('eod-paper-pop-box');
+  box.scrollTop=0;
+  setTimeout(function(){ box.classList.add('open'); },10);
+  setTimeout(function(){ if(ss) ss.focus(); },300);
 }
+
 function eodClosePaperPop() {
-  document.getElementById('eod-paper-pop-box').classList.remove('open');
-  setTimeout(function(){ document.getElementById('eod-paper-pop-overlay').style.display='none'; },300);
+  var box=document.getElementById('eod-paper-pop-box');
+  box.classList.remove('open');
+  setTimeout(function(){
+    document.getElementById('eod-paper-pop-overlay').style.display='none';
+    eodUnlockScroll();
+  },300);
 }
+
 function eodPaperPopCalc() {
   var s=parseInt(document.getElementById('eod-paper-pop-single').value)||0;
   var d=parseInt(document.getElementById('eod-paper-pop-double').value)||0;
   var prev=document.getElementById('eod-paper-pop-preview');
   if(prev){ var t=s+d; prev.textContent=t>0?'Total: '+t.toLocaleString()+' sheets':''; prev.style.color=t>0?'#0ea5e9':'#94a3b8'; }
 }
+
 async function eodPaperPopSave() {
   var type=_eodPaperActive;
   var single=parseInt(document.getElementById('eod-paper-pop-single').value)||0;
