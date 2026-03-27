@@ -379,3 +379,52 @@ def get_approved_toner_requests(current_user: dict = Depends(require_role("store
         "ORDER BY CASE rr.status WHEN 'approved' THEN 0 ELSE 1 END, rr.reviewed_at DESC "
         "LIMIT 100"
     ) or []
+    # ════════════════════════════════════════════════════════════
+# ADD THESE TO THE BOTTOM OF backend/routes/requests.py
+# ════════════════════════════════════════════════════════════
+
+class DailyPaperLogBody(BaseModel):
+    branch_id:   int
+    log_date:    str
+    paper_type:  str   # 'a4' | 'b4' | 'legal'
+    single_side: int = 0
+    double_side: int = 0
+
+
+@router.post("/daily-paper-log")
+def save_daily_paper_log(body: DailyPaperLogBody, current_user: dict = Depends(get_current_user)):
+    """Save or update daily paper totals for a branch (upsert by branch+date+type)."""
+    if body.paper_type not in ('a4', 'b4', 'legal'):
+        raise HTTPException(status_code=400, detail="paper_type must be a4, b4 or legal")
+
+    result = query("""
+        INSERT INTO daily_paper_logs (branch_id, logged_by, log_date, paper_type, single_side, double_side)
+        VALUES (%s, %s, %s::date, %s, %s, %s)
+        ON CONFLICT (branch_id, log_date, paper_type)
+        DO UPDATE SET
+            single_side = EXCLUDED.single_side,
+            double_side = EXCLUDED.double_side,
+            logged_by   = EXCLUDED.logged_by,
+            created_at  = NOW()
+        RETURNING id
+    """, (body.branch_id, int(current_user["sub"]), body.log_date,
+          body.paper_type, body.single_side, body.double_side), fetch="one")
+
+    return {"message": "saved", "id": result["id"] if result else None}
+
+
+@router.get("/daily-paper-log")
+def get_daily_paper_log(
+    branch_id: int,
+    log_date: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get paper logs for a branch on a given date."""
+    rows = query("""
+        SELECT dpl.paper_type, dpl.single_side, dpl.double_side,
+               u.full_name AS logged_by_name, dpl.created_at
+        FROM daily_paper_logs dpl
+        LEFT JOIN users u ON u.id = dpl.logged_by
+        WHERE dpl.branch_id = %s AND dpl.log_date = %s::date
+    """, (branch_id, log_date)) or []
+    return rows

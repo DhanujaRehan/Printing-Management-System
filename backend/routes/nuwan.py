@@ -167,7 +167,68 @@ def get_yesterday_prints(current_user: dict = Depends(require_nuwan)):
         "missing_count": sum(1 for r in result if not r["has_submitted"]),
     }
 
+# ════════════════════════════════════════════════════════════
+# ADD THIS ENDPOINT TO backend/routes/nuwan.py
+# Paste it AFTER the get_yesterday_prints function
+# ════════════════════════════════════════════════════════════
 
+@router.get("/prints/paper-summary")
+def get_paper_summary(
+    branch_id: int = None,
+    date_from: str = None,
+    date_to:   str = None,
+    month:     int = None,
+    year:      int = None,
+    current_user: dict = Depends(require_nuwan)
+):
+    """Daily paper totals from daily_paper_logs table — for Nuwan & Manager dashboards."""
+    filters = ["1=1"]
+    params  = []
+    if branch_id:
+        filters.append("dpl.branch_id = %s"); params.append(branch_id)
+    if date_from:
+        filters.append("dpl.log_date >= %s::date"); params.append(date_from)
+    if date_to:
+        filters.append("dpl.log_date <= %s::date"); params.append(date_to)
+    if month and year:
+        filters.append("EXTRACT(MONTH FROM dpl.log_date) = %s")
+        filters.append("EXTRACT(YEAR  FROM dpl.log_date) = %s")
+        params.extend([month, year])
+    elif year:
+        filters.append("EXTRACT(YEAR FROM dpl.log_date) = %s"); params.append(year)
+
+    where = " AND ".join(filters)
+
+    rows = query(f"""
+        SELECT
+            dpl.log_date,
+            b.id   AS branch_id,
+            b.code AS branch_code,
+            b.name AS branch_name,
+            dpl.paper_type,
+            dpl.single_side,
+            dpl.double_side,
+            dpl.single_side + dpl.double_side AS total_sheets,
+            u.full_name AS logged_by,
+            dpl.created_at
+        FROM daily_paper_logs dpl
+        JOIN branches b ON b.id = dpl.branch_id
+        LEFT JOIN users u ON u.id = dpl.logged_by
+        WHERE {where}
+        ORDER BY dpl.log_date DESC, b.code, dpl.paper_type
+    """, tuple(params)) or []
+
+    a4_total    = sum(r["total_sheets"] for r in rows if r["paper_type"] == "a4")
+    b4_total    = sum(r["total_sheets"] for r in rows if r["paper_type"] == "b4")
+    legal_total = sum(r["total_sheets"] for r in rows if r["paper_type"] == "legal")
+
+    return {
+        "rows":        rows,
+        "a4_total":    a4_total,
+        "b4_total":    b4_total,
+        "legal_total": legal_total,
+        "grand_total": a4_total + b4_total + legal_total,
+    }
 
 # ── Branch detail for a specific date ────────────────────────────────────────
 @router.get("/prints/branch-detail/{branch_id}")
