@@ -599,83 +599,181 @@ async function nwShowBranchDetail(branchId,branchLabel){
 function nwCloseDrawer(){document.getElementById('nw-drawer-overlay').classList.remove('vis');document.getElementById('nw-drawer').classList.remove('open');document.body.style.overflow='';}
 
 /* ── PRINT SUMMARY ────────────────────────────────────────── */
-var _nwSummaryData=null;
-async function nwInitSummary(){
-  var sel=document.getElementById('nws-branch');
-  if(sel){
-    var branches=await nwApi('/nuwan/branches')||[];
-    while(sel.options.length>1)sel.remove(1);
-    branches.forEach(function(b){sel.add(new Option(b.code+' — '+b.name,b.id));});
+/* ── PRINT SUMMARY — replace nwLoadSummary function in nuwan.html ── */
+
+var _nwSummaryData = null;
+var _nwPaperData   = null;
+
+async function nwInitSummary() {
+  var sel = document.getElementById('nws-branch');
+  if (sel) {
+    var branches = await nwApi('/nuwan/branches') || [];
+    while (sel.options.length > 1) sel.remove(1);
+    branches.forEach(function(b) { sel.add(new Option(b.code + ' — ' + b.name, b.id)); });
   }
-  var now=new Date();
-  var mSel=document.getElementById('nws-month'),ySel=document.getElementById('nws-year');
-  if(mSel&&!mSel.value)mSel.value=now.getMonth()+1;
-  if(ySel&&!ySel.value)ySel.value=now.getFullYear();
+  var now = new Date();
+  var mSel = document.getElementById('nws-month'), ySel = document.getElementById('nws-year');
+  if (mSel && !mSel.value) mSel.value = now.getMonth() + 1;
+  if (ySel && !ySel.value) ySel.value = now.getFullYear();
   await nwLoadSummary();
 }
 
-async function nwLoadSummary(){
-  var from=(document.getElementById('nws-from')||{}).value||'';
-  var to=(document.getElementById('nws-to')||{}).value||'';
-  var month=(document.getElementById('nws-month')||{}).value||'';
-  var year=(document.getElementById('nws-year')||{}).value||'';
-  var branch=(document.getElementById('nws-branch')||{}).value||'';
-  var params=[];
-  if(from)params.push('date_from='+from);
-  if(to)params.push('date_to='+to);
-  if(month)params.push('month='+month);
-  if(year)params.push('year='+year);
-  if(branch)params.push('branch_id='+branch);
-  var qs=params.length?'?'+params.join('&'):'';
+async function nwLoadSummary() {
+  var from   = (document.getElementById('nws-from')   || {}).value || '';
+  var to     = (document.getElementById('nws-to')     || {}).value || '';
+  var month  = (document.getElementById('nws-month')  || {}).value || '';
+  var year   = (document.getElementById('nws-year')   || {}).value || '';
+  var branch = (document.getElementById('nws-branch') || {}).value || '';
 
-  document.getElementById('nws-empty').style.display='none';
-  document.getElementById('nws-kpis').style.display='none';
-  document.getElementById('nws-branch-cards').innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  document.getElementById('nws-table-wrap').style.display='none';
+  var params = [];
+  if (from)   params.push('date_from=' + from);
+  if (to)     params.push('date_to='   + to);
+  if (month)  params.push('month='     + month);
+  if (year)   params.push('year='      + year);
+  if (branch) params.push('branch_id=' + branch);
+  var qs = params.length ? '?' + params.join('&') : '';
 
-  var d=await nwApi('/nuwan/prints/summary'+qs);
-  if(!d){
-    document.getElementById('nws-branch-cards').innerHTML='';
-    document.getElementById('nws-empty').style.display='';
+  document.getElementById('nws-empty').style.display      = 'none';
+  document.getElementById('nws-kpis').style.display       = 'none';
+  document.getElementById('nws-branch-cards').innerHTML   = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  document.getElementById('nws-table-wrap').style.display = 'none';
+
+  // Fetch both print summary and paper summary in parallel
+  var results = await Promise.all([
+    nwApi('/nuwan/prints/summary' + qs),
+    nwApi('/nuwan/prints/paper-summary' + qs),
+  ]);
+  var d    = results[0];
+  var psum = results[1];
+
+  if (!d) {
+    document.getElementById('nws-branch-cards').innerHTML = '';
+    document.getElementById('nws-empty').style.display = '';
     return;
   }
-  _nwSummaryData=d;
+  _nwSummaryData = d;
+  _nwPaperData   = psum;
 
-  var setKpi=function(id,v){var el=document.getElementById(id);if(el)el.textContent=typeof v==='number'?v.toLocaleString():v;};
-  setKpi('nws-kpi-total',d.grand_total);
-  setKpi('nws-kpi-a4',d.grand_a4);
-  setKpi('nws-kpi-b4',d.grand_b4);
-  setKpi('nws-kpi-lg',d.grand_legal);
-  setKpi('nws-kpi-records',d.record_count);
-  document.getElementById('nws-kpis').style.display='grid';
+  // Build paper lookup: branch_code|date → {a4_single, a4_double, b4_single, b4_double, legal_single, legal_double}
+  var paperMap = {};
+  if (psum && psum.rows) {
+    psum.rows.forEach(function(r) {
+      var dateKey = r.log_date ? r.log_date.toString().slice(0, 10) : '';
+      var key = (r.branch_code || '') + '|' + dateKey;
+      if (!paperMap[key]) paperMap[key] = { a4_single:0, a4_double:0, b4_single:0, b4_double:0, legal_single:0, legal_double:0 };
+      if (r.paper_type === 'a4')    { paperMap[key].a4_single    += parseInt(r.single_side) || 0; paperMap[key].a4_double    += parseInt(r.double_side) || 0; }
+      if (r.paper_type === 'b4')    { paperMap[key].b4_single    += parseInt(r.single_side) || 0; paperMap[key].b4_double    += parseInt(r.double_side) || 0; }
+      if (r.paper_type === 'legal') { paperMap[key].legal_single += parseInt(r.single_side) || 0; paperMap[key].legal_double += parseInt(r.double_side) || 0; }
+    });
+  }
 
-  var bc=document.getElementById('nws-branch-cards');
-  if(!d.branch_totals||!d.branch_totals.length){
-    bc.innerHTML='<div class="nws-empty"><div style="font-size:40px;margin-bottom:10px">📊</div><div>No data found for this period.</div></div>';
+  // KPIs — use paper summary totals for A4/B4/Legal
+  var a4Total    = psum ? (psum.a4_total    || 0) : 0;
+  var b4Total    = psum ? (psum.b4_total    || 0) : 0;
+  var legalTotal = psum ? (psum.legal_total || 0) : 0;
+
+  var setKpi = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = typeof v === 'number' ? v.toLocaleString() : v; };
+  setKpi('nws-kpi-total',   d.grand_total);
+  setKpi('nws-kpi-a4',      a4Total);
+  setKpi('nws-kpi-b4',      b4Total);
+  setKpi('nws-kpi-lg',      legalTotal);
+  setKpi('nws-kpi-records', d.record_count);
+  document.getElementById('nws-kpis').style.display = 'grid';
+
+  // Branch cards
+  var bc = document.getElementById('nws-branch-cards');
+  if (!d.branch_totals || !d.branch_totals.length) {
+    bc.innerHTML = '<div class="nws-empty"><div style="font-size:40px;margin-bottom:10px">📊</div><div>No data found for this period.</div></div>';
     return;
   }
 
-  var maxPrints=Math.max.apply(null,d.branch_totals.map(function(b){return b.total_prints||0;}))||1;
-  bc.innerHTML='<div class="nws-branch-grid">'+d.branch_totals.map(function(b){
-    var barW=Math.round((b.total_prints/maxPrints)*100);
-    return '<div class="nws-branch-card"><div class="nws-bc-top"><div><span class="nws-bc-code">'+b.branch_code+'</span><span class="nws-bc-name">'+b.branch_name+'</span></div><div class="nws-bc-total">'+(b.total_prints||0).toLocaleString()+'</div></div><div class="nws-bc-bar-wrap"><div class="nws-bc-bar" style="width:'+barW+'%"></div></div><div class="nws-bc-pills">'+(b.a4_total>0?'<span class="nws-pill nws-pill-a4">A4 '+(b.a4_total||0).toLocaleString()+'</span>':'')+(b.b4_total>0?'<span class="nws-pill nws-pill-b4">B4 '+(b.b4_total||0).toLocaleString()+'</span>':'')+(b.legal_total>0?'<span class="nws-pill nws-pill-lg">Legal '+(b.legal_total||0).toLocaleString()+'</span>':'')+'<span class="nws-pill nws-pill-days">'+(b.days_logged||0)+' days</span></div></div>';
-  }).join('')+'</div>';
+  var maxPrints = Math.max.apply(null, d.branch_totals.map(function(b) { return b.total_prints || 0; })) || 1;
 
-  var tbody=document.getElementById('nws-tbody'),label=document.getElementById('nws-record-label');
-  if(label)label.textContent=d.record_count+' entries';
-  if(tbody&&d.logs&&d.logs.length){
-    // Sort client-side: latest date+time first
-    var sortedLogs = d.logs.slice().sort(function(a,b){
-      var da = new Date(a.created_at||a.log_date), db = new Date(b.created_at||b.log_date);
+  // Build branch-level paper totals from paperMap
+  var branchPaperMap = {};
+  if (psum && psum.rows) {
+    psum.rows.forEach(function(r) {
+      var bc_code = r.branch_code || '';
+      if (!branchPaperMap[bc_code]) branchPaperMap[bc_code] = { a4: 0, b4: 0, legal: 0 };
+      var total = (parseInt(r.single_side) || 0) + (parseInt(r.double_side) || 0);
+      if (r.paper_type === 'a4')    branchPaperMap[bc_code].a4    += total;
+      if (r.paper_type === 'b4')    branchPaperMap[bc_code].b4    += total;
+      if (r.paper_type === 'legal') branchPaperMap[bc_code].legal += total;
+    });
+  }
+
+  bc.innerHTML = '<div class="nws-branch-grid">' + d.branch_totals.map(function(b) {
+    var barW   = Math.round((b.total_prints / maxPrints) * 100);
+    var bPaper = branchPaperMap[b.branch_code] || { a4: 0, b4: 0, legal: 0 };
+    return '<div class="nws-branch-card">'
+      + '<div class="nws-bc-top">'
+      +   '<div><span class="nws-bc-code">' + b.branch_code + '</span><span class="nws-bc-name">' + b.branch_name + '</span></div>'
+      +   '<div class="nws-bc-total">' + (b.total_prints || 0).toLocaleString() + '</div>'
+      + '</div>'
+      + '<div class="nws-bc-bar-wrap"><div class="nws-bc-bar" style="width:' + barW + '%"></div></div>'
+      + '<div class="nws-bc-pills">'
+      +   (bPaper.a4    > 0 ? '<span class="nws-pill nws-pill-a4">A4 '    + bPaper.a4.toLocaleString()    + '</span>' : '')
+      +   (bPaper.b4    > 0 ? '<span class="nws-pill nws-pill-b4">B4 '    + bPaper.b4.toLocaleString()    + '</span>' : '')
+      +   (bPaper.legal > 0 ? '<span class="nws-pill nws-pill-lg">Legal ' + bPaper.legal.toLocaleString() + '</span>' : '')
+      +   '<span class="nws-pill nws-pill-days">' + (b.days_logged || 0) + ' days</span>'
+      + '</div>'
+      + '</div>';
+  }).join('') + '</div>';
+
+  // Detailed log table — show branch paper totals per date instead of per-printer zeros
+  var tbody = document.getElementById('nws-tbody');
+  var label = document.getElementById('nws-record-label');
+  if (label) label.textContent = d.record_count + ' entries';
+
+  if (tbody && d.logs && d.logs.length) {
+    // Sort latest first
+    var sortedLogs = d.logs.slice().sort(function(a, b) {
+      var da = new Date(a.created_at || a.log_date), db = new Date(b.created_at || b.log_date);
       return db - da;
     });
-    tbody.innerHTML=sortedLogs.slice(0,500).map(function(l){
-      var dateStr=l.log_date?new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
-      var timeStr=l.created_at?new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
-      var a4=(l.a4_single||0)+(l.a4_double||0),b4=(l.b4_single||0)+(l.b4_double||0),lg=(l.letter_single||0)+(l.letter_double||0);
-      return '<tr><td class="nws-td-date">'+dateStr+'</td><td><span class="nws-td-code">'+(l.branch_code||'—')+'</span></td><td class="nws-td-printer">'+(l.printer_code||'—')+'</td><td class="nws-td-total">'+(l.print_count||0).toLocaleString()+'</td><td class="nws-td-paper">'+(a4||'—')+'</td><td class="nws-td-paper">'+(b4||'—')+'</td><td class="nws-td-paper">'+(lg||'—')+'</td><td class="nws-td-user">'+(l.logged_by||'—')+'</td><td class="nws-td-time">'+timeStr+'</td></tr>';
+
+    // Track which branch+date combos we've already shown paper for
+    var paperShown = {};
+
+    tbody.innerHTML = sortedLogs.slice(0, 500).map(function(l) {
+      var dateStr = l.log_date
+        ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+        : '—';
+      var timeStr = l.created_at
+        ? new Date(l.created_at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
+        : '—';
+
+      // Get paper for this branch+date from daily_paper_logs
+      var dateKey  = l.log_date ? l.log_date.toString().slice(0, 10) : '';
+      var paperKey = (l.branch_code || '') + '|' + dateKey;
+      var paper    = paperMap[paperKey] || {};
+
+      // Only show paper on first printer row per branch+date (avoid duplicating)
+      var showPaper = !paperShown[paperKey];
+      if (showPaper) paperShown[paperKey] = true;
+
+      var a4Total  = showPaper ? ((paper.a4_single    || 0) + (paper.a4_double    || 0)) : null;
+      var b4Total  = showPaper ? ((paper.b4_single    || 0) + (paper.b4_double    || 0)) : null;
+      var lgTotal  = showPaper ? ((paper.legal_single || 0) + (paper.legal_double || 0)) : null;
+
+      var a4Cell = a4Total !== null ? (a4Total > 0 ? '<span style="font-weight:700;color:#0369a1">' + a4Total.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
+      var b4Cell = b4Total !== null ? (b4Total > 0 ? '<span style="font-weight:700;color:#6d28d9">' + b4Total.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
+      var lgCell = lgTotal !== null ? (lgTotal > 0 ? '<span style="font-weight:700;color:#065f46">' + lgTotal.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
+
+      return '<tr>'
+        + '<td class="nws-td-date">'   + dateStr + '</td>'
+        + '<td><span class="nws-td-code">' + (l.branch_code  || '—') + '</span></td>'
+        + '<td class="nws-td-printer">'   + (l.printer_code || '—') + '</td>'
+        + '<td class="nws-td-total">'     + (l.print_count  || 0).toLocaleString() + '</td>'
+        + '<td class="nws-td-paper">'     + a4Cell + '</td>'
+        + '<td class="nws-td-paper">'     + b4Cell + '</td>'
+        + '<td class="nws-td-paper">'     + lgCell + '</td>'
+        + '<td class="nws-td-user">'      + (l.logged_by    || '—') + '</td>'
+        + '<td class="nws-td-time">'      + timeStr + '</td>'
+        + '</tr>';
     }).join('');
-    document.getElementById('nws-table-wrap').style.display='block';
+
+    document.getElementById('nws-table-wrap').style.display = 'block';
   }
 }
 
