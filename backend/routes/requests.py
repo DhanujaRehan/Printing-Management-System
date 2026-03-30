@@ -24,7 +24,7 @@ class ReviewRequestBody(BaseModel):
 
 class PrintLogBody(BaseModel):
     printer_id:     int
-    print_count:    int
+    print_count:    int          # Now accepts meter reading (raw counter)
     log_date:       Optional[str] = None
     notes:          Optional[str] = None
     a4_single:      Optional[int] = 0
@@ -198,8 +198,24 @@ def review_request(
 
 
 @router.get("/print-logs")
-def get_print_logs(current_user: dict = Depends(get_current_user)):
+def get_print_logs(
+    branch_id: Optional[int] = None,
+    current_user: dict = Depends(get_current_user)
+):
     try:
+        if branch_id:
+            return query(
+                "SELECT pl.*, p.printer_code, b.code AS branch_code, b.name AS branch_name, "
+                "u.full_name AS logged_by_name "
+                "FROM print_logs pl "
+                "JOIN printers p ON p.id = pl.printer_id "
+                "JOIN branches b ON b.id = p.branch_id "
+                "JOIN users u ON u.id = pl.logged_by "
+                "WHERE b.id = %s "
+                "ORDER BY pl.log_date DESC, b.code, p.printer_code "
+                "LIMIT 200",
+                (branch_id,)
+            )
         return query(
             "SELECT pl.*, p.printer_code, b.code AS branch_code, b.name AS branch_name, "
             "u.full_name AS logged_by_name "
@@ -232,48 +248,104 @@ def get_my_print_logs(current_user: dict = Depends(get_current_user)):
 
 @router.post("/print-logs")
 def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current_user)):
+    """
+    Service person enters the METER READING (total cumulative counter on printer).
+    System calculates actual daily prints = today_meter - previous_meter.
+    Stores both meter_reading and calculated print_count.
+    """
     if body.print_count < 0:
-        raise HTTPException(status_code=400, detail="Print count must be 0 or more")
+        raise HTTPException(status_code=400, detail="Meter reading must be 0 or more")
 
+    meter_reading = body.print_count  # what service person entered
+    log_date = body.log_date or "CURRENT_DATE"
+
+    # ── Find previous meter reading for this printer ──────────────────────
+    # Look for the most recent log BEFORE today for this printer
+    if body.log_date:
+        prev = query("""
+            SELECT meter_reading, print_count, log_date
+            FROM print_logs
+            WHERE printer_id = %s
+              AND log_date < %s::date
+            ORDER BY log_date DESC
+            LIMIT 1
+        """, (body.printer_id, body.log_date), fetch="one")
+    else:
+        prev = query("""
+            SELECT meter_reading, print_count, log_date
+            FROM print_logs
+            WHERE printer_id = %s
+              AND log_date < CURRENT_DATE
+            ORDER BY log_date DESC
+            LIMIT 1
+        """, (body.printer_id,), fetch="one")
+
+    # ── Calculate actual daily prints ─────────────────────────────────────
+    if prev and prev.get("meter_reading") and prev["meter_reading"] > 0:
+        prev_meter = int(prev["meter_reading"])
+        if meter_reading >= prev_meter:
+            # Normal case: today meter > yesterday meter
+            actual_prints = meter_reading - prev_meter
+        else:
+            # Meter was reset (new toner install resets counter on some printers)
+            # or service person entered wrong value — store as-is
+            actual_prints = meter_reading
+    else:
+        # First ever log for this printer — can't calculate difference
+        # Store 0 so toner % doesn't drop on first entry
+        actual_prints = 0
+
+    # ── Save to DB ────────────────────────────────────────────────────────
     if body.log_date:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, log_date, notes, "
+            "INSERT INTO print_logs (printer_id, logged_by, print_count, meter_reading, log_date, notes, "
             "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
-            "VALUES (%s, %s, %s, %s::date, %s, %s, %s, %s, %s, %s, %s) "
+            "VALUES (%s, %s, %s, %s, %s::date, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
-            "print_count = EXCLUDED.print_count, logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
+            "print_count = EXCLUDED.print_count, "
+            "meter_reading = EXCLUDED.meter_reading, "
+            "logged_by = EXCLUDED.logged_by, "
+            "notes = EXCLUDED.notes, "
+            "a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
             "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
             "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
             "created_at = NOW() RETURNING id",
-            (body.printer_id, int(current_user['sub']), body.print_count, body.log_date, body.notes,
+            (body.printer_id, int(current_user['sub']), actual_prints, meter_reading,
+             body.log_date, body.notes,
              body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
              body.b4_double or 0, body.letter_single or 0, body.letter_double or 0),
             fetch="one"
         )
     else:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, notes, "
+            "INSERT INTO print_logs (printer_id, logged_by, print_count, meter_reading, notes, "
             "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
-            "print_count = EXCLUDED.print_count, logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
+            "print_count = EXCLUDED.print_count, "
+            "meter_reading = EXCLUDED.meter_reading, "
+            "logged_by = EXCLUDED.logged_by, "
+            "notes = EXCLUDED.notes, "
+            "a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
             "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
             "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
             "created_at = NOW() RETURNING id",
-            (body.printer_id, int(current_user['sub']), body.print_count, body.notes,
+            (body.printer_id, int(current_user['sub']), actual_prints, meter_reading,
+             body.notes,
              body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
              body.b4_double or 0, body.letter_single or 0, body.letter_double or 0),
             fetch="one"
         )
 
-    query(
-        "UPDATE toner_installations SET avg_daily_copies = %s "
-        "WHERE printer_id = %s AND is_current = TRUE",
-        (body.print_count, body.printer_id), fetch="none"
-    )
+    # ── Update avg daily copies (use actual_prints, not meter reading) ────
+    if actual_prints > 0:
+        query(
+            "UPDATE toner_installations SET avg_daily_copies = %s "
+            "WHERE printer_id = %s AND is_current = TRUE",
+            (actual_prints, body.printer_id), fetch="none"
+        )
 
+    # ── Recalculate total copies from actual print_count values ───────────
     query("""
         UPDATE toner_installations ti
         SET total_copies_done = COALESCE((
@@ -285,7 +357,12 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
         WHERE ti.printer_id = %s AND ti.is_current = TRUE
     """, (body.printer_id,), fetch="none")
 
-    return {"message": "Print count logged", "id": result["id"]}
+    return {
+        "message":       "Print count logged",
+        "id":            result["id"],
+        "meter_reading": meter_reading,
+        "actual_prints": actual_prints
+    }
 
 
 @router.patch("/{request_id}/dispatch")

@@ -210,7 +210,7 @@ function eodClosePop() {
 function eodPopTotalChanged() {
   var val=parseInt(document.getElementById('eod-pop-total').value)||0;
   var preview=document.getElementById('eod-pop-total-preview');
-  if(preview){ preview.textContent=val>0?val.toLocaleString()+' prints':''; preview.style.color=val>0?'#0ea5e9':'#94a3b8'; }
+  if(preview){ preview.textContent=val>0?val.toLocaleString()+' (meter reading)':''; preview.style.color=val>0?'#0ea5e9':'#94a3b8'; }
 }
 
 async function eodPopSave() {
@@ -227,13 +227,13 @@ async function eodPopSave() {
     if(card){
       card.classList.add('eod3-done');
       var hint=card.querySelector('.eod3-tap-hint');
-      if(hint){ hint.textContent=total.toLocaleString()+' prints'; hint.className='eod3-logged-total'; }
+      if(hint){ hint.textContent='Meter: '+total.toLocaleString(); hint.className='eod3-logged-total'; }
       if(!card.querySelector('.eod3-done-badge')){
         var b=document.createElement('div'); b.className='eod3-done-badge'; b.textContent='✅ Logged';
         card.insertBefore(b, card.firstChild.nextSibling);
       }
     }
-    toast('✅','Saved!',total.toLocaleString()+' prints logged');
+    toast('✅','Saved!','Meter: '+total.toLocaleString()+' — daily count calculated');
     eodClosePop(); eodUpdateSummaryBar(); eodLoadHistory();
   } catch(e) {
     btn.textContent='✓ Save This Printer'; btn.disabled=false;
