@@ -304,11 +304,6 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
         # First ever log — no previous to compare
         actual_prints = 0
 
-    # ── Cap unrealistic daily prints (max 5000/day per printer) ──────────
-    MAX_DAILY = 5000
-    if actual_prints > MAX_DAILY:
-        actual_prints = 0  # Likely a wrong meter entry — don't corrupt toner
-
     # ── Save to DB ────────────────────────────────────────────────────────
     if body.log_date:
         result = query(
