@@ -145,7 +145,8 @@ async function eodLoadPrinters(branchId) {
           +'<div class="eod3-toner-bar-wrap"><div class="eod3-toner-bar" style="width:'+pct+'%;background:'+tc+'"></div></div>'
           +'<div class="eod3-toner-pct" style="color:'+tc+'">'+pct+'% Toner</div>'
           +(done
-            ?'<div class="eod3-logged-total">'+(log.print_count||0).toLocaleString()+' prints</div>'
+            ?'<div class="eod3-logged-meter">Meter: '+(log.meter_reading||0).toLocaleString()+'</div>'
+             +'<div class="eod3-logged-total">'+(log.print_count||0).toLocaleString()+' prints today</div>'
             :'<div class="eod3-tap-hint">Tap to log prints</div>')
           +'</div>';
       }).join('') + '</div>';
@@ -233,8 +234,10 @@ async function eodPopSave() {
         card.insertBefore(b, card.firstChild.nextSibling);
       }
     }
-    toast('✅','Saved!','Meter: '+total.toLocaleString()+' — daily count calculated');
-    eodClosePop(); eodUpdateSummaryBar(); eodLoadHistory();
+    toast('✅','Saved!','Meter reading saved');
+    eodClosePop(); eodUpdateSummaryBar();
+    await eodLoadPrinters(_eodBranchId);
+    eodLoadHistory();
   } catch(e) {
     btn.textContent='✓ Save This Printer'; btn.disabled=false;
     toast('❌','Save failed','Please try again');
@@ -357,7 +360,7 @@ async function eodLoadHistory() {
     +'<div class="eod3-hh">Date</div>'
     +'<div class="eod3-hh">Printer</div>'
     +'<div class="eod3-hh">Meter Reading</div>'
-    +'<div class="eod3-hh">Daily Prints</div>'
+    +'<div class="eod3-hh" style="color:#0ea5e9">Daily Prints</div>'
     +'<div class="eod3-hh">Prev Day Meter</div>'
     +'</div>';
 
