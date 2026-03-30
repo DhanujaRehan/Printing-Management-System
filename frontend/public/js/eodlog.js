@@ -350,13 +350,38 @@ async function eodLoadHistory() {
   var wrap=document.getElementById('eod-history-wrap'); if(!wrap) return;
   var logs=(await silentApi('GET','/requests/my-print-logs'))||[];
   if(!logs.length){ wrap.innerHTML='<div class="eod3-no-history">No logs yet — start logging!</div>'; return; }
-  wrap.innerHTML=logs.slice(0,15).map(function(l){
-    var dt=l.log_date?new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'}):'—';
-    return '<div class="eod3-hist-row">'
-      +'<div class="eod3-hist-date">'+dt+'</div>'
-      +'<div class="eod3-hist-code">'+(l.printer_code||'—')+'</div>'
-      +'<div class="eod3-hist-total">'+(l.print_count||0).toLocaleString()+'</div>'
-      +'<div class="eod3-hist-papers">—</div>'
+
+  // Build rich table header
+  var html='<div class="eod3-hist-table">'
+    +'<div class="eod3-hist-header">'
+    +'<div class="eod3-hh">Date</div>'
+    +'<div class="eod3-hh">Printer</div>'
+    +'<div class="eod3-hh">Meter Reading</div>'
+    +'<div class="eod3-hh">Daily Prints</div>'
+    +'<div class="eod3-hh">Prev Day Meter</div>'
+    +'</div>';
+
+  html += logs.slice(0,20).map(function(l){
+    var dt=l.log_date
+      ?new Date(l.log_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+      :'—';
+    var prevDt=l.prev_log_date
+      ?new Date(l.prev_log_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'})
+      :'—';
+    var prevMeter=l.prev_meter_reading?parseInt(l.prev_meter_reading).toLocaleString():'—';
+    var meter=l.meter_reading?parseInt(l.meter_reading).toLocaleString():'—';
+    var daily=parseInt(l.daily_prints||0);
+    var dailyCol=daily>0?'#0ea5e9':'#94a3b8';
+
+    return '<div class="eod3-hist-row2">'
+      +'<div class="eod3-hd eod3-hd-date">'+dt+'</div>'
+      +'<div class="eod3-hd eod3-hd-code">'+( l.printer_code||'—')+'</div>'
+      +'<div class="eod3-hd eod3-hd-meter">'+meter+'</div>'
+      +'<div class="eod3-hd eod3-hd-daily" style="color:'+dailyCol+';font-weight:800">'+daily.toLocaleString()+'</div>'
+      +'<div class="eod3-hd eod3-hd-prev">'+(prevDt!=='—'?prevDt+' · ':'')+prevMeter+'</div>'
       +'</div>';
   }).join('');
+
+  html+='</div>';
+  wrap.innerHTML=html;
 }

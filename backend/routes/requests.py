@@ -24,7 +24,7 @@ class ReviewRequestBody(BaseModel):
 
 class PrintLogBody(BaseModel):
     printer_id:     int
-    print_count:    int          # Now accepts meter reading (raw counter)
+    print_count:    int          # Service person enters meter reading
     log_date:       Optional[str] = None
     notes:          Optional[str] = None
     a4_single:      Optional[int] = 0
@@ -131,7 +131,6 @@ def review_request(
 ):
     if body.status not in ("approved", "rejected"):
         raise HTTPException(status_code=400, detail="status must be approved or rejected")
-
     req = query(
         "SELECT rr.*, p.printer_code, p.branch_id, tm.model_code, tm.id AS tm_id, "
         "pt.id AS pt_id, pt.name AS paper_name "
@@ -146,21 +145,18 @@ def review_request(
         raise HTTPException(status_code=404, detail="Request not found")
     if req["status"] != "pending":
         raise HTTPException(status_code=400, detail="Request already reviewed")
-
     query(
         "UPDATE replacement_requests SET status=%s, reviewed_by=%s, review_note=%s, reviewed_at=NOW() "
         "WHERE id=%s",
         (body.status, int(current_user["sub"]), body.review_note, request_id),
         fetch="none"
     )
-
     try:
         from scheduler import send_request_status_email
         import threading
         threading.Thread(target=send_request_status_email, args=(request_id,), daemon=True).start()
     except Exception:
         pass
-
     if body.status == "approved":
         if req["request_type"] == "paper" and req["pt_id"]:
             try:
@@ -193,7 +189,6 @@ def review_request(
                     )
             except Exception:
                 pass
-
     return {"message": "Request " + body.status}
 
 
@@ -232,16 +227,41 @@ def get_print_logs(
 
 @router.get("/my-print-logs")
 def get_my_print_logs(current_user: dict = Depends(get_current_user)):
+    """
+    Returns recent print logs with:
+    - log_date, printer_code, meter_reading, print_count (daily prints)
+    - prev_log_date, prev_meter_reading (most recent previous entry for that printer)
+    """
     try:
-        return query(
-            "SELECT pl.*, p.printer_code, b.code AS branch_code, b.name AS branch_name "
-            "FROM print_logs pl "
-            "JOIN printers p ON p.id = pl.printer_id "
-            "JOIN branches b ON b.id = p.branch_id "
-            "WHERE pl.logged_by = %s "
-            "ORDER BY pl.log_date DESC LIMIT 30",
-            (int(current_user["sub"]),)
-        )
+        rows = query("""
+            SELECT
+                pl.id,
+                pl.log_date,
+                pl.meter_reading,
+                pl.print_count          AS daily_prints,
+                pl.created_at,
+                p.printer_code,
+                b.code                  AS branch_code,
+                b.name                  AS branch_name,
+                -- Previous log for this printer
+                (SELECT prev.log_date
+                 FROM print_logs prev
+                 WHERE prev.printer_id = pl.printer_id
+                   AND prev.log_date < pl.log_date
+                 ORDER BY prev.log_date DESC LIMIT 1)   AS prev_log_date,
+                (SELECT prev.meter_reading
+                 FROM print_logs prev
+                 WHERE prev.printer_id = pl.printer_id
+                   AND prev.log_date < pl.log_date
+                 ORDER BY prev.log_date DESC LIMIT 1)   AS prev_meter_reading
+            FROM print_logs pl
+            JOIN printers p ON p.id = pl.printer_id
+            JOIN branches b ON b.id = p.branch_id
+            WHERE pl.logged_by = %s
+            ORDER BY pl.log_date DESC, pl.created_at DESC
+            LIMIT 30
+        """, (int(current_user["sub"]),))
+        return rows or []
     except Exception:
         return []
 
@@ -249,67 +269,60 @@ def get_my_print_logs(current_user: dict = Depends(get_current_user)):
 @router.post("/print-logs")
 def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current_user)):
     """
-    Service person enters the METER READING (total cumulative counter on printer).
+    Service person enters METER READING (cumulative counter on printer display).
     System calculates actual daily prints = today_meter - previous_meter.
-    Stores both meter_reading and calculated print_count.
+    Stores meter_reading (raw) and print_count (daily diff).
     """
     if body.print_count < 0:
         raise HTTPException(status_code=400, detail="Meter reading must be 0 or more")
 
-    meter_reading = body.print_count  # what service person entered
-    log_date = body.log_date or "CURRENT_DATE"
+    meter_reading = body.print_count  # what service person typed
 
-    # ── Find previous meter reading for this printer ──────────────────────
-    # Look for the most recent log BEFORE today for this printer
+    # ── Find previous meter reading ───────────────────────────────────────
     if body.log_date:
         prev = query("""
-            SELECT meter_reading, print_count, log_date
-            FROM print_logs
-            WHERE printer_id = %s
-              AND log_date < %s::date
-            ORDER BY log_date DESC
-            LIMIT 1
+            SELECT meter_reading, log_date FROM print_logs
+            WHERE printer_id = %s AND log_date < %s::date
+            ORDER BY log_date DESC LIMIT 1
         """, (body.printer_id, body.log_date), fetch="one")
     else:
         prev = query("""
-            SELECT meter_reading, print_count, log_date
-            FROM print_logs
-            WHERE printer_id = %s
-              AND log_date < CURRENT_DATE
-            ORDER BY log_date DESC
-            LIMIT 1
+            SELECT meter_reading, log_date FROM print_logs
+            WHERE printer_id = %s AND log_date < CURRENT_DATE
+            ORDER BY log_date DESC LIMIT 1
         """, (body.printer_id,), fetch="one")
 
-    # ── Calculate actual daily prints ─────────────────────────────────────
-    if prev and prev.get("meter_reading") and prev["meter_reading"] > 0:
+    # ── Calculate daily prints ────────────────────────────────────────────
+    if prev and prev.get("meter_reading") and int(prev["meter_reading"]) > 0:
         prev_meter = int(prev["meter_reading"])
         if meter_reading >= prev_meter:
-            # Normal case: today meter > yesterday meter
             actual_prints = meter_reading - prev_meter
         else:
-            # Meter was reset (new toner install resets counter on some printers)
-            # or service person entered wrong value — store as-is
-            actual_prints = meter_reading
+            # Meter reset or wrong entry — store 0, don't corrupt toner data
+            actual_prints = 0
     else:
-        # First ever log for this printer — can't calculate difference
-        # Store 0 so toner % doesn't drop on first entry
+        # First ever log — no previous to compare
         actual_prints = 0
+
+    # ── Cap unrealistic daily prints (max 5000/day per printer) ──────────
+    MAX_DAILY = 5000
+    if actual_prints > MAX_DAILY:
+        actual_prints = 0  # Likely a wrong meter entry — don't corrupt toner
 
     # ── Save to DB ────────────────────────────────────────────────────────
     if body.log_date:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, meter_reading, log_date, notes, "
+            "INSERT INTO print_logs "
+            "(printer_id, logged_by, print_count, meter_reading, log_date, notes, "
             "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
             "VALUES (%s, %s, %s, %s, %s::date, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
-            "print_count = EXCLUDED.print_count, "
-            "meter_reading = EXCLUDED.meter_reading, "
-            "logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, "
-            "a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
-            "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
-            "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
-            "created_at = NOW() RETURNING id",
+            "print_count=EXCLUDED.print_count, meter_reading=EXCLUDED.meter_reading, "
+            "logged_by=EXCLUDED.logged_by, notes=EXCLUDED.notes, "
+            "a4_single=EXCLUDED.a4_single, a4_double=EXCLUDED.a4_double, "
+            "b4_single=EXCLUDED.b4_single, b4_double=EXCLUDED.b4_double, "
+            "letter_single=EXCLUDED.letter_single, letter_double=EXCLUDED.letter_double, "
+            "created_at=NOW() RETURNING id",
             (body.printer_id, int(current_user['sub']), actual_prints, meter_reading,
              body.log_date, body.notes,
              body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
@@ -318,18 +331,17 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
         )
     else:
         result = query(
-            "INSERT INTO print_logs (printer_id, logged_by, print_count, meter_reading, notes, "
+            "INSERT INTO print_logs "
+            "(printer_id, logged_by, print_count, meter_reading, notes, "
             "a4_single, a4_double, b4_single, b4_double, letter_single, letter_double) "
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (printer_id, log_date) DO UPDATE SET "
-            "print_count = EXCLUDED.print_count, "
-            "meter_reading = EXCLUDED.meter_reading, "
-            "logged_by = EXCLUDED.logged_by, "
-            "notes = EXCLUDED.notes, "
-            "a4_single = EXCLUDED.a4_single, a4_double = EXCLUDED.a4_double, "
-            "b4_single = EXCLUDED.b4_single, b4_double = EXCLUDED.b4_double, "
-            "letter_single = EXCLUDED.letter_single, letter_double = EXCLUDED.letter_double, "
-            "created_at = NOW() RETURNING id",
+            "print_count=EXCLUDED.print_count, meter_reading=EXCLUDED.meter_reading, "
+            "logged_by=EXCLUDED.logged_by, notes=EXCLUDED.notes, "
+            "a4_single=EXCLUDED.a4_single, a4_double=EXCLUDED.a4_double, "
+            "b4_single=EXCLUDED.b4_single, b4_double=EXCLUDED.b4_double, "
+            "letter_single=EXCLUDED.letter_single, letter_double=EXCLUDED.letter_double, "
+            "created_at=NOW() RETURNING id",
             (body.printer_id, int(current_user['sub']), actual_prints, meter_reading,
              body.notes,
              body.a4_single or 0, body.a4_double or 0, body.b4_single or 0,
@@ -337,7 +349,7 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
             fetch="one"
         )
 
-    # ── Update avg daily copies (use actual_prints, not meter reading) ────
+    # ── Update avg_daily_copies ───────────────────────────────────────────
     if actual_prints > 0:
         query(
             "UPDATE toner_installations SET avg_daily_copies = %s "
@@ -345,17 +357,14 @@ def log_print_count(body: PrintLogBody, current_user: dict = Depends(get_current
             (actual_prints, body.printer_id), fetch="none"
         )
 
-    # ── Recalculate total copies from actual print_count values ───────────
-    query("""
-        UPDATE toner_installations ti
-        SET total_copies_done = COALESCE((
-            SELECT SUM(pl.print_count)
-            FROM print_logs pl
-            WHERE pl.printer_id = ti.printer_id
-              AND pl.log_date >= ti.installed_at::date
-        ), 0)
-        WHERE ti.printer_id = %s AND ti.is_current = TRUE
-    """, (body.printer_id,), fetch="none")
+    # ── Update total_copies_done by adding actual_prints to existing value ─
+    # This keeps manual corrections intact and only adds today's real prints
+    if actual_prints > 0:
+        query("""
+            UPDATE toner_installations
+            SET total_copies_done = COALESCE(total_copies_done, 0) + %s
+            WHERE printer_id = %s AND is_current = TRUE
+        """, (actual_prints, body.printer_id), fetch="none")
 
     return {
         "message":       "Print count logged",
@@ -372,17 +381,14 @@ def dispatch_request(
     current_user: dict = Depends(require_role("store", "manager", "dba"))
 ):
     req = query(
-        "SELECT rr.*, p.branch_id "
-        "FROM replacement_requests rr "
-        "JOIN printers p ON p.id = rr.printer_id "
-        "WHERE rr.id = %s",
+        "SELECT rr.*, p.branch_id FROM replacement_requests rr "
+        "JOIN printers p ON p.id = rr.printer_id WHERE rr.id = %s",
         (request_id,), fetch="one"
     )
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")
     if req["status"] != "approved":
         raise HTTPException(status_code=400, detail="Only approved requests can be dispatched")
-
     if req["toner_model_id"]:
         stock = query(
             "SELECT quantity FROM toner_stock WHERE toner_model_id=%s",
@@ -405,21 +411,22 @@ def dispatch_request(
         )
         install = query(
             "INSERT INTO toner_installations "
-            "(printer_id, toner_model_id, installed_by, yield_copies, avg_daily_copies, current_pct, current_copies, is_current) "
-            "VALUES (%s,%s,%s,3000,150,100,3000,TRUE) RETURNING id",
+            "(printer_id, toner_model_id, installed_by, yield_copies, avg_daily_copies, "
+            "current_pct, current_copies, total_copies_done, is_current) "
+            "VALUES (%s,%s,%s,3000,150,100,3000,0,TRUE) RETURNING id",
             (req["printer_id"], req["toner_model_id"], int(current_user["sub"])),
             fetch="one"
         )
         query(
             "INSERT INTO stock_movements "
-            "(toner_model_id, movement_type, quantity, branch_id, printer_id, installation_id, performed_by, notes) "
+            "(toner_model_id, movement_type, quantity, branch_id, printer_id, "
+            "installation_id, performed_by, notes) "
             "VALUES (%s,'OUT',-1,%s,%s,%s,%s,%s)",
             (req["toner_model_id"], req["branch_id"], req["printer_id"],
              install["id"], int(current_user["sub"]),
              f"Dispatched for request #{request_id}"),
             fetch="none"
         )
-
     query(
         "UPDATE replacement_requests SET status='dispatched', dispatched_by=%s, "
         "dispatched_at=NOW(), dispatch_note=%s WHERE id=%s",
@@ -454,14 +461,12 @@ def save_daily_paper_log(body: DailyPaperLogBody, current_user: dict = Depends(g
     if body.paper_type not in ('a4', 'b4', 'legal'):
         raise HTTPException(status_code=400, detail="paper_type must be a4, b4 or legal")
     result = query("""
-        INSERT INTO daily_paper_logs (branch_id, logged_by, log_date, paper_type, single_side, double_side)
+        INSERT INTO daily_paper_logs
+        (branch_id, logged_by, log_date, paper_type, single_side, double_side)
         VALUES (%s, %s, %s::date, %s, %s, %s)
-        ON CONFLICT (branch_id, log_date, paper_type)
-        DO UPDATE SET
-            single_side = EXCLUDED.single_side,
-            double_side = EXCLUDED.double_side,
-            logged_by   = EXCLUDED.logged_by,
-            created_at  = NOW()
+        ON CONFLICT (branch_id, log_date, paper_type) DO UPDATE SET
+            single_side=EXCLUDED.single_side, double_side=EXCLUDED.double_side,
+            logged_by=EXCLUDED.logged_by, created_at=NOW()
         RETURNING id
     """, (body.branch_id, int(current_user["sub"]), body.log_date,
           body.paper_type, body.single_side, body.double_side), fetch="one")
