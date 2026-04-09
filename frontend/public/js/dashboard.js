@@ -1,7 +1,9 @@
 /* ============================================================
-   TonerPro Ultra — Dashboard Module
+   SoftWave — Dashboard Module
    File: js/dashboard.js
    ============================================================ */
+
+var _dashBranchPrints = [];
 
 async function loadDashboard() {
   try {
@@ -12,11 +14,15 @@ async function loadDashboard() {
       s('/toner/stock'),
       s('/toner/alerts'),
       s('/toner/movements?limit=8'),
+      silentApi('GET', '/nuwan/prints/yesterday').then(function(r){ return r || {}; }),
     ]);
     var printers  = results[0];
     var stock     = results[1];
     var alerts    = results[2];
     var movements = results[3];
+    var yesterday = results[4];
+
+    _dashBranchPrints = (yesterday.branches || []);
 
     var total_stock     = stock.reduce(function(a,s){ return a + s.quantity; }, 0);
     var low             = printers.filter(function(p){ return p.current_pct <= 25; }).length;
@@ -55,11 +61,10 @@ async function loadDashboard() {
         + '</div>';
     })).join('');
 
-
     // ── Yesterday's prints by branch ──────────────────────
     renderDashBranchPrints(_dashBranchPrints, yesterday);
 
-
+    // ── Recent activity ────────────────────────────────────
     document.getElementById('dash-activity').innerHTML = movements.slice(0, 6).map(function(m, i) {
       return '<div class="afi">'
         + '<div class="afdc">'
@@ -74,6 +79,58 @@ async function loadDashboard() {
     }).join('');
 
   } catch(e) { console.error('Dashboard load error:', e); }
+}
+
+function renderDashBranchPrints(branches, yesterday) {
+  var el = document.getElementById('dash-branch-prints');
+  if (!el) return;
+
+  var date = yesterday && yesterday.date
+    ? new Date(yesterday.date + 'T00:00:00').toLocaleDateString('en-GB', {weekday:'long', day:'2-digit', month:'long'})
+    : 'Yesterday';
+  var grandTotal   = yesterday && yesterday.grand_total   ? parseInt(yesterday.grand_total)   : 0;
+  var missingCount = yesterday && yesterday.missing_count ? parseInt(yesterday.missing_count) : 0;
+
+  var max = Math.max.apply(null, branches.map(function(b){ return b.total_prints || 0; })) || 1;
+
+  el.innerHTML =
+    '<div class="dbp-header">'
+    + '<div class="dbp-title">📊 Yesterday\'s Print Count</div>'
+    + '<div class="dbp-meta">'
+    +   '<span class="dbp-date">' + date + '</span>'
+    +   '<span class="dbp-grand">Total: <strong>' + grandTotal.toLocaleString() + '</strong></span>'
+    +   (missingCount > 0
+          ? '<span class="dbp-missing">⚠️ ' + missingCount + ' missing</span>'
+          : '<span class="dbp-ok">✅ All submitted</span>')
+    + '</div>'
+    + '</div>'
+    + '<div class="dbp-list" id="dbp-list">'
+    + branches.map(function(b) {
+        var pct    = Math.round((b.total_prints / max) * 100);
+        var col    = b.has_submitted ? '#0ea5e9' : '#e2e8f0';
+        var txtCol = b.has_submitted ? '#0f172a' : '#94a3b8';
+        return '<div class="dbp-row">'
+          + '<div class="dbp-branch-code">' + b.branch_code + '</div>'
+          + '<div class="dbp-branch-bar-wrap">'
+          +   '<div class="dbp-branch-name" style="color:' + txtCol + '">' + b.branch_name + '</div>'
+          +   '<div class="dbp-bar-track"><div class="dbp-bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div>'
+          + '</div>'
+          + '<div class="dbp-count" style="color:' + (b.has_submitted ? '#0ea5e9' : '#94a3b8') + '">'
+          +   (b.has_submitted ? b.total_prints.toLocaleString() : '—')
+          + '</div>'
+          + (b.has_submitted
+              ? '<span class="dbp-badge dbp-badge-ok">✓</span>'
+              : '<span class="dbp-badge dbp-badge-miss">✗</span>')
+          + '</div>';
+      }).join('')
+    + '</div>';
+}
+
+function filterDashBranchPrints(q) {
+  var rows = document.querySelectorAll('#dbp-list .dbp-row');
+  rows.forEach(function(r) {
+    r.style.display = (!q || r.textContent.toLowerCase().includes(q.toLowerCase())) ? '' : 'none';
+  });
 }
 
 function filterPrTable(q) {
