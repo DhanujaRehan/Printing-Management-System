@@ -41,6 +41,7 @@ class DailyPaperLogBody(BaseModel):
     paper_type:  str
     single_side: int = 0
     double_side: int = 0
+    waste:       int = 0   # waste paper count for this type
 
 
 class DispatchBody(BaseModel):
@@ -457,14 +458,25 @@ def save_daily_paper_log(body: DailyPaperLogBody, current_user: dict = Depends(g
         raise HTTPException(status_code=400, detail="paper_type must be a4, b4 or legal")
     result = query("""
         INSERT INTO daily_paper_logs
-        (branch_id, logged_by, log_date, paper_type, single_side, double_side)
-        VALUES (%s, %s, %s::date, %s, %s, %s)
+        (branch_id, logged_by, log_date, paper_type, single_side, double_side, waste_a4, waste_b4, waste_legal)
+        VALUES (%s, %s, %s::date, %s, %s, %s,
+            CASE %s WHEN 'a4'    THEN %s ELSE 0 END,
+            CASE %s WHEN 'b4'    THEN %s ELSE 0 END,
+            CASE %s WHEN 'legal' THEN %s ELSE 0 END)
         ON CONFLICT (branch_id, log_date, paper_type) DO UPDATE SET
-            single_side=EXCLUDED.single_side, double_side=EXCLUDED.double_side,
-            logged_by=EXCLUDED.logged_by, created_at=NOW()
+            single_side=EXCLUDED.single_side,
+            double_side=EXCLUDED.double_side,
+            waste_a4   =EXCLUDED.waste_a4,
+            waste_b4   =EXCLUDED.waste_b4,
+            waste_legal=EXCLUDED.waste_legal,
+            logged_by  =EXCLUDED.logged_by,
+            created_at =NOW()
         RETURNING id
     """, (body.branch_id, int(current_user["sub"]), body.log_date,
-          body.paper_type, body.single_side, body.double_side), fetch="one")
+          body.paper_type, body.single_side, body.double_side,
+          body.paper_type, body.waste,
+          body.paper_type, body.waste,
+          body.paper_type, body.waste), fetch="one")
     return {"message": "saved", "id": result["id"] if result else None}
 
 
@@ -476,6 +488,9 @@ def get_daily_paper_log(
 ):
     rows = query("""
         SELECT dpl.paper_type, dpl.single_side, dpl.double_side,
+               COALESCE(dpl.waste_a4,    0) AS waste_a4,
+               COALESCE(dpl.waste_b4,    0) AS waste_b4,
+               COALESCE(dpl.waste_legal, 0) AS waste_legal,
                u.full_name AS logged_by_name, dpl.created_at
         FROM daily_paper_logs dpl
         LEFT JOIN users u ON u.id = dpl.logged_by

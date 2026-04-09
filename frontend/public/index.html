@@ -687,6 +687,9 @@
       <!-- ── Paper cards (branch daily totals) ─────────── -->
       <div id="eod-paper-cards-wrap" style="display:none"></div>
 
+      <!-- ── Waste paper cards ─────────────────────────── -->
+      <div id="eod-waste-cards-wrap" style="display:none"></div>
+
       <!-- ── Recent logs ────────────────────────────────── -->
       <div class="eod3-history-section">
         <div class="eod3-history-title">📋 Recent Logs</div>
@@ -778,6 +781,42 @@
 
       </div>
     </div><!-- /eod-paper-pop-overlay -->
+
+    <!-- ── WASTE PAPER POPUP ─────────────────────────────── -->
+    <div class="eod3-pop-overlay" id="eod-waste-pop-overlay"
+         style="display:none" onclick="if(event.target===this) eodCloseWastePop()">
+      <div class="eod3-pop-box" id="eod-waste-pop-box">
+
+        <!-- Header -->
+        <div class="eod3-pop-hdr" id="eod-waste-pop-hdr" style="background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:24px 24px 0 0;">
+          <div class="eod3-pop-hdr-left">
+            <div class="eod3-pop-code" id="eod-waste-pop-title">Waste Paper</div>
+            <div class="eod3-pop-model" id="eod-waste-pop-sub"></div>
+          </div>
+          <div class="eod3-pop-hdr-right">
+            <button class="eod3-pop-close" onclick="eodCloseWastePop()">✕</button>
+          </div>
+        </div>
+
+        <!-- Waste count input -->
+        <div class="eod3-pop-section">
+          <div class="eod3-pop-section-title">🗑️ Waste Sheet Count</div>
+          <div class="eod3-pop-section-sub">Total sheets wasted today (branch total)</div>
+          <input type="number" class="eod3-total-input" id="eod-waste-pop-count"
+            placeholder="e.g. 50" inputmode="numeric" min="0">
+        </div>
+
+        <!-- Save button -->
+        <div class="eod3-pop-footer">
+          <button class="eod3-pop-save-btn" id="eod-waste-pop-save"
+            onclick="eodWastePopSave()"
+            style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+            ✓ Save Waste Count
+          </button>
+        </div>
+
+      </div>
+    </div><!-- /eod-waste-pop-overlay -->
 
 
     <!-- ── TONER REPLACEMENT LOG — Service Person ──────── -->
