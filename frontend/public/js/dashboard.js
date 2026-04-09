@@ -55,21 +55,10 @@ async function loadDashboard() {
         + '</div>';
     })).join('');
 
-    document.getElementById('pr-tbody').innerHTML = printers.map(function(p) {
-      return '<tr>'
-        + '<td><span style="font-family:var(--m);font-weight:700;color:var(--c1)">' + p.printer_code + '</span></td>'
-        + '<td><span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#f1f5f9;font-weight:600;color:var(--t2)">Branch ' + p.branch_code + '</span></td>'
-        + '<td style="min-width:130px"><div style="display:flex;align-items:center;gap:8px">'
-        + '<div class="pb" style="min-width:65px"><div class="pf ' + pfClass(p.current_pct) + '" style="width:' + (p.current_pct || 0) + '%"></div></div>'
-        + '<span style="font-family:var(--m);font-size:11px;font-weight:700;color:' + pColor(p.current_pct) + '">' + (p.current_pct || 0) + '%</span>'
-        + '</div></td>'
-        + '<td style="font-size:11px;color:var(--t2)">' + (p.toner_model || '—') + '</td>'
-        + '<td style="font-family:var(--m);font-size:12px;font-weight:700;color:' + ((p.days_remaining != null && p.days_remaining <= 3) ? 'var(--er)' : (p.days_remaining != null && p.days_remaining <= 7) ? 'var(--wr)' : 'var(--tx)') + '">' + (p.days_remaining != null ? p.days_remaining : '—') + 'd</td>'
-        + '<td style="font-family:var(--m);font-size:12px">' + (p.current_copies || 0).toLocaleString() + '</td>'
-        + '<td style="font-size:11px;color:var(--t2)">' + (p.next_toner_date ? new Date(p.next_toner_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—') + '</td>'
-        + '<td>' + statusTag(p.current_pct, p.days_remaining) + '</td>'
-        + '</tr>';
-    }).join('');
+
+    // ── Yesterday's prints by branch ──────────────────────
+    renderDashBranchPrints(_dashBranchPrints, yesterday);
+
 
     document.getElementById('dash-activity').innerHTML = movements.slice(0, 6).map(function(m, i) {
       return '<div class="afi">'
