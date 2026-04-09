@@ -984,6 +984,314 @@ function nwRenderPurchased(data){
   }).join('');
 }
 function nwFilterPurchased(q){if(!q.trim()){nwRenderPurchased(_nwPurchased);return;}var lower=q.toLowerCase();nwRenderPurchased(_nwPurchased.filter(function(p){return p.serial_number.toLowerCase().includes(lower)||p.branch_name.toLowerCase().includes(lower)||(p.model||'').toLowerCase().includes(lower);}));}
+
+
+
+
+/* ════════════════════════════════════════════════════════════
+   PERMISSIONS — Branch Assignment
+   ════════════════════════════════════════════════════════════ */
+var _permData = [];
+var _permBranches = [];
+
+async function nwLoadPermissions() {
+  var el = document.getElementById('nw-perm-list');
+  el.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+
+  var results = await Promise.all([
+    nwApi('/hardware/service-users'),
+    nwApi('/nuwan/branches'),
+  ]);
+  _permData     = results[0] || [];
+  _permBranches = results[1] || [];
+
+  nwRenderPermissions(_permData);
+}
+
+function nwRenderPermissions(data) {
+  var el = document.getElementById('nw-perm-list');
+  if (!data.length) {
+    el.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:36px">👤</div><div>No service users found</div></div>';
+    return;
+  }
+  el.innerHTML = '<div class="nw-perm-grid">' + data.map(function(u) {
+    var hasAll    = !u.branch_access || u.branch_access === 'ALL';
+    var branchLbl = hasAll
+      ? '<span class="nw-perm-badge nw-pb-all">🌐 All Branches</span>'
+      : '<span class="nw-perm-badge nw-pb-branch">📍 ' + (u.branch_code || u.branch_access) + ' — ' + (u.branch_name || u.branch_access) + '</span>';
+    var lastLogin = u.last_login
+      ? new Date(u.last_login).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+      : 'Never';
+    return '<div class="nw-perm-card">'
+      + '<div class="nw-perm-avatar">' + (u.full_name || '?')[0].toUpperCase() + '</div>'
+      + '<div class="nw-perm-info">'
+      +   '<div class="nw-perm-name">' + (u.full_name || '—') + '</div>'
+      +   '<div class="nw-perm-username">@' + (u.username || '—') + '</div>'
+      +   '<div class="nw-perm-branch">' + branchLbl + '</div>'
+      +   '<div class="nw-perm-last">Last login: ' + lastLogin + '</div>'
+      + '</div>'
+      + '<button class="nw-perm-edit-btn" onclick="nwOpenPermModal(' + u.id + ',\'' + (u.full_name||'').replace(/'/g,"\\'") + '\',\'' + (u.branch_access||'ALL') + '\')">'
+      +   '✏️ Change'
+      + '</button>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+function nwFilterPermissions(q) {
+  var cb = document.getElementById('perm-clear');
+  if (cb) cb.style.display = q ? 'flex' : 'none';
+  if (!q.trim()) { nwRenderPermissions(_permData); return; }
+  var lower = q.toLowerCase();
+  nwRenderPermissions(_permData.filter(function(u) {
+    return (u.full_name||'').toLowerCase().includes(lower)
+        || (u.username||'').toLowerCase().includes(lower)
+        || (u.branch_access||'').toLowerCase().includes(lower)
+        || (u.branch_name||'').toLowerCase().includes(lower);
+  }));
+}
+function nwClearPermSearch() {
+  var si = document.getElementById('perm-search'), cb = document.getElementById('perm-clear');
+  if (si) si.value = ''; if (cb) cb.style.display = 'none';
+  nwRenderPermissions(_permData);
+}
+
+function nwOpenPermModal(userId, fullName, currentBranch) {
+  document.getElementById('perm-modal-uid').value     = userId;
+  document.getElementById('perm-modal-user').textContent = fullName;
+  document.getElementById('perm-modal-current').textContent =
+    currentBranch === 'ALL' ? '🌐 All Branches' : '📍 ' + currentBranch;
+
+  // Populate branch dropdown
+  var sel = document.getElementById('perm-modal-branch');
+  sel.innerHTML = '<option value="ALL">🌐 All Branches (no restriction)</option>';
+  _permBranches.forEach(function(b) {
+    var opt = new Option(b.code + ' — ' + b.name, b.code);
+    if (b.code === currentBranch) opt.selected = true;
+    sel.add(opt);
+  });
+  if (currentBranch === 'ALL') sel.value = 'ALL';
+
+  var btn = document.getElementById('perm-modal-save-btn');
+  btn.textContent = '✓ Save Branch Assignment'; btn.disabled = false;
+
+  document.getElementById('nw-perm-modal').style.display = 'flex';
+}
+function nwClosePermModal(e) {
+  if (e.target.id === 'nw-perm-modal') document.getElementById('nw-perm-modal').style.display = 'none';
+}
+
+async function nwSaveBranchAssign() {
+  var uid    = document.getElementById('perm-modal-uid').value;
+  var branch = document.getElementById('perm-modal-branch').value;
+  var btn    = document.getElementById('perm-modal-save-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    var r = await fetch('/api/hardware/service-users/' + uid + '/branch', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + NW.token },
+      body:    JSON.stringify({ branch_access: branch }),
+    });
+    var d = await r.json();
+    if (!r.ok) { nwToast('❌', d.detail || 'Failed'); btn.textContent = '✓ Save Branch Assignment'; btn.disabled = false; return; }
+    document.getElementById('nw-perm-modal').style.display = 'none';
+    nwToast('✅', 'Branch updated!');
+    nwLoadPermissions();
+  } catch(e) {
+    nwToast('❌', 'Network error');
+    btn.textContent = '✓ Save Branch Assignment'; btn.disabled = false;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   HARDWARE PARTS
+   ════════════════════════════════════════════════════════════ */
+var _hwData        = [];
+var _hwFilter      = 'all';
+var _hwBranches    = [];
+var _hwParts       = [];
+var _hwPrinters    = [];
+
+async function nwLoadHardware() {
+  var el = document.getElementById('nw-hw-list');
+  el.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  _hwData = (await nwApi('/hardware/requests')) || [];
+  nwRenderHardware(_hwData);
+}
+
+function nwHwFilter(status) {
+  _hwFilter = status;
+  ['all','pending','approved','dispatched','installed'].forEach(function(s) {
+    var btn = document.getElementById('hw-tab-' + s);
+    if (btn) btn.classList.toggle('act', s === status);
+  });
+  nwRenderHardware(_hwData);
+}
+
+function nwRenderHardware(data) {
+  var el = document.getElementById('nw-hw-list');
+  var filtered = _hwFilter === 'all' ? data : data.filter(function(r) { return r.status === _hwFilter; });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px">'
+      + '<div style="font-size:36px">🔧</div>'
+      + '<div>No ' + (_hwFilter === 'all' ? '' : _hwFilter + ' ') + 'hardware requests</div>'
+      + '</div>';
+    return;
+  }
+
+  var statusMap = {
+    pending:    { col:'#f59e0b', bg:'#fffbeb', icon:'⏳', label:'Pending'    },
+    approved:   { col:'#3b82f6', bg:'#eff6ff', icon:'✅', label:'Approved'   },
+    dispatched: { col:'#10b981', bg:'#f0fdf4', icon:'📦', label:'Dispatched' },
+    installed:  { col:'#6366f1', bg:'#f5f3ff', icon:'🔧', label:'Installed'  },
+    rejected:   { col:'#ef4444', bg:'#fef2f2', icon:'❌', label:'Rejected'   },
+  };
+  var priMap = {
+    critical: { col:'#ef4444', label:'🔴 Critical' },
+    low:      { col:'#f59e0b', label:'🟡 Low'      },
+    normal:   { col:'#10b981', label:'🟢 Normal'   },
+  };
+
+  el.innerHTML = '<div class="nw-hw-list-inner">' + filtered.map(function(r) {
+    var st  = statusMap[r.status]  || { col:'#94a3b8', bg:'#f8fafc', icon:'?', label: r.status };
+    var pri = priMap[r.priority]   || { col:'#94a3b8', label: r.priority };
+    var dt  = r.requested_at ? new Date(r.requested_at).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+    // Timeline steps
+    var steps = [
+      { icon:'📤', label:'Requested',  who: r.requested_by_name,  when: r.requested_at,  done: true },
+      { icon:'✅', label:'Approved',   who: r.reviewed_by_name,   when: r.reviewed_at,   done: !!r.reviewed_at && r.status !== 'rejected' },
+      { icon:'📦', label:'Dispatched', who: r.dispatched_by_name, when: r.dispatched_at, done: !!r.dispatched_at },
+      { icon:'🔧', label:'Installed',  who: r.installed_by_name,  when: r.installed_at,  done: !!r.installed_at },
+    ];
+    if (r.status === 'rejected') {
+      steps[1] = { icon:'❌', label:'Rejected', who: r.reviewed_by_name, when: r.reviewed_at, done: true };
+    }
+
+    function fmtWhen(dt) {
+      if (!dt) return '';
+      return new Date(dt).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })
+        + ' ' + new Date(dt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    var timelineHtml = '<div class="nw-hw-timeline">'
+      + steps.map(function(s, i) {
+          return '<div class="nw-hw-tl-step">'
+            + (i > 0 ? '<div class="nw-hw-tl-line ' + (steps[i-1].done ? 'done' : '') + '"></div>' : '')
+            + '<div class="nw-hw-tl-dot ' + (s.done ? 'done' : '') + '">' + s.icon + '</div>'
+            + '<div class="nw-hw-tl-info">'
+            +   '<div class="nw-hw-tl-label ' + (s.done ? 'done' : '') + '">' + s.label + '</div>'
+            +   (s.who  ? '<div class="nw-hw-tl-sub">' + s.who + '</div>' : '')
+            +   (s.when ? '<div class="nw-hw-tl-sub">' + fmtWhen(s.when) + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+
+    return '<div class="nw-hw-card">'
+      + '<div class="nw-hw-card-top">'
+      +   '<div class="nw-hw-part-icon">⚙️</div>'
+      +   '<div class="nw-hw-card-info">'
+      +     '<div class="nw-hw-part-name">' + r.part_name + '</div>'
+      +     '<div class="nw-hw-card-meta">'
+      +       '<span class="nw-branch-code" style="font-size:10px">' + r.branch_code + '</span>'
+      +       '<span style="font-size:12px;color:#64748b"> · ' + r.printer_code + '</span>'
+      +       '<span style="font-size:11px;color:#94a3b8"> · ' + dt + '</span>'
+      +     '</div>'
+      +     (r.notes ? '<div class="nw-hw-notes">💬 ' + r.notes + '</div>' : '')
+      +   '</div>'
+      +   '<div class="nw-hw-card-right">'
+      +     '<div class="nw-req-status-pill" style="background:' + st.bg + ';color:' + st.col + '">' + st.icon + ' ' + st.label + '</div>'
+      +     '<div style="font-size:11px;font-weight:700;color:' + pri.col + ';margin-top:4px">' + pri.label + '</div>'
+      +   '</div>'
+      + '</div>'
+      + timelineHtml
+      + (r.review_note ? '<div class="nw-req-note" style="margin-top:8px">💬 Manager: ' + r.review_note + '</div>' : '')
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+async function nwOpenHardwareRequest() {
+  // Load branches and parts if not loaded
+  if (!_hwBranches.length) {
+    _hwBranches = (await nwApi('/nuwan/branches')) || [];
+    var bSel = document.getElementById('hw-modal-branch');
+    bSel.innerHTML = '<option value="">— Select Branch —</option>';
+    _hwBranches.forEach(function(b) { bSel.add(new Option(b.code + ' — ' + b.name, b.id + '|' + b.code)); });
+  }
+  if (!_hwParts.length) {
+    var pd = await nwApi('/hardware/parts');
+    _hwParts = pd ? pd.parts : [];
+    var pSel = document.getElementById('hw-modal-part');
+    pSel.innerHTML = '<option value="">— Select Part —</option>';
+    _hwParts.forEach(function(p) { pSel.add(new Option(p, p)); });
+  }
+
+  document.getElementById('hw-modal-printer').innerHTML = '<option value="">— Select Branch First —</option>';
+  document.getElementById('hw-modal-notes').value = '';
+  document.querySelectorAll('input[name="hw-pri"]').forEach(function(r) { r.checked = r.value === 'normal'; });
+
+  var btn = document.getElementById('hw-modal-submit-btn');
+  btn.textContent = '📤 Submit Hardware Request'; btn.disabled = false;
+
+  document.getElementById('nw-hw-modal').style.display = 'flex';
+}
+
+async function nwHwLoadPrinters() {
+  var val = document.getElementById('hw-modal-branch').value;
+  var pSel = document.getElementById('hw-modal-printer');
+  pSel.innerHTML = '<option value="">Loading...</option>';
+  if (!val) { pSel.innerHTML = '<option value="">— Select Branch First —</option>'; return; }
+  var branchId = val.split('|')[0];
+  var printers = (await nwApi('/printers/branch/' + branchId)) || [];
+  _hwPrinters = printers;
+  pSel.innerHTML = '<option value="">— Select Printer —</option>';
+  printers.forEach(function(p) { pSel.add(new Option(p.printer_code + ' — ' + (p.printer_model||''), p.printer_id)); });
+}
+
+function nwCloseHwModal(e) {
+  if (e.target.id === 'nw-hw-modal') document.getElementById('nw-hw-modal').style.display = 'none';
+}
+
+async function nwSubmitHardwareRequest() {
+  var branchVal  = document.getElementById('hw-modal-branch').value;
+  var printerId  = document.getElementById('hw-modal-printer').value;
+  var part       = document.getElementById('hw-modal-part').value;
+  var priority   = (document.querySelector('input[name="hw-pri"]:checked') || {}).value || 'normal';
+  var notes      = document.getElementById('hw-modal-notes').value.trim();
+
+  if (!branchVal) { nwToast('⚠️', 'Select a branch'); return; }
+  if (!printerId) { nwToast('⚠️', 'Select a printer'); return; }
+  if (!part)      { nwToast('⚠️', 'Select a hardware part'); return; }
+
+  var branchId = parseInt(branchVal.split('|')[0]);
+  var btn = document.getElementById('hw-modal-submit-btn');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+
+  try {
+    var r = await fetch('/api/hardware/requests', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + NW.token },
+      body:    JSON.stringify({
+        branch_id:  branchId,
+        printer_id: parseInt(printerId),
+        part_name:  part,
+        priority:   priority,
+        notes:      notes || null,
+      }),
+    });
+    var d = await r.json();
+    if (!r.ok) { nwToast('❌', d.detail || 'Failed'); btn.textContent = '📤 Submit Hardware Request'; btn.disabled = false; return; }
+    document.getElementById('nw-hw-modal').style.display = 'none';
+    nwToast('✅', 'Hardware request submitted!');
+    nwLoadHardware();
+  } catch(e) {
+    nwToast('❌', 'Network error');
+    btn.textContent = '📤 Submit Hardware Request'; btn.disabled = false;
+  }
+}
+
 </script>
 </body>
 </html>
