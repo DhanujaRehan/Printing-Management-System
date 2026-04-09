@@ -1292,3 +1292,124 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   color: #fff; border-color: transparent;
   box-shadow: 0 3px 12px rgba(14,165,233,.3);
 }
+
+/* ── PERMISSIONS ──────────────────────────────────────────── */
+.nw-perm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+.nw-perm-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  transition: box-shadow .2s, transform .2s;
+}
+.nw-perm-card:hover {
+  box-shadow: 0 4px 20px rgba(99,102,241,.1);
+  transform: translateY(-1px);
+}
+.nw-perm-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#6366f1,#0ea5e9);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800;
+  flex-shrink: 0;
+}
+.nw-perm-info { flex: 1; min-width: 0; }
+.nw-perm-name     { font-size: 14px; font-weight: 700; color: #0f172a; }
+.nw-perm-username { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+.nw-perm-branch   { margin-top: 6px; }
+.nw-perm-last     { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+.nw-perm-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.nw-pb-all    { background: #f0fdf4; color: #15803d; }
+.nw-pb-branch { background: #eff6ff; color: #1d4ed8; }
+.nw-perm-edit-btn {
+  padding: 8px 14px;
+  background: linear-gradient(135deg,#6366f1,#0ea5e9);
+  color: #fff; border: none; border-radius: 10px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .2s;
+}
+.nw-perm-edit-btn:hover { opacity: .85; }
+ 
+/* ── HARDWARE ─────────────────────────────────────────────── */
+.nw-hw-list-inner { display: flex; flex-direction: column; gap: 12px; }
+ 
+.nw-hw-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  transition: box-shadow .2s;
+}
+.nw-hw-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+ 
+.nw-hw-card-top {
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.nw-hw-part-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg,#fef3c7,#fde68a);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.nw-hw-card-info  { flex: 1; min-width: 0; }
+.nw-hw-part-name  { font-size: 15px; font-weight: 800; color: #0f172a; }
+.nw-hw-card-meta  { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.nw-hw-notes      { font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic; }
+.nw-hw-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+ 
+/* Timeline */
+.nw-hw-timeline {
+  display: flex; align-items: flex-start;
+  gap: 0; margin-top: 14px;
+  overflow-x: auto; padding-bottom: 4px;
+}
+.nw-hw-tl-step {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 80px; flex: 1; position: relative;
+}
+.nw-hw-tl-line {
+  position: absolute; top: 14px; right: 50%;
+  width: 100%; height: 2px;
+  background: #e2e8f0;
+  z-index: 0;
+}
+.nw-hw-tl-line.done { background: linear-gradient(90deg,#10b981,#0ea5e9); }
+.nw-hw-tl-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; z-index: 1; position: relative;
+  transition: all .3s;
+}
+.nw-hw-tl-dot.done {
+  background: linear-gradient(135deg,#10b981,#0ea5e9);
+  border-color: transparent;
+}
+.nw-hw-tl-info { text-align: center; margin-top: 5px; }
+.nw-hw-tl-label       { font-size: 10px; font-weight: 700; color: #94a3b8; }
+.nw-hw-tl-label.done  { color: #0f172a; }
+.nw-hw-tl-sub         { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+ 
+@media (max-width: 600px) {
+  .nw-perm-grid { grid-template-columns: 1fr; }
+  .nw-hw-timeline { gap: 2px; }
+  .nw-hw-tl-step  { min-width: 60px; }
+}
