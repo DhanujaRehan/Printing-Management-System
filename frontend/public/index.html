@@ -130,16 +130,13 @@
       <div class="twocol mb20">
         <div class="card">
           <div class="ch">
-            <h3>All Printer Toner Status</h3>
+            <h3>📊 Yesterday's Prints by Branch</h3>
             <div class="chr">
-              <input class="searchi" placeholder="🔍 Search printers..." oninput="filterPrTable(this.value)">
+              <input class="searchi" placeholder="🔍 Search branch..." oninput="filterDashBranchPrints(this.value)">
             </div>
           </div>
-          <div class="scx scy">
-            <table class="tbl">
-              <thead><tr><th>Printer</th><th>Branch</th><th>Level</th><th>Model</th><th>Days Left</th><th>Copies Left</th><th>Next Date</th><th>Status</th></tr></thead>
-              <tbody id="pr-tbody"></tbody>
-            </table>
+          <div id="dash-branch-prints" style="padding:8px 0">
+            <div class="loading"><div class="spin"></div> Loading...</div>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:15px">

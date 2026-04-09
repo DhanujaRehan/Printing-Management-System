@@ -66,15 +66,24 @@ function renderPrintReport() {
   if (_prFilterDate)   paperLogs = paperLogs.filter(l => l.log_date && l.log_date.toString().startsWith(_prFilterDate));
   if (_prFilterBranch) paperLogs = paperLogs.filter(l => l.branch_code === _prFilterBranch);
 
-  // Build paper lookup: branch_code+date → {a4, b4, legal}
+  // Build paper lookup: branch_code+date → full breakdown
   const paperMap = {};
   paperLogs.forEach(l => {
     const key = l.branch_code + '|' + (l.log_date ? l.log_date.toString().slice(0,10) : '');
-    if (!paperMap[key]) paperMap[key] = { a4: 0, b4: 0, legal: 0, logged_by: l.logged_by };
-    const total = (parseInt(l.single_side) || 0) + (parseInt(l.double_side) || 0);
-    if (l.paper_type === 'a4')    paperMap[key].a4    += total;
-    if (l.paper_type === 'b4')    paperMap[key].b4    += total;
-    if (l.paper_type === 'legal') paperMap[key].legal += total;
+    if (!paperMap[key]) paperMap[key] = {
+      a4_single:0, a4_double:0,
+      b4_single:0, b4_double:0,
+      legal_single:0, legal_double:0,
+      waste_a4:0, waste_b4:0, waste_legal:0,
+    };
+    var ss = parseInt(l.single_side) || 0;
+    var ds = parseInt(l.double_side) || 0;
+    if (l.paper_type === 'a4')    { paperMap[key].a4_single    += ss; paperMap[key].a4_double    += ds; }
+    if (l.paper_type === 'b4')    { paperMap[key].b4_single    += ss; paperMap[key].b4_double    += ds; }
+    if (l.paper_type === 'legal') { paperMap[key].legal_single += ss; paperMap[key].legal_double += ds; }
+    paperMap[key].waste_a4    += parseInt(l.waste_a4)    || 0;
+    paperMap[key].waste_b4    += parseInt(l.waste_b4)    || 0;
+    paperMap[key].waste_legal += parseInt(l.waste_legal) || 0;
   });
 
   // KPIs
@@ -123,8 +132,13 @@ function renderPrintReport() {
     // Get paper data for this branch+date
     const dateKey  = _prFilterDate || (branch.printers[0] && branch.printers[0].log_date ? branch.printers[0].log_date.slice(0,10) : '');
     const paperKey = branch.code + '|' + dateKey;
-    const paper    = paperMap[paperKey] || { a4: 0, b4: 0, legal: 0 };
-    const hasPaper = paper.a4 > 0 || paper.b4 > 0 || paper.legal > 0;
+    const paper    = paperMap[paperKey] || {};
+    const a4Total    = (paper.a4_single||0)    + (paper.a4_double||0);
+    const b4Total    = (paper.b4_single||0)    + (paper.b4_double||0);
+    const legalTotal = (paper.legal_single||0) + (paper.legal_double||0);
+    const wasteTotal = (paper.waste_a4||0) + (paper.waste_b4||0) + (paper.waste_legal||0);
+    const hasPaper   = a4Total > 0 || b4Total > 0 || legalTotal > 0;
+    const hasWaste   = wasteTotal > 0;
 
     // Sort printers by print count desc
     const printers = [...branch.printers].sort((a, b) => (b.print_count || 0) - (a.print_count || 0));
@@ -142,13 +156,45 @@ function renderPrintReport() {
       + '</div>'
       + '</div>'
 
-      // Paper summary row for this branch
+      // Paper breakdown table
       + (hasPaper
-        ? '<div class="pr-paper-row">'
-          + '<span class="pr-paper-label">📄 Daily Paper:</span>'
-          + (paper.a4    > 0 ? '<span class="pr-paper-chip pr-paper-a4">A4: '    + paper.a4.toLocaleString()    + ' sheets</span>' : '')
-          + (paper.b4    > 0 ? '<span class="pr-paper-chip pr-paper-b4">B4: '    + paper.b4.toLocaleString()    + ' sheets</span>' : '')
-          + (paper.legal > 0 ? '<span class="pr-paper-chip pr-paper-legal">Legal: ' + paper.legal.toLocaleString() + ' sheets</span>' : '')
+        ? '<div class="pr-paper-breakdown">'
+          + '<div class="pr-paper-breakdown-title">📄 Daily Paper Usage</div>'
+          + '<div class="pr-paper-breakdown-grid">'
+          // A4
+          + (a4Total > 0
+            ? '<div class="pr-pb-item pr-pb-a4">'
+              + '<div class="pr-pb-type">A4</div>'
+              + '<div class="pr-pb-rows">'
+              + '<div class="pr-pb-row"><span>Single</span><strong>' + (paper.a4_single||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row"><span>Double</span><strong>' + (paper.a4_double||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row pr-pb-total"><span>Total</span><strong>' + a4Total.toLocaleString() + '</strong></div>'
+              + (paper.waste_a4>0 ? '<div class="pr-pb-row pr-pb-waste"><span>🗑️ Waste</span><strong>' + (paper.waste_a4).toLocaleString() + '</strong></div>' : '')
+              + '</div>'
+              + '</div>' : '')
+          // B4
+          + (b4Total > 0
+            ? '<div class="pr-pb-item pr-pb-b4">'
+              + '<div class="pr-pb-type">B4</div>'
+              + '<div class="pr-pb-rows">'
+              + '<div class="pr-pb-row"><span>Single</span><strong>' + (paper.b4_single||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row"><span>Double</span><strong>' + (paper.b4_double||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row pr-pb-total"><span>Total</span><strong>' + b4Total.toLocaleString() + '</strong></div>'
+              + (paper.waste_b4>0 ? '<div class="pr-pb-row pr-pb-waste"><span>🗑️ Waste</span><strong>' + (paper.waste_b4).toLocaleString() + '</strong></div>' : '')
+              + '</div>'
+              + '</div>' : '')
+          // Legal
+          + (legalTotal > 0
+            ? '<div class="pr-pb-item pr-pb-legal">'
+              + '<div class="pr-pb-type">Legal</div>'
+              + '<div class="pr-pb-rows">'
+              + '<div class="pr-pb-row"><span>Single</span><strong>' + (paper.legal_single||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row"><span>Double</span><strong>' + (paper.legal_double||0).toLocaleString() + '</strong></div>'
+              + '<div class="pr-pb-row pr-pb-total"><span>Total</span><strong>' + legalTotal.toLocaleString() + '</strong></div>'
+              + (paper.waste_legal>0 ? '<div class="pr-pb-row pr-pb-waste"><span>🗑️ Waste</span><strong>' + (paper.waste_legal).toLocaleString() + '</strong></div>' : '')
+              + '</div>'
+              + '</div>' : '')
+          + '</div>'
           + '</div>'
         : '')
 
