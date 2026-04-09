@@ -245,11 +245,8 @@
           <div class="nws-table-title">📋 Detailed Log Entries</div>
           <div class="nws-record-count" id="nws-record-label"></div>
         </div>
-        <div class="nws-table-scroll">
-          <table class="nws-table">
-            <thead><tr><th>Date</th><th>Branch</th><th>Printer</th><th>Total</th><th>A4</th><th>B4</th><th>Legal</th><th>Logged By</th><th>Time</th></tr></thead>
-            <tbody id="nws-tbody"></tbody>
-          </table>
+        <div class="nws-table-scroll" id="nws-table-scroll">
+          <!-- Cards injected by JS -->
         </div>
       </div>
 
@@ -717,27 +714,117 @@ function nwFilterRentals(q){if(!q.trim()){nwRenderRentals(_nwRentals);return;}va
 function nwToggleMenu(){var tabs=document.querySelector('.nw-tabs'),overlay=document.getElementById('nw-ham-overlay'),btn=document.getElementById('nw-ham-btn'),isOpen=tabs.classList.contains('nw-tabs-open');tabs.classList.toggle('nw-tabs-open',!isOpen);if(overlay)overlay.classList.toggle('vis',!isOpen);if(btn)btn.classList.toggle('open',!isOpen);}
 function nwCloseMenu(){var tabs=document.querySelector('.nw-tabs'),overlay=document.getElementById('nw-ham-overlay'),btn=document.getElementById('nw-ham-btn');if(tabs)tabs.classList.remove('nw-tabs-open');if(overlay)overlay.classList.remove('vis');if(btn)btn.classList.remove('open');}
 
-async function nwShowBranchDetail(branchId,branchLabel){
-  var overlay=document.getElementById('nw-drawer-overlay'),drawer=document.getElementById('nw-drawer'),body=document.getElementById('nw-drawer-body'),title=document.getElementById('nw-drawer-title'),sub=document.getElementById('nw-drawer-sub');
-  title.textContent=branchLabel; sub.textContent='Loading...'; body.innerHTML='<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
-  overlay.classList.add('vis'); drawer.classList.add('open'); document.body.style.overflow='hidden';
-  var d=await nwApi('/nuwan/prints/branch-detail/'+branchId); if(!d){body.innerHTML='<div class="nw-spin-wrap">Failed to load.</div>';return;}
-  var dt=new Date(d.log_date+'T00:00:00');
-  var pretty=dt.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  sub.textContent=pretty+' — '+d.logs.length+' printer'+(d.logs.length!==1?'s':'')+' logged';
-  if(!d.logs.length){body.innerHTML='<div class="nw-spin-wrap" style="flex-direction:column;gap:8px"><div style="font-size:32px">📋</div><div>No print logs found.</div></div>';return;}
-  body.innerHTML=d.logs.map(function(log){
-    var time=log.created_at?new Date(log.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'--';
-    var papers=[];
-    if(log.a4_single||log.a4_double)papers.push({t:'A4',s:log.a4_single||0,d:log.a4_double||0});
-    if(log.b4_single||log.b4_double)papers.push({t:'B4',s:log.b4_single||0,d:log.b4_double||0});
-    if(log.letter_single||log.letter_double)papers.push({t:'Legal',s:log.letter_single||0,d:log.letter_double||0});
-    var paperHtml=papers.map(function(p){return'<div class="nw-dl-paper"><div class="nw-dl-paper-type">'+p.t+'</div><div class="nw-dl-paper-counts"><span class="nw-dl-side">Single <strong>'+p.s+'</strong></span><span class="nw-dl-side">Double <strong>'+p.d+'</strong></span></div></div>';}).join('');
-    if(!paperHtml)paperHtml='<div class="nw-dl-paper" style="color:#94a3b8">No paper breakdown</div>';
-    return '<div class="nw-dl-card"><div class="nw-dl-card-hdr"><div class="nw-dl-printer"><div class="nw-dl-printer-code">'+log.printer_code+'</div><div class="nw-dl-printer-model">'+(log.printer_model||'')+'</div></div><div class="nw-dl-total"><div class="nw-dl-total-num">'+(log.print_count||0).toLocaleString()+'</div><div class="nw-dl-total-lbl">Total Prints</div></div></div><div class="nw-dl-meta"><span class="nw-dl-who">👤 '+log.logged_by_name+'</span><span class="nw-dl-when">🕐 '+time+'</span></div><div class="nw-dl-papers">'+paperHtml+'</div></div>';
-  }).join('');
-  body.innerHTML+='<div class="nw-dl-grand-total"><span>Total Prints for Branch</span><span class="nw-dl-grand-num">'+d.total.toLocaleString()+'</span></div>';
+async function nwShowBranchDetail(branchId, branchLabel) {
+  var overlay = document.getElementById('nw-drawer-overlay');
+  var drawer  = document.getElementById('nw-drawer');
+  var body    = document.getElementById('nw-drawer-body');
+  var title   = document.getElementById('nw-drawer-title');
+  var sub     = document.getElementById('nw-drawer-sub');
+
+  title.textContent = branchLabel;
+  sub.textContent   = 'Loading...';
+  body.innerHTML    = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
+  overlay.classList.add('vis');
+  drawer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Fetch printer logs + paper/waste in parallel
+  var yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  var ydStr = yesterday.toISOString().slice(0,10);
+
+  var results = await Promise.all([
+    nwApi('/nuwan/prints/branch-detail/' + branchId),
+    nwApi('/nuwan/prints/paper-summary?branch_id=' + branchId + '&date_from=' + ydStr + '&date_to=' + ydStr),
+  ]);
+  var d    = results[0];
+  var psum = results[1];
+
+  if (!d) { body.innerHTML = '<div class="nw-spin-wrap">Failed to load.</div>'; return; }
+
+  var dt     = new Date(d.log_date + 'T00:00:00');
+  var pretty = dt.toLocaleDateString('en-GB', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  sub.textContent = pretty + ' — ' + d.logs.length + ' printer' + (d.logs.length !== 1 ? 's' : '') + ' logged';
+
+  // Build paper map from psum
+  var paper = { a4_single:0, a4_double:0, b4_single:0, b4_double:0, legal_single:0, legal_double:0,
+                waste_a4:0, waste_b4:0, waste_legal:0 };
+  if (psum && psum.rows) {
+    psum.rows.forEach(function(r) {
+      if (r.paper_type === 'a4')    { paper.a4_single    += parseInt(r.single_side)||0; paper.a4_double    += parseInt(r.double_side)||0; }
+      if (r.paper_type === 'b4')    { paper.b4_single    += parseInt(r.single_side)||0; paper.b4_double    += parseInt(r.double_side)||0; }
+      if (r.paper_type === 'legal') { paper.legal_single += parseInt(r.single_side)||0; paper.legal_double += parseInt(r.double_side)||0; }
+      paper.waste_a4    += parseInt(r.waste_a4)    || 0;
+      paper.waste_b4    += parseInt(r.waste_b4)    || 0;
+      paper.waste_legal += parseInt(r.waste_legal) || 0;
+    });
+  }
+
+  var a4Total    = paper.a4_single    + paper.a4_double;
+  var b4Total    = paper.b4_single    + paper.b4_double;
+  var legalTotal = paper.legal_single + paper.legal_double;
+  var wasteTotal = paper.waste_a4 + paper.waste_b4 + paper.waste_legal;
+  var hasPaper   = a4Total > 0 || b4Total > 0 || legalTotal > 0;
+
+  function paperCard(icon, label, single, dbl, waste, bg, col) {
+    var total = (single||0) + (dbl||0);
+    return '<div class="nw-yd-paper-card" style="background:' + bg + ';border-color:' + col + '20">'
+      + '<div class="nw-yd-pc-label" style="color:' + col + '">' + icon + ' ' + label + '</div>'
+      + '<div class="nw-yd-pc-total" style="color:' + col + '">' + total.toLocaleString() + '</div>'
+      + '<div class="nw-yd-pc-rows">'
+      + '<div class="nw-yd-pc-row"><span>Single</span><strong>' + (single||0).toLocaleString() + '</strong></div>'
+      + '<div class="nw-yd-pc-row"><span>Double</span><strong>' + (dbl||0).toLocaleString() + '</strong></div>'
+      + (waste > 0 ? '<div class="nw-yd-pc-row nw-yd-pc-waste"><span>🗑️ Waste</span><strong>' + waste.toLocaleString() + '</strong></div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  // Grand total hero
+  var grandHtml = '<div class="nw-yd-grand">'
+    + '<div class="nw-yd-grand-num">' + d.total.toLocaleString() + '</div>'
+    + '<div class="nw-yd-grand-lbl">Total Prints Yesterday</div>'
+    + '</div>';
+
+  // Paper section
+  var paperHtml = '';
+  if (hasPaper) {
+    paperHtml = '<div class="nw-yd-section-title">📄 Paper Usage</div>'
+      + '<div class="nw-yd-paper-grid">'
+      + (b4Total > 0 || paper.waste_b4 > 0
+          ? paperCard('📋', 'B4', paper.b4_single, paper.b4_double, paper.waste_b4, '#f5f3ff', '#6366f1') : '')
+      + (legalTotal > 0 || paper.waste_legal > 0
+          ? paperCard('📃', 'Legal', paper.legal_single, paper.legal_double, paper.waste_legal, '#f0fdf4', '#10b981') : '')
+      + (a4Total > 0 || paper.waste_a4 > 0
+          ? paperCard('📄', 'A4', paper.a4_single, paper.a4_double, paper.waste_a4, '#eff6ff', '#0ea5e9') : '')
+      + '</div>';
+  }
+
+  // Printer cards
+  var printerHtml = '';
+  if (!d.logs.length) {
+    printerHtml = '<div class="nw-spin-wrap" style="flex-direction:column;gap:8px;padding:30px 0">'
+      + '<div style="font-size:32px">📋</div><div>No print logs found.</div></div>';
+  } else {
+    printerHtml = '<div class="nw-yd-section-title">🖨️ Printers (' + d.logs.length + ')</div>'
+      + '<div class="nw-yd-printer-list">'
+      + d.logs.map(function(log) {
+          var time = log.created_at
+            ? new Date(log.created_at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
+            : '--';
+          return '<div class="nw-yd-printer-row">'
+            + '<div class="nw-yd-pr-left">'
+            +   '<div class="nw-yd-pr-code">' + log.printer_code + '</div>'
+            +   '<div class="nw-yd-pr-model">' + (log.printer_model||'') + '</div>'
+            +   '<div class="nw-yd-pr-meta">👤 ' + log.logged_by_name + ' · 🕐 ' + time + '</div>'
+            + '</div>'
+            + '<div class="nw-yd-pr-count">' + (log.print_count||0).toLocaleString() + '<span>prints</span></div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  body.innerHTML = grandHtml + paperHtml + printerHtml;
 }
+
 function nwCloseDrawer(){document.getElementById('nw-drawer-overlay').classList.remove('vis');document.getElementById('nw-drawer').classList.remove('open');document.body.style.overflow='';}
 
 /* ── PRINT SUMMARY ────────────────────────────────────────── */
@@ -867,56 +954,134 @@ async function nwLoadSummary() {
   var label = document.getElementById('nws-record-label');
   if (label) label.textContent = d.record_count + ' entries';
 
-  if (tbody && d.logs && d.logs.length) {
-    // Sort latest first
+  // ── Detailed log cards (replaces flat table) ─────────────
+  var tableWrap = document.getElementById('nws-table-wrap');
+  var label = document.getElementById('nws-record-label');
+  if (label) label.textContent = d.record_count + ' entries';
+
+  if (d.logs && d.logs.length) {
     var sortedLogs = d.logs.slice().sort(function(a, b) {
       var da = new Date(a.created_at || a.log_date), db = new Date(b.created_at || b.log_date);
       return db - da;
     });
 
-    // Track which branch+date combos we've already shown paper for
-    var paperShown = {};
+    var cardsHtml = '<div class="nws-log-cards">'
+      + sortedLogs.slice(0, 500).map(function(l) {
+          var dateStr = l.log_date
+            ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+            : '—';
+          var timeStr = l.created_at
+            ? new Date(l.created_at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
+            : '—';
+          var dateKey  = l.log_date ? l.log_date.toString().slice(0, 10) : '';
+          var paperKey = (l.branch_code || '') + '|' + dateKey;
+          var paper    = paperMap[paperKey] || {};
+          var hasPaper = (paper.a4_single||0)+(paper.a4_double||0)+
+                         (paper.b4_single||0)+(paper.b4_double||0)+
+                         (paper.legal_single||0)+(paper.legal_double||0) > 0;
+          var hasWaste = (paper.waste_a4||0)+(paper.waste_b4||0)+(paper.waste_legal||0) > 0;
 
-    tbody.innerHTML = sortedLogs.slice(0, 500).map(function(l) {
-      var dateStr = l.log_date
-        ? new Date(l.log_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
-        : '—';
-      var timeStr = l.created_at
-        ? new Date(l.created_at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
-        : '—';
+          // encode paper data for drawer
+          var paperData = encodeURIComponent(JSON.stringify({
+            paper: paper,
+            log: {
+              log_date: l.log_date,
+              branch_code: l.branch_code,
+              branch_name: l.branch_name,
+              printer_code: l.printer_code,
+              print_count: l.print_count,
+              logged_by: l.logged_by,
+              created_at: l.created_at
+            }
+          }));
 
-      // Get paper for this branch+date from daily_paper_logs
-      var dateKey  = l.log_date ? l.log_date.toString().slice(0, 10) : '';
-      var paperKey = (l.branch_code || '') + '|' + dateKey;
-      var paper    = paperMap[paperKey] || {};
+          return '<div class="nws-log-card" onclick="nwOpenLogDrawer('' + paperData + '')">'
+            + '<div class="nws-lc-left">'
+            +   '<div class="nws-lc-date">' + dateStr + '</div>'
+            +   '<div class="nws-lc-time">' + timeStr + '</div>'
+            + '</div>'
+            + '<div class="nws-lc-mid">'
+            +   '<div class="nws-lc-branch"><span class="nws-td-code">' + (l.branch_code||'—') + '</span><span class="nws-lc-bname">' + (l.branch_name||'') + '</span></div>'
+            +   '<div class="nws-lc-printer">🖨️ ' + (l.printer_code||'—') + '</div>'
+            +   '<div class="nws-lc-user">👤 ' + (l.logged_by||'—') + '</div>'
+            + '</div>'
+            + '<div class="nws-lc-right">'
+            +   '<div class="nws-lc-total">' + (l.print_count||0).toLocaleString() + '</div>'
+            +   '<div class="nws-lc-sub">prints</div>'
+            +   (hasPaper ? '<div class="nws-lc-has-paper">📄 Paper</div>' : '')
+            +   (hasWaste ? '<div class="nws-lc-has-waste">🗑️ Waste</div>' : '')
+            + '</div>'
+            + '<div class="nws-lc-arrow">›</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
 
-      // Only show paper on first printer row per branch+date (avoid duplicating)
-      var showPaper = !paperShown[paperKey];
-      if (showPaper) paperShown[paperKey] = true;
-
-      var a4Total  = showPaper ? ((paper.a4_single    || 0) + (paper.a4_double    || 0)) : null;
-      var b4Total  = showPaper ? ((paper.b4_single    || 0) + (paper.b4_double    || 0)) : null;
-      var lgTotal  = showPaper ? ((paper.legal_single || 0) + (paper.legal_double || 0)) : null;
-
-      var a4Cell = a4Total !== null ? (a4Total > 0 ? '<span style="font-weight:700;color:#0369a1">' + a4Total.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
-      var b4Cell = b4Total !== null ? (b4Total > 0 ? '<span style="font-weight:700;color:#6d28d9">' + b4Total.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
-      var lgCell = lgTotal !== null ? (lgTotal > 0 ? '<span style="font-weight:700;color:#065f46">' + lgTotal.toLocaleString() + '</span>' : '—') : '<span style="color:#cbd5e1">↑</span>';
-
-      return '<tr>'
-        + '<td class="nws-td-date">'   + dateStr + '</td>'
-        + '<td><span class="nws-td-code">' + (l.branch_code  || '—') + '</span></td>'
-        + '<td class="nws-td-printer">'   + (l.printer_code || '—') + '</td>'
-        + '<td class="nws-td-total">'     + (l.print_count  || 0).toLocaleString() + '</td>'
-        + '<td class="nws-td-paper">'     + a4Cell + '</td>'
-        + '<td class="nws-td-paper">'     + b4Cell + '</td>'
-        + '<td class="nws-td-paper">'     + lgCell + '</td>'
-        + '<td class="nws-td-user">'      + (l.logged_by    || '—') + '</td>'
-        + '<td class="nws-td-time">'      + timeStr + '</td>'
-        + '</tr>';
-    }).join('');
-
-    document.getElementById('nws-table-wrap').style.display = 'block';
+    // Replace table content with cards
+    var tableScroll = tableWrap.querySelector('.nws-table-scroll');
+    if (tableScroll) tableScroll.innerHTML = cardsHtml;
+    tableWrap.style.display = 'block';
   }
+}
+
+// ── Log detail drawer ──────────────────────────────────────
+function nwOpenLogDrawer(encodedData) {
+  var data = JSON.parse(decodeURIComponent(encodedData));
+  var paper = data.paper || {};
+  var log   = data.log   || {};
+
+  var overlay = document.getElementById('nw-drawer-overlay');
+  var drawer  = document.getElementById('nw-drawer');
+  var body    = document.getElementById('nw-drawer-body');
+  var title   = document.getElementById('nw-drawer-title');
+  var sub     = document.getElementById('nw-drawer-sub');
+
+  var dateStr = log.log_date
+    ? new Date(log.log_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'2-digit', month:'long', year:'numeric' })
+    : '—';
+
+  title.textContent = (log.branch_code||'') + ' — ' + (log.printer_code||'');
+  sub.textContent   = dateStr;
+
+  // Paper breakdown
+  function paperBlock(label, single, dbl, waste, colorClass) {
+    var total = (single||0) + (dbl||0);
+    if (total === 0 && !(waste > 0)) return '';
+    return '<div class="nw-ld-paper-block ' + colorClass + '">'
+      + '<div class="nw-ld-pb-type">' + label + '</div>'
+      + '<div class="nw-ld-pb-rows">'
+      + '<div class="nw-ld-pb-row"><span>Single Side</span><strong>' + (single||0).toLocaleString() + '</strong></div>'
+      + '<div class="nw-ld-pb-row"><span>Double Side</span><strong>' + (dbl||0).toLocaleString() + '</strong></div>'
+      + '<div class="nw-ld-pb-row nw-ld-pb-total"><span>Total</span><strong>' + total.toLocaleString() + '</strong></div>'
+      + (waste > 0 ? '<div class="nw-ld-pb-row nw-ld-pb-waste"><span>🗑️ Waste</span><strong>' + waste.toLocaleString() + '</strong></div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  var a4Blk    = paperBlock('📄 A4',    paper.a4_single,    paper.a4_double,    paper.waste_a4||0,    'nw-ld-a4');
+  var b4Blk    = paperBlock('📋 B4',    paper.b4_single,    paper.b4_double,    paper.waste_b4||0,    'nw-ld-b4');
+  var lgBlk    = paperBlock('📃 Legal', paper.legal_single, paper.legal_double, paper.waste_legal||0, 'nw-ld-lg');
+  var hasPaper = a4Blk || b4Blk || lgBlk;
+
+  body.innerHTML =
+    // Print count hero
+    '<div class="nw-ld-hero">'
+    + '<div class="nw-ld-hero-num">' + (log.print_count||0).toLocaleString() + '</div>'
+    + '<div class="nw-ld-hero-lbl">Total Prints</div>'
+    + '<div class="nw-ld-hero-meta">'
+    +   '<span>👤 ' + (log.logged_by||'—') + '</span>'
+    +   (log.created_at ? '<span>🕐 ' + new Date(log.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + '</span>' : '')
+    + '</div>'
+    + '</div>'
+    // Paper section
+    + (hasPaper
+        ? '<div class="nw-ld-section-title">📄 Paper Usage</div>'
+          + '<div class="nw-ld-paper-grid">' + b4Blk + lgBlk + a4Blk + '</div>'
+        : '<div class="nw-ld-no-paper">No paper data logged for this date</div>')
+    ;
+
+  overlay.classList.add('vis');
+  drawer.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 function nwClearSummaryFilters(){
