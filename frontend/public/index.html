@@ -1484,6 +1484,60 @@
           </table>
         </div>
       </div>
+
+    <!-- ── AUDITING HUB ──────────────────────────────────── -->
+    <div class="page" id="page-auditing">
+      <div class="pgh">
+        <div>
+          <div class="pgt">🗂️ Auditing</div>
+          <div class="pgs">Full lifecycle audit trails — Toner, Paper and Hardware</div>
+        </div>
+      </div>
+      <div id="auditing-container"></div>
+    </div>
+
+    <!-- ── PERFORMANCE SUMMARY ───────────────────────────── -->
+    <div class="page" id="page-performance">
+      <div class="pgh">
+        <div>
+          <div class="pgt">📈 Performance Summary</div>
+          <div class="pgs">Cost per copy analysis — by branch and printer</div>
+        </div>
+        <div class="pgact">
+          <select class="fs" id="perf-month-sel" onchange="loadPerformance()" style="min-width:120px">
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+          <select class="fs" id="perf-year-sel" onchange="loadPerformance()" style="min-width:90px">
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+          <select class="fs" id="perf-branch-sel" onchange="loadPerformance()" style="min-width:180px">
+            <option value="">All Branches</option>
+          </select>
+          <button class="btn btn-g" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:12px" onclick="exportPerformance()">📥 Excel</button>
+          <button class="btn btn-g" onclick="loadPerformance()" style="font-size:12px">↺ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Grand KPIs -->
+      <div class="krow mb20" id="perf-kpis" style="display:none">
+        <div class="kcard"><div class="knum" id="perf-kpi-prints">—</div><div class="klbl">Total Prints</div></div>
+        <div class="kcard"><div class="knum" id="perf-kpi-toner">—</div><div class="klbl">Toner Cost (LKR)</div></div>
+        <div class="kcard"><div class="knum" id="perf-kpi-paper">—</div><div class="klbl">Paper Cost (LKR)</div></div>
+        <div class="kcard"><div class="knum" id="perf-kpi-hw">—</div><div class="klbl">Hardware Cost (LKR)</div></div>
+        <div class="kcard"><div class="knum" id="perf-kpi-cpc">—</div><div class="klbl">Avg Cost/Copy (LKR)</div></div>
+      </div>
+
+      <div id="perf-container"></div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1839,6 +1893,8 @@
 <script src="/js/tonerlog.js"></script>
   <script src="/js/rentals.js"></script>
 <script src="/js/toneraudit.js"></script>
+<script src="/js/auditing.js"></script>
+<script src="/js/performance.js"></script>
 
 <script>
 /* ── Mobile Sidebar Toggle ─────────────────────────────── */

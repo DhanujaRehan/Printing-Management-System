@@ -2183,3 +2183,242 @@
   border-color: #fecaca !important;
   background: #fff5f5 !important;
 }
+/* ══════════════════════════════════════════════════════════
+   EOD PAPER CARDS — Branch daily paper totals (ADD TO BOTTOM)
+   ══════════════════════════════════════════════════════════ */
+.eod-paper-section-title {
+  font-size: 15px; font-weight: 800; color: #0f172a;
+  margin: 24px 0 14px; padding-left: 2px;
+}
+.eod-paper-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+.eod-paper-card {
+  background: #fff; border: 2px solid #e2e8f0;
+  border-radius: 20px; padding: 22px 16px;
+  text-align: center; cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.eod-paper-card:hover {
+  border-color: #0ea5e9;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(14,165,233,.15);
+}
+.eod-paper-card-done {
+  border-color: #10b981 !important;
+  background: #f0fdf4 !important;
+}
+.eod-paper-card-icon  { font-size: 36px; margin-bottom: 8px; }
+.eod-paper-card-label { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 10px; }
+.eod-paper-card-total { font-size: 22px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.eod-paper-card-sub   { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+.eod-paper-card-badge {
+  font-size: 10px; font-weight: 700;
+  background: #d1fae5; color: #065f46;
+  padding: 3px 10px; border-radius: 6px; display: inline-block;
+}
+.eod-paper-card-hint {
+  font-size: 12px; color: #0ea5e9; font-weight: 600;
+  background: #eff6ff; padding: 6px 10px;
+  border-radius: 8px; display: inline-block;
+}
+@media (max-width: 600px) {
+  .eod-paper-cards-grid { grid-template-columns: 1fr; gap: 10px; }
+  .eod-paper-card-icon { font-size: 28px; }
+  .eod-paper-card-total { font-size: 18px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   EOD HISTORY — Rich table with meter reading
+   ══════════════════════════════════════════════════════════ */
+.eod3-hist-table { width: 100%; overflow-x: auto; }
+.eod3-hist-header {
+  display: grid;
+  grid-template-columns: 110px 90px 1fr 1fr 1fr;
+  gap: 6px; padding: 8px 10px;
+  background: #f8fafc; border-radius: 10px 10px 0 0;
+  border-bottom: 1.5px solid #e2e8f0;
+  margin-bottom: 2px;
+}
+.eod3-hh {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: #94a3b8;
+}
+.eod3-hist-row2 {
+  display: grid;
+  grid-template-columns: 110px 90px 1fr 1fr 1fr;
+  gap: 6px; padding: 9px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+  transition: background .1s;
+}
+.eod3-hist-row2:hover { background: #f8fafc; }
+.eod3-hist-row2:last-child { border-bottom: none; }
+.eod3-hd { font-size: 12px; color: #0f172a; }
+.eod3-hd-date  { color: #64748b; font-size: 11px; }
+.eod3-hd-code  { font-family: var(--m); font-weight: 700; color: #0ea5e9; font-size: 11px; }
+.eod3-hd-meter { font-family: var(--m); font-size: 11px; color: #475569; }
+.eod3-hd-prev  { font-size: 10px; color: #94a3b8; }
+
+@media (max-width: 480px) {
+  .eod3-hist-header,
+  .eod3-hist-row2 {
+    grid-template-columns: 85px 75px 80px 70px 1fr;
+    gap: 4px; padding: 8px 6px;
+  }
+  .eod3-hh, .eod3-hd { font-size: 10px; }
+}
+
+/* Printer card — meter + daily prints display */
+.eod3-logged-meter {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: var(--m);
+  margin-top: 4px;
+}
+.eod3-logged-total {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0ea5e9;
+  margin-top: 2px;
+}
+
+/* ── Print Report — Paper summary row ─────────────────────── */
+.pr-paper-row {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px; padding: 8px 16px 10px;
+  background: #f8fafc; border-top: 1px solid #f1f5f9;
+}
+.pr-paper-label {
+  font-size: 11px; font-weight: 700; color: #64748b;
+}
+.pr-paper-chip {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+}
+.pr-paper-a4    { background: #e0f2fe; color: #0369a1; }
+.pr-paper-b4    { background: #ede9fe; color: #6d28d9; }
+.pr-paper-legal { background: #d1fae5; color: #065f46; }
+
+/* ── Waste paper card style ───────────────────────────────── */
+.eod-waste-done {
+  border-color: #fecaca !important;
+  background: #fff5f5 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUDITING HUB
+   ══════════════════════════════════════════════════════════ */
+.audit-hub-grid { display:flex; flex-direction:column; gap:14px; max-width:700px; }
+.audit-hub-card {
+  display:flex; align-items:center; gap:18px;
+  background:#fff; border:1.5px solid #e2e8f0;
+  border-radius:18px; padding:20px 22px;
+  cursor:pointer; transition:box-shadow .2s, transform .2s;
+}
+.audit-hub-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.08); transform:translateY(-2px); }
+.audit-hub-icon {
+  width:54px; height:54px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; flex-shrink:0;
+}
+.audit-hub-body { flex:1; }
+.audit-hub-title { font-size:16px; font-weight:800; color:#0f172a; }
+.audit-hub-desc  { font-size:12px; color:#64748b; margin-top:4px; line-height:1.5; }
+.audit-hub-arrow { font-size:20px; color:#94a3b8; flex-shrink:0; }
+
+/* Audit back bar */
+.audit-back-bar {
+  display:flex; align-items:center; gap:14px; margin-bottom:16px;
+}
+.audit-back-btn {
+  padding:8px 16px; background:#f1f5f9; border:none;
+  border-radius:10px; font-size:13px; font-weight:700;
+  color:#475569; cursor:pointer; transition:background .15s;
+  white-space:nowrap;
+}
+.audit-back-btn:hover { background:#e2e8f0; }
+.audit-view-title { font-size:18px; font-weight:800; color:#0f172a; }
+.audit-view-sub   { font-size:12px; color:#64748b; margin-top:2px; }
+
+/* Audit filter bar */
+.audit-filter-bar {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;
+  background:#f8fafc; border-radius:14px; padding:14px 16px; margin-bottom:12px;
+}
+.audit-filter-group { display:flex; flex-direction:column; gap:4px; }
+.audit-filter-lbl   { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; }
+.audit-filter-input {
+  padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:10px;
+  font-size:13px; background:#fff; outline:none; min-width:140px;
+}
+.audit-filter-actions { display:flex; gap:8px; align-items:flex-end; }
+.audit-btn-search {
+  padding:9px 16px; background:linear-gradient(135deg,#0ea5e9,#6366f1);
+  color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;
+}
+.audit-btn-clear {
+  padding:9px 14px; background:#f1f5f9; color:#475569;
+  border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;
+}
+.audit-btn-export {
+  padding:9px 16px; background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;
+}
+.audit-search-bar { margin-bottom:14px; }
+.audit-search-input {
+  width:100%; max-width:400px; padding:10px 16px;
+  border:1.5px solid #e2e8f0; border-radius:12px;
+  font-size:13px; background:#fff; outline:none;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PERFORMANCE SUMMARY
+   ══════════════════════════════════════════════════════════ */
+.perf-branch-block {
+  background:#fff; border:1.5px solid #e2e8f0;
+  border-radius:18px; padding:20px; margin-bottom:14px;
+}
+.perf-branch-hdr {
+  display:flex; align-items:flex-start;
+  justify-content:space-between; gap:12px; margin-bottom:12px;
+}
+.perf-branch-left  { display:flex; align-items:center; gap:12px; }
+.perf-branch-badge {
+  padding:4px 12px; border-radius:20px;
+  font-size:12px; font-weight:800; flex-shrink:0;
+}
+.perf-branch-name  { font-size:15px; font-weight:800; color:#0f172a; }
+.perf-branch-meta  { font-size:11px; color:#94a3b8; margin-top:3px; }
+.perf-branch-right { text-align:right; flex-shrink:0; }
+.perf-total-cost   { font-size:18px; font-weight:900; color:#0f172a; }
+.perf-cpc          { font-size:13px; font-weight:700; margin-top:2px; }
+
+/* Cost breakdown bar */
+.perf-cost-bar-wrap {
+  display:flex; height:8px; border-radius:6px;
+  overflow:hidden; background:#f1f5f9; margin-bottom:8px;
+}
+.perf-cost-bar { height:100%; transition:width .4s; }
+
+.perf-legend {
+  display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;
+}
+.perf-leg-item {
+  display:flex; align-items:center; gap:5px;
+  font-size:11px; color:#64748b; font-weight:600;
+}
+.perf-leg-item span {
+  width:10px; height:10px; border-radius:3px; display:inline-block;
+}
+.perf-printer-wrap { overflow-x:auto; }
+
+@media(max-width:600px){
+  .audit-hub-card { flex-direction:column; text-align:center; }
+  .perf-branch-hdr { flex-direction:column; }
+  .audit-filter-bar { flex-direction:column; }
+}

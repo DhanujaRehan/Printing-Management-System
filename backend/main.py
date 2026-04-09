@@ -27,6 +27,7 @@ from routes.rentals  import router as rentals_router
 from routes.export   import router as export_router
 
 from routes.imports import router as imports_router
+from routes.audit  import router as audit_router
 
 try:
     from scheduler import start_scheduler
@@ -71,6 +72,7 @@ app.include_router(rentals_router)
 app.include_router(export_router)
 
 app.include_router(imports_router)
+app.include_router(audit_router)
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 

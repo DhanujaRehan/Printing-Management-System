@@ -15,11 +15,11 @@ var NAVS = {
       { i: '📄', l: 'Paper Stock',      p: 'paper'        },
     ]},
     { s: 'Management', items: [
-      { i: '✅', l: 'Approvals',        p: 'approvals',    badge: 'approvals-badge' },
-      { i: '📊', l: 'Print Report',     p: 'printreport'  },
-      { i: '📋', l: 'Rental Printers',  p: 'rentals'      },
-      { i: '🔬', l: 'Toner Audit',      p: 'toneraudit'   },
-      { i: '📊', l: 'Branch Report',    p: 'branchreport' },
+      { i: '✅', l: 'Approvals',           p: 'approvals',    badge: 'approvals-badge' },
+      { i: '📊', l: 'Print Report',        p: 'printreport'  },
+      { i: '📋', l: 'Rental Printers',     p: 'rentals'      },
+      { i: '🗂️', l: 'Auditing',           p: 'auditing'     },
+      { i: '📈', l: 'Performance Summary', p: 'performance'  },
     ]},
   ],
 
@@ -156,8 +156,10 @@ function showPage(id, btn) {
     eodlog:      loadEOD,
     tonerlog:    loadTonerLog,
     rentals:     loadRentals,
-    toneraudit:  loadTonerAudit,
+    toneraudit:   loadTonerAudit,
     branchreport: loadBranchReport,
+    auditing:     loadAuditing,
+    performance:  loadPerformance,
     "dba-audit":  loadDbaAudit,
     "dba-health": loadDbaHealth,
   };
