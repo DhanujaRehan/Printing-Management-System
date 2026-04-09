@@ -250,140 +250,169 @@ def get_performance_summary(
     y = year  or date.today().year
     m = month or date.today().month
 
-    branches = query("""
-        SELECT id, code AS branch_code, name AS branch_name
-        FROM branches WHERE is_active = TRUE ORDER BY name
-    """) or []
+    branch_filter = "AND b.id = %s" if branch_id else ""
+    params_b = [y, m, branch_id] if branch_id else [y, m]
+    params_b2 = [y, m, branch_id] if branch_id else [y, m]
+
+    # Single query: branch-level aggregates
+    branch_rows = query(f"""
+        SELECT
+            b.id               AS branch_id,
+            b.code             AS branch_code,
+            b.name             AS branch_name,
+            COALESCE(SUM(pl.print_count), 0) AS total_prints,
+            COUNT(DISTINCT pl.printer_id)    AS printers_logged
+        FROM branches b
+        LEFT JOIN printers p ON p.branch_id = b.id AND p.is_active = TRUE
+        LEFT JOIN print_logs pl ON pl.printer_id = p.id
+            AND EXTRACT(YEAR  FROM pl.log_date) = %s
+            AND EXTRACT(MONTH FROM pl.log_date) = %s
+        WHERE b.is_active = TRUE {branch_filter}
+        GROUP BY b.id, b.code, b.name
+        ORDER BY b.name
+    """, tuple(params_b)) or []
+
+    # Toner costs per branch
+    toner_rows = query(f"""
+        SELECT
+            p.branch_id,
+            COUNT(*)                                    AS replacements,
+            COALESCE(SUM(COALESCE(tm.price_lkr,0)), 0) AS cost
+        FROM toner_installations ti
+        JOIN printers p ON p.id = ti.printer_id
+        LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+        WHERE EXTRACT(YEAR  FROM ti.installed_at) = %s
+          AND EXTRACT(MONTH FROM ti.installed_at) = %s
+          {'AND p.branch_id = %s' if branch_id else ''}
+        GROUP BY p.branch_id
+    """, tuple(params_b2)) or []
+    toner_map = {r["branch_id"]: r for r in toner_rows}
+
+    # Paper costs per branch
+    paper_rows = query(f"""
+        SELECT
+            pm.branch_id,
+            COALESCE(SUM(pm.quantity * COALESCE(pt.price_per_ream,0)), 0) AS cost,
+            COALESCE(SUM(pm.quantity), 0) AS reams
+        FROM paper_movements pm
+        JOIN paper_types pt ON pt.id = pm.paper_type_id
+        WHERE pm.movement_type = 'OUT'
+          AND EXTRACT(YEAR  FROM pm.created_at) = %s
+          AND EXTRACT(MONTH FROM pm.created_at) = %s
+          {'AND pm.branch_id = %s' if branch_id else ''}
+        GROUP BY pm.branch_id
+    """, tuple(params_b2)) or []
+    paper_map = {r["branch_id"]: r for r in paper_rows}
+
+    # Hardware costs per branch
+    hw_rows = query(f"""
+        SELECT
+            branch_id,
+            COALESCE(SUM(COALESCE(price_lkr,0)), 0) AS cost,
+            COUNT(*) AS installs
+        FROM hardware_requests
+        WHERE status = 'installed'
+          AND EXTRACT(YEAR  FROM installed_at) = %s
+          AND EXTRACT(MONTH FROM installed_at) = %s
+          {'AND branch_id = %s' if branch_id else ''}
+        GROUP BY branch_id
+    """, tuple(params_b2)) or []
+    hw_map = {r["branch_id"]: r for r in hw_rows}
+
+    # Printer-level prints + toner cost
+    printer_rows = query(f"""
+        SELECT
+            p.id           AS printer_id,
+            p.branch_id,
+            p.printer_code,
+            p.model,
+            COALESCE(SUM(pl.print_count), 0)              AS prints,
+            COALESCE(SUM(COALESCE(tm.price_lkr,0)), 0)    AS toner_cost,
+            0                                              AS hardware_cost
+        FROM printers p
+        JOIN branches b ON b.id = p.branch_id AND b.is_active = TRUE
+        LEFT JOIN print_logs pl ON pl.printer_id = p.id
+            AND EXTRACT(YEAR  FROM pl.log_date) = %s
+            AND EXTRACT(MONTH FROM pl.log_date) = %s
+        LEFT JOIN toner_installations ti ON ti.printer_id = p.id
+            AND EXTRACT(YEAR  FROM ti.installed_at) = %s
+            AND EXTRACT(MONTH FROM ti.installed_at) = %s
+        LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
+        WHERE p.is_active = TRUE
+          {'AND p.branch_id = %s' if branch_id else ''}
+        GROUP BY p.id, p.branch_id, p.printer_code, p.model
+        ORDER BY p.printer_code
+    """, (y, m, y, m, branch_id) if branch_id else (y, m, y, m)) or []
+
+    # Hardware cost per printer
+    pr_hw_rows = query(f"""
+        SELECT printer_id,
+               COALESCE(SUM(COALESCE(price_lkr,0)),0) AS cost
+        FROM hardware_requests
+        WHERE status = 'installed'
+          AND EXTRACT(YEAR  FROM installed_at) = %s
+          AND EXTRACT(MONTH FROM installed_at) = %s
+          {'AND branch_id = %s' if branch_id else ''}
+        GROUP BY printer_id
+    """, tuple(params_b2)) or []
+    pr_hw_map = {r["printer_id"]: float(r["cost"]) for r in pr_hw_rows}
+
+    # Group printers by branch
+    from collections import defaultdict
+    printers_by_branch = defaultdict(list)
+    for p in printer_rows:
+        p["hardware_cost"] = pr_hw_map.get(p["printer_id"], 0)
+        printers_by_branch[p["branch_id"]].append(p)
 
     result = []
-    for b in branches:
-        bid = b["id"]
+    for b in branch_rows:
+        bid          = b["branch_id"]
+        total_prints = int(b.get("total_prints") or 0)
+        toner_cost   = float((toner_map.get(bid) or {}).get("cost") or 0)
+        paper_cost   = float((paper_map.get(bid) or {}).get("cost") or 0)
+        hardware_cost= float((hw_map.get(bid)    or {}).get("cost") or 0)
+        total_cost   = toner_cost + paper_cost + hardware_cost
+        total_reams  = int((paper_map.get(bid) or {}).get("reams") or 0)
+        replacements = int((toner_map.get(bid) or {}).get("replacements") or 0)
+        hw_installs  = int((hw_map.get(bid)    or {}).get("installs") or 0)
 
-        # Total prints this month
-        prints = query("""
-            SELECT COALESCE(SUM(pl.print_count), 0) AS total
-            FROM print_logs pl
-            JOIN printers p ON p.id = pl.printer_id
-            WHERE p.branch_id = %s
-              AND EXTRACT(YEAR FROM pl.log_date) = %s
-              AND EXTRACT(MONTH FROM pl.log_date) = %s
-        """, (bid, y, m), fetch="one") or {}
-
-        # Toner cost this month
-        toner = query("""
-            SELECT
-                COUNT(*) AS replacements,
-                COALESCE(SUM(COALESCE(tm.price_lkr, 0)), 0) AS cost
-            FROM toner_installations ti
-            JOIN printers p ON p.id = ti.printer_id
-            LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
-            WHERE p.branch_id = %s
-              AND EXTRACT(YEAR FROM ti.installed_at) = %s
-              AND EXTRACT(MONTH FROM ti.installed_at) = %s
-        """, (bid, y, m), fetch="one") or {}
-
-        # Paper cost this month
-        paper = query("""
-            SELECT COALESCE(SUM(pm.quantity * COALESCE(pt.price_per_ream, 0)), 0) AS cost,
-                   COALESCE(SUM(pm.quantity), 0) AS reams
-            FROM paper_movements pm
-            JOIN paper_types pt ON pt.id = pm.paper_type_id
-            WHERE pm.branch_id = %s
-              AND pm.movement_type = 'OUT'
-              AND EXTRACT(YEAR FROM pm.created_at) = %s
-              AND EXTRACT(MONTH FROM pm.created_at) = %s
-        """, (bid, y, m), fetch="one") or {}
-
-        # Hardware cost this month
-        hardware = query("""
-            SELECT COALESCE(SUM(COALESCE(price_lkr, 0)), 0) AS cost,
-                   COUNT(*) AS installs
-            FROM hardware_requests
-            WHERE branch_id = %s AND status = 'installed'
-              AND EXTRACT(YEAR FROM installed_at) = %s
-              AND EXTRACT(MONTH FROM installed_at) = %s
-        """, (bid, y, m), fetch="one") or {}
-
-        # Per-printer breakdown
-        printers = query("""
-            SELECT
-                p.id           AS printer_id,
-                p.printer_code,
-                p.model,
-                COALESCE((
-                    SELECT SUM(pl.print_count) FROM print_logs pl
-                    WHERE pl.printer_id = p.id
-                      AND EXTRACT(YEAR FROM pl.log_date) = %s
-                      AND EXTRACT(MONTH FROM pl.log_date) = %s
-                ), 0) AS prints,
-                COALESCE((
-                    SELECT SUM(COALESCE(tm.price_lkr, 0))
-                    FROM toner_installations ti
-                    LEFT JOIN toner_models tm ON tm.id = ti.toner_model_id
-                    WHERE ti.printer_id = p.id
-                      AND EXTRACT(YEAR FROM ti.installed_at) = %s
-                      AND EXTRACT(MONTH FROM ti.installed_at) = %s
-                ), 0) AS toner_cost,
-                COALESCE((
-                    SELECT SUM(COALESCE(price_lkr, 0))
-                    FROM hardware_requests hr
-                    WHERE hr.printer_id = p.id AND hr.status = 'installed'
-                      AND EXTRACT(YEAR FROM hr.installed_at) = %s
-                      AND EXTRACT(MONTH FROM hr.installed_at) = %s
-                ), 0) AS hardware_cost
-            FROM printers p
-            WHERE p.branch_id = %s AND p.is_active = TRUE
-            ORDER BY p.printer_code
-        """, (y, m, y, m, y, m, bid)) or []
-
-        total_prints   = int(prints.get("total") or 0)
-        toner_cost     = float(toner.get("cost") or 0)
-        paper_cost     = float(paper.get("cost") or 0)
-        hardware_cost  = float(hardware.get("cost") or 0)
-        total_cost     = toner_cost + paper_cost + hardware_cost
-        total_reams    = int(paper.get("reams") or 0)
-
-        # Paper cost per branch = total paper dispatched / total prints
-        # (allocate proportionally since paper isn't tracked per printer)
+        printers = printers_by_branch.get(bid, [])
         for pr in printers:
             pr_prints = int(pr.get("prints") or 0)
             pr_toner  = float(pr.get("toner_cost") or 0)
             pr_hw     = float(pr.get("hardware_cost") or 0)
-            # Allocate paper cost proportionally by print share
-            pr_paper  = round(
-                paper_cost * (pr_prints / total_prints), 2
-            ) if total_prints > 0 else 0
+            pr_paper  = round(paper_cost * (pr_prints / total_prints), 2) if total_prints > 0 else 0
             pr_total  = pr_toner + pr_hw + pr_paper
-            pr["paper_cost"]   = pr_paper
-            pr["total_cost"]   = pr_total
+            pr["paper_cost"]    = pr_paper
+            pr["total_cost"]    = pr_total
             pr["cost_per_copy"] = round(pr_total / pr_prints, 4) if pr_prints > 0 else None
 
         result.append({
-            "branch_id":       bid,
-            "branch_code":     b["branch_code"],
-            "branch_name":     b["branch_name"],
-            "total_prints":    total_prints,
-            "toner_cost":      toner_cost,
-            "paper_cost":      paper_cost,
-            "hardware_cost":   hardware_cost,
-            "total_cost":      total_cost,
-            "toner_replacements": int(toner.get("replacements") or 0),
-            "hardware_installs":  int(hardware.get("installs") or 0),
-            "paper_reams":     total_reams,
-            "cost_per_copy":   round(total_cost / total_prints, 4) if total_prints > 0 else None,
-            "printers":        printers,
+            "branch_id":          bid,
+            "branch_code":        b["branch_code"],
+            "branch_name":        b["branch_name"],
+            "total_prints":       total_prints,
+            "toner_cost":         toner_cost,
+            "paper_cost":         paper_cost,
+            "hardware_cost":      hardware_cost,
+            "total_cost":         total_cost,
+            "toner_replacements": replacements,
+            "hardware_installs":  hw_installs,
+            "paper_reams":        total_reams,
+            "cost_per_copy":      round(total_cost / total_prints, 4) if total_prints > 0 else None,
+            "printers":           printers,
         })
 
     grand_prints = sum(r["total_prints"] for r in result)
     grand_cost   = sum(r["total_cost"]   for r in result)
 
     return {
-        "year": y, "month": m,
-        "branches": result,
+        "year":  y, "month": m,
+        "branches":         result,
         "grand_prints":     grand_prints,
-        "grand_toner_cost": sum(r["toner_cost"]    for r in result),
-        "grand_paper_cost": sum(r["paper_cost"]    for r in result),
-        "grand_hw_cost":    sum(r["hardware_cost"] for r in result),
+        "grand_toner_cost": sum(r["toner_cost"]     for r in result),
+        "grand_paper_cost": sum(r["paper_cost"]     for r in result),
+        "grand_hw_cost":    sum(r["hardware_cost"]  for r in result),
         "grand_total_cost": grand_cost,
         "grand_cpc":        round(grand_cost / grand_prints, 4) if grand_prints > 0 else None,
     }
