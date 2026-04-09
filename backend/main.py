@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from routes.auth     import router as auth_router
 from routes.branches import router as branches_router
+from routes.hardware import router as hardware_router
 from routes.printers import router as printers_router
 from routes.toner    import router as toner_router
 from routes.users    import router as users_router
@@ -57,7 +58,7 @@ app.add_middleware(
 )
 
 # ── Routes ────────────────────────────────────────────────────────────────────
-
+app.include_router(hardware_router)
 app.include_router(auth_router)
 app.include_router(branches_router)
 app.include_router(printers_router)
