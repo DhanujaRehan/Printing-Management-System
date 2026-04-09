@@ -257,6 +257,7 @@
         <div style="font-size:48px;margin-bottom:12px">📈</div>
         <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Select filters and search</div>
         <div style="font-size:13px;color:#94a3b8">Choose a date range, month, year or branch then tap Search</div>
+      </div><!-- /nws-empty -->
     </div><!-- /panel-summary -->
 
     <!-- PERMISSIONS -->
@@ -343,10 +344,7 @@
     <div class="nw-drawer-body" id="nw-drawer-body"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
   </div>
 
-  <!-- ============================================================
-     PERMISSIONS POPUP MODAL — add before </div><!-- /nw-app -->
-     ============================================================ -->
-    <div class="nw-modal-bg" id="nw-perm-modal" onclick="nwClosePermModal(event)" style="display:none">
+  <div class="nw-modal-bg" id="nw-perm-modal" onclick="nwClosePermModal(event)" style="display:none">
       <div class="nw-modal" style="max-width:420px">
         <div class="nw-modal-hdr">
           <div class="nw-modal-icon">🔐</div>
@@ -376,10 +374,7 @@
       </div>
     </div>
  
-<!-- ============================================================
-     HARDWARE REQUEST MODAL — add before </div><!-- /nw-app -->
-     ============================================================ -->
-    <div class="nw-modal-bg" id="nw-hw-modal" onclick="nwCloseHwModal(event)" style="display:none">
+  <div class="nw-modal-bg" id="nw-hw-modal" onclick="nwCloseHwModal(event)" style="display:none">
       <div class="nw-modal" style="max-width:480px">
         <div class="nw-modal-hdr">
           <div class="nw-modal-icon">🔧</div>
@@ -516,6 +511,8 @@ function nwTab(name) {
   if(name==='replacements') nwLoadReplacements();
   if(name==='rentals')      nwLoadRentals();
   if(name==='summary')      nwInitSummary();
+  if(name==='permissions')  nwLoadPermissions();
+  if(name==='hardware')     nwLoadHardware();
   _nwCurrentTab=name;
   if(_nwRefreshInterval){clearInterval(_nwRefreshInterval);_nwRefreshInterval=null;}
   var secs=NW_AUTO_REFRESH[name]; if(!secs)return;
