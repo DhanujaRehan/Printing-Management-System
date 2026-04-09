@@ -27,7 +27,7 @@ from routes.rentals  import router as rentals_router
 from routes.export   import router as export_router
 
 from routes.imports import router as imports_router
-from routes.audit  import router as audit_router # type: ignore
+from routes.audit  import router as audit_router
 
 try:
     from scheduler import start_scheduler
