@@ -278,7 +278,7 @@ function eodRenderWasteCards(show) {
         var labels={a4:'A4 Waste',b4:'B4 Waste',legal:'Legal Waste'};
         var col=colors[type], data=_eodWasteData[type], done=!!data;
         var total=done?(data.waste||0):0;
-        return '<div class="eod-paper-card '+(done?'eod-paper-card-done eod-waste-done':'')+'" onclick="eodOpenWastePop(''+type+'')">'
+        return '<div class="eod-paper-card '+(done?'eod-paper-card-done eod-waste-done':'')+'" onclick="eodOpenWastePop(\''+type+'\')">'
           +'<div class="eod-paper-card-icon">'+icons[type]+'</div>'
           +'<div class="eod-paper-card-label">'+labels[type]+'</div>'
           +(done
