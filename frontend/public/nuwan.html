@@ -259,6 +259,49 @@
         <div style="font-size:13px;color:#94a3b8">Choose a date range, month, year or branch then tap Search</div>
     </div><!-- /panel-summary -->
 
+    <!-- PERMISSIONS -->
+    <div class="nw-panel" id="panel-permissions">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">🔐 Branch Permissions</div>
+          <div class="nw-section-sub">Assign service persons to branches</div>
+        </div>
+        <button class="nw-download-btn" onclick="nwLoadPermissions()">↺ Refresh</button>
+      </div>
+      <!-- Search -->
+      <div class="nw-search-wrap" style="margin-bottom:16px">
+        <span class="nw-search-icon">🔍</span>
+        <input class="nw-search-input" id="perm-search" placeholder="Search by name or branch..." oninput="nwFilterPermissions(this.value)">
+        <button class="nw-search-clear" id="perm-clear" onclick="nwClearPermSearch()" style="display:none">✕</button>
+      </div>
+      <div id="nw-perm-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
+    </div>
+ 
+    <!-- HARDWARE -->
+    <div class="nw-panel" id="panel-hardware">
+      <div class="nw-section-hdr">
+        <div>
+          <div class="nw-section-title">🔧 Hardware Parts</div>
+          <div class="nw-section-sub">Request printer hardware replacements</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="nw-download-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="nwOpenHardwareRequest()">+ New Request</button>
+          <button class="nw-download-btn" onclick="nwLoadHardware()">↺ Refresh</button>
+        </div>
+      </div>
+ 
+      <!-- Filter tabs -->
+      <div class="nw-pr-tabs" style="margin-bottom:16px">
+        <button class="nw-pr-tab act" id="hw-tab-all"        onclick="nwHwFilter('all')">All</button>
+        <button class="nw-pr-tab"     id="hw-tab-pending"    onclick="nwHwFilter('pending')">⏳ Pending</button>
+        <button class="nw-pr-tab"     id="hw-tab-approved"   onclick="nwHwFilter('approved')">✅ Approved</button>
+        <button class="nw-pr-tab"     id="hw-tab-dispatched" onclick="nwHwFilter('dispatched')">📦 Dispatched</button>
+        <button class="nw-pr-tab"     id="hw-tab-installed"  onclick="nwHwFilter('installed')">🔧 Installed</button>
+      </div>
+ 
+      <div id="nw-hw-list"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
+    </div>
+
   </div><!-- /nw-main -->
 
   <!-- TONER REQUEST MODAL -->
@@ -299,6 +342,102 @@
     </div>
     <div class="nw-drawer-body" id="nw-drawer-body"><div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div></div>
   </div>
+
+  <!-- ============================================================
+     PERMISSIONS POPUP MODAL — add before </div><!-- /nw-app -->
+     ============================================================ -->
+    <div class="nw-modal-bg" id="nw-perm-modal" onclick="nwClosePermModal(event)" style="display:none">
+      <div class="nw-modal" style="max-width:420px">
+        <div class="nw-modal-hdr">
+          <div class="nw-modal-icon">🔐</div>
+          <div>
+            <div class="nw-modal-title">Assign Branch</div>
+            <div class="nw-modal-sub" id="perm-modal-user">—</div>
+          </div>
+          <button class="nw-modal-close" onclick="document.getElementById('nw-perm-modal').style.display='none'">✕</button>
+        </div>
+        <input type="hidden" id="perm-modal-uid">
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Current Branch</label>
+          <div id="perm-modal-current" style="font-size:13px;font-weight:700;color:#0ea5e9;padding:8px 0"></div>
+        </div>
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Assign to Branch</label>
+          <select class="nw-modal-select" id="perm-modal-branch">
+            <option value="ALL">— All Branches —</option>
+          </select>
+        </div>
+        <div style="background:#fef3c7;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:12px;color:#92400e">
+          ⚠️ This will immediately change which printers this service person can see.
+        </div>
+        <button class="nw-modal-submit" id="perm-modal-save-btn" onclick="nwSaveBranchAssign()" style="background:linear-gradient(135deg,#6366f1,#0ea5e9)">
+          ✓ Save Branch Assignment
+        </button>
+      </div>
+    </div>
+ 
+<!-- ============================================================
+     HARDWARE REQUEST MODAL — add before </div><!-- /nw-app -->
+     ============================================================ -->
+    <div class="nw-modal-bg" id="nw-hw-modal" onclick="nwCloseHwModal(event)" style="display:none">
+      <div class="nw-modal" style="max-width:480px">
+        <div class="nw-modal-hdr">
+          <div class="nw-modal-icon">🔧</div>
+          <div>
+            <div class="nw-modal-title">Request Hardware Part</div>
+            <div class="nw-modal-sub">Select printer and part needed</div>
+          </div>
+          <button class="nw-modal-close" onclick="document.getElementById('nw-hw-modal').style.display='none'">✕</button>
+        </div>
+ 
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Branch</label>
+          <select class="nw-modal-select" id="hw-modal-branch" onchange="nwHwLoadPrinters()">
+            <option value="">— Select Branch —</option>
+          </select>
+        </div>
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Printer</label>
+          <select class="nw-modal-select" id="hw-modal-printer">
+            <option value="">— Select Branch First —</option>
+          </select>
+        </div>
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Hardware Part</label>
+          <select class="nw-modal-select" id="hw-modal-part">
+            <option value="">— Select Part —</option>
+          </select>
+        </div>
+ 
+        <!-- Priority selector -->
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Priority</label>
+          <div class="nw-pri-grid">
+            <label class="nw-pri-opt">
+              <input type="radio" name="hw-pri" value="normal" checked>
+              <div class="nw-pri-card nw-pri-normal">🟢<span>Normal</span></div>
+            </label>
+            <label class="nw-pri-opt">
+              <input type="radio" name="hw-pri" value="low">
+              <div class="nw-pri-card nw-pri-urgent">🟡<span>Low</span></div>
+            </label>
+            <label class="nw-pri-opt">
+              <input type="radio" name="hw-pri" value="critical">
+              <div class="nw-pri-card nw-pri-critical">🔴<span>Critical</span></div>
+            </label>
+          </div>
+        </div>
+ 
+        <div class="nw-modal-field">
+          <label class="nw-modal-label">Notes <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+          <textarea class="nw-modal-textarea" id="hw-modal-notes" rows="2" placeholder="Describe the issue or reason..."></textarea>
+        </div>
+ 
+        <button class="nw-modal-submit" id="hw-modal-submit-btn" onclick="nwSubmitHardwareRequest()" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+          📤 Submit Hardware Request
+        </button>
+      </div>
+    </div>
 
 </div><!-- /nw-app -->
 
