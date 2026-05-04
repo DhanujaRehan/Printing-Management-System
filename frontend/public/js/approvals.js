@@ -35,11 +35,20 @@ async function loadApprovals() {
   var container = document.getElementById('approvals-container');
   container.innerHTML = '<div class="loading"><div class="spin"></div>Loading requests...</div>';
   try {
-    var requests = await silentApi('GET', '/requests/all');
-    requests = requests || [];
-    _allRequests = requests;
-    renderApprovals(requests);
-    updatePendingBadge(requests.filter(function(r){ return r.status === 'pending'; }).length);
+    var results = await Promise.all([
+      silentApi('GET', '/requests/all'),
+      silentApi('GET', '/hardware/requests'),
+    ]);
+    var tonerRequests    = (results[0] || []).map(function(r){ r._type = 'toner'; return r; });
+    var hardwareRequests = (results[1] || [])
+      .filter(function(r){ return r.status === 'pending' || r.status === 'approved'; })
+      .map(function(r){ r._type = 'hardware'; return r; });
+
+    _allRequests = tonerRequests.concat(hardwareRequests)
+      .sort(function(a, b){ return new Date(b.requested_at) - new Date(a.requested_at); });
+
+    renderApprovals(_allRequests);
+    updatePendingBadge(_allRequests.filter(function(r){ return r.status === 'pending'; }).length);
   } catch(e) {
     container.innerHTML = '<div class="svc-empty">Error loading requests.</div>';
   }
