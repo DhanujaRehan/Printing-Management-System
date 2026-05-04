@@ -25,6 +25,7 @@ async function loadDBA() {
 
     renderUserTable(users);
     renderAuditTable(audit);
+    renderDbaEmailPanel();
 
   } catch(e) {
     console.error('DBA load error:', e);
@@ -488,6 +489,97 @@ function filterAuditLog() {
   });
 
   renderAuditFull(filtered);
+}
+
+/* ── DBA Email Dashboard ──────────────────────────────────── */
+function renderDbaEmailPanel() {
+  var container = document.getElementById('dba-email-panel');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="card mb20">
+      <div class="ch">
+        <h3>📧 Send System Message to Nuwan</h3>
+      </div>
+      <div style="padding:22px 24px">
+        <div class="ff">
+          <label class="ffl">Message Type</label>
+          <select class="fs" id="dba-email-type" onchange="dbaEmailTypeChanged()">
+            <option value="custom">💬 Custom Message</option>
+            <option value="maintenance">🔧 System Maintenance Notice</option>
+            <option value="update">📢 System Update</option>
+            <option value="reminder">🔔 General Reminder</option>
+          </select>
+        </div>
+        <div class="ff">
+          <label class="ffl">Subject</label>
+          <input class="fi2" id="dba-email-subject" placeholder="Email subject line...">
+        </div>
+        <div class="ff">
+          <label class="ffl">Message</label>
+          <textarea class="fi2" id="dba-email-body" rows="5"
+            style="resize:vertical;min-height:100px;line-height:1.6"
+            placeholder="Type your message to Nuwan here..."></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="dbaSendSystemEmail()" id="dba-email-send-btn">
+            📤 Send to Nuwan
+          </button>
+          <span style="font-size:12px;color:var(--t3)">
+            Sends from system@softwave.lk → nuwan@softwave.lk
+          </span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function dbaEmailTypeChanged() {
+  var type    = document.getElementById('dba-email-type').value;
+  var subject = document.getElementById('dba-email-subject');
+  var body    = document.getElementById('dba-email-body');
+  var presets = {
+    maintenance: {
+      s: 'SoftWave — Scheduled System Maintenance',
+      b: 'Dear Mr. Nuwan,\n\nPlease be informed that scheduled system maintenance will be carried out.\n\nThe system may be temporarily unavailable during this period.\n\nWe apologize for any inconvenience caused.\n\nBest Regards,\nSoftWave System'
+    },
+    update: {
+      s: 'SoftWave — System Update Notice',
+      b: 'Dear Mr. Nuwan,\n\nA system update has been applied to the SoftWave Print Management System.\n\nPlease refresh your browser to get the latest version.\n\nBest Regards,\nSoftWave System'
+    },
+    reminder: {
+      s: 'SoftWave — General Reminder',
+      b: 'Dear Mr. Nuwan,\n\n'
+    },
+    custom: { s: '', b: '' }
+  };
+  var p = presets[type] || presets.custom;
+  if (p.s) subject.value = p.s;
+  if (p.b) body.value = p.b;
+}
+
+async function dbaSendSystemEmail() {
+  var subject = document.getElementById('dba-email-subject').value.trim();
+  var message = document.getElementById('dba-email-body').value.trim();
+  var btn     = document.getElementById('dba-email-send-btn');
+
+  if (!subject) { toast('⚠️', 'Please enter a subject', ''); return; }
+  if (!message) { toast('⚠️', 'Please enter a message', ''); return; }
+
+  btn.textContent = '⏳ Sending...';
+  btn.disabled = true;
+
+  try {
+    await api('POST', '/users/send-system-email', { subject: subject, message: message });
+    toast('✅', 'Email sent to Nuwan!', subject);
+    document.getElementById('dba-email-subject').value = '';
+    document.getElementById('dba-email-body').value    = '';
+    document.getElementById('dba-email-type').value    = 'custom';
+  } catch(e) {
+    // error toast shown by api()
+  } finally {
+    btn.textContent = '📤 Send to Nuwan';
+    btn.disabled = false;
+  }
 }
 
 
