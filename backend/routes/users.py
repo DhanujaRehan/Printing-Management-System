@@ -23,6 +23,11 @@ class ResetPasswordBody(BaseModel):
     new_password: str
 
 
+class CustomEmailBody(BaseModel):
+    subject: str
+    message: str
+
+
 # ── IMPORTANT: static paths MUST come before /{user_id} dynamic routes ──────
 
 
@@ -56,8 +61,6 @@ def get_audit_log(limit: int = 50, current_user: dict = Depends(require_role("ma
         ORDER BY al.created_at DESC
         LIMIT %s
     """, (limit,))
-
-
 
 
 @router.get("/audit-log/full")
@@ -164,6 +167,31 @@ def get_system_health(current_user: dict = Depends(require_role("dba"))):
         "db_tables":     db_tables,
     }
 
+
+# ── Send custom system email ─────────────────────────────────────────────────
+
+@router.post("/send-system-email")
+def send_system_email(
+    body: CustomEmailBody,
+    current_user: dict = Depends(require_role("dba"))
+):
+    """DBA sends a custom system message email to Nuwan."""
+    if not body.subject.strip():
+        raise HTTPException(status_code=400, detail="Subject is required")
+    if not body.message.strip():
+        raise HTTPException(status_code=400, detail="Message is required")
+    try:
+        from scheduler import send_custom_system_email
+        send_custom_system_email(
+            subject=body.subject.strip(),
+            message=body.message.strip(),
+            sent_by=current_user.get("username", "DBA")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email failed: {str(e)}")
+    return {"message": "Email sent to Nuwan"}
+
+
 # ── Dynamic /{user_id} routes below ─────────────────────────────────────────
 
 
@@ -185,6 +213,20 @@ def create_user(body: UserBody, current_user: dict = Depends(require_role("dba")
         INSERT INTO audit_log (user_id, action, detail)
         VALUES (%s,'CREATE_USER',%s)
     """, (int(current_user["sub"]), f"Created user: {body.username}"), fetch="none")
+
+    # Send email notification to Nuwan
+    try:
+        from scheduler import send_user_created_email
+        send_user_created_email(
+            full_name=body.full_name,
+            username=body.username,
+            password=body.password,
+            role=body.role,
+            branch=body.branch_access if body.branch_access and body.branch_access != "ALL" else "All Branches",
+            created_by=current_user.get("username", "DBA")
+        )
+    except Exception:
+        pass  # Never block user creation if email fails
 
     return user
 
@@ -214,15 +256,29 @@ def deactivate_user(user_id: int, current_user: dict = Depends(require_role("dba
     if user_id == int(current_user["sub"]):
         raise HTTPException(status_code=400, detail="Cannot deactivate yourself")
     result = query(
-        "UPDATE users SET is_active=FALSE WHERE id=%s RETURNING id, username",
+        "UPDATE users SET is_active=FALSE WHERE id=%s RETURNING id, username, full_name",
         (user_id,), fetch="one"
     )
     if not result:
         raise HTTPException(status_code=404, detail="User not found")
+
     query("""
         INSERT INTO audit_log (user_id, action, detail)
         VALUES (%s,'DEACTIVATE_USER',%s)
     """, (int(current_user["sub"]), f"Deactivated user: {result['username']}"), fetch="none")
+
+    # Send email notification to Nuwan
+    try:
+        from scheduler import send_user_status_email
+        send_user_status_email(
+            full_name=result.get("full_name", result["username"]),
+            username=result["username"],
+            action="deactivated",
+            changed_by=current_user.get("username", "DBA")
+        )
+    except Exception:
+        pass
+
     return {"message": "User deactivated"}
 
 
@@ -230,15 +286,29 @@ def deactivate_user(user_id: int, current_user: dict = Depends(require_role("dba
 def activate_user(user_id: int, current_user: dict = Depends(require_role("dba"))):
     """Re-activate a previously deactivated user account."""
     result = query(
-        "UPDATE users SET is_active=TRUE WHERE id=%s RETURNING id, username",
+        "UPDATE users SET is_active=TRUE WHERE id=%s RETURNING id, username, full_name",
         (user_id,), fetch="one"
     )
     if not result:
         raise HTTPException(status_code=404, detail="User not found")
+
     query("""
         INSERT INTO audit_log (user_id, action, detail)
         VALUES (%s,'ACTIVATE_USER',%s)
     """, (int(current_user["sub"]), f"Activated user: {result['username']}"), fetch="none")
+
+    # Send email notification to Nuwan
+    try:
+        from scheduler import send_user_status_email
+        send_user_status_email(
+            full_name=result.get("full_name", result["username"]),
+            username=result["username"],
+            action="activated",
+            changed_by=current_user.get("username", "DBA")
+        )
+    except Exception:
+        pass
+
     return {"message": "User activated", "username": result["username"]}
 
 
@@ -249,13 +319,27 @@ def reset_password(user_id: int, body: ResetPasswordBody, current_user: dict = D
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     hashed = hash_password(body.new_password)
     result = query(
-        "UPDATE users SET password=%s WHERE id=%s RETURNING id, username",
+        "UPDATE users SET password=%s WHERE id=%s RETURNING id, username, full_name",
         (hashed, user_id), fetch="one"
     )
     if not result:
         raise HTTPException(status_code=404, detail="User not found")
+
     query("""
         INSERT INTO audit_log (user_id, action, detail)
         VALUES (%s,'RESET_PASSWORD',%s)
     """, (int(current_user["sub"]), f"Reset password for user: {result['username']}"), fetch="none")
+
+    # Send email notification to Nuwan with the new password
+    try:
+        from scheduler import send_password_reset_email
+        send_password_reset_email(
+            full_name=result.get("full_name", result["username"]),
+            username=result["username"],
+            new_password=body.new_password,
+            reset_by=current_user.get("username", "DBA")
+        )
+    except Exception:
+        pass
+
     return {"message": "Password reset successfully", "username": result["username"]}
