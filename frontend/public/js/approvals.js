@@ -110,9 +110,12 @@ function renderApprovals(requests) {
       normal:   { col:'#10b981', bg:'#f0fdf4', label:'🟢 Normal'   },
     }[r.priority] || { col:'#94a3b8', bg:'#f8fafc', label:r.priority };
 
-    var what = r.request_type === 'toner'
-      ? '🖨 ' + (r.toner_model_code || 'Toner')
-      : '📄 ' + ((r.paper_name || 'Paper') + (r.size ? ' ' + r.size + ' ' + r.gsm + 'gsm' : ''));
+    var what = r._type === 'hardware'
+      ? '🔧 ' + (r.part_name || 'Hardware Part')
+      : r.request_type === 'toner'
+        ? '🖨 ' + (r.toner_model_code || 'Toner')
+        : '📄 ' + ((r.paper_name || 'Paper') + (r.size ? ' ' + r.size + ' ' + r.gsm + 'gsm' : ''));
+      
 
     var dt         = new Date(r.requested_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
     var dtReviewed = r.reviewed_at   ? new Date(r.reviewed_at).toLocaleString('en-GB',   { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : null;
@@ -123,8 +126,8 @@ function renderApprovals(requests) {
     if (isPending) {
       rightPanel = '<div class="appr-actions">'
         + '<input class="appr-note-input" id="rn-' + r.id + '" placeholder="Review note (optional)...">'
-        + '<button class="appr-approve-btn" onclick="reviewRequest(' + r.id + ',\'approved\')">✅ Approve Request</button>'
-        + '<button class="appr-reject-btn"  onclick="reviewRequest(' + r.id + ',\'rejected\')">❌ Reject Request</button>'
+        + '<button class="appr-approve-btn" onclick="reviewRequest(' + r.id + ',\'approved\',\'' + (r._type||'toner') + '\')">✅ Approve Request</button>'
+        + '<button class="appr-reject-btn"  onclick="reviewRequest(' + r.id + ',\'rejected\',\'' + (r._type||'toner') + '\')">❌ Reject Request</button>'
         + '</div>';
     } else if (isApproved) {
       rightPanel = '<div style="width:100%;display:flex;flex-direction:column;gap:8px">'
@@ -177,19 +180,20 @@ function renderApprovals(requests) {
   }).join('');
 }
 
-async function reviewRequest(id, status) {
+async function reviewRequest(id, status, type) {  // add `type` param
   var noteEl = document.getElementById('rn-' + id);
   var note   = noteEl ? noteEl.value.trim() : '';
-  var btn    = document.querySelector('[onclick="reviewRequest(' + id + ',\'' + status + '\')"]');
+  var btn    = document.querySelector('[onclick*="reviewRequest(' + id + '"]');
   if (btn) { btn.disabled = true; btn.textContent = status === 'approved' ? 'Approving...' : 'Rejecting...'; }
 
+  // Route to the correct API based on request type
+  var endpoint = type === 'hardware'
+    ? '/hardware/' + id + '/review'
+    : '/requests/' + id + '/review';
+
   try {
-    await api('PATCH', '/requests/' + id + '/review', { status: status, review_note: note || null });
-    toast(
-      status === 'approved' ? '✅' : '❌',
-      'Request ' + status + '!',
-      status === 'approved' ? 'Store keeper will be notified to dispatch.' : ''
-    );
+    await api('PATCH', endpoint, { status: status, review_note: note || null });
+    toast(status === 'approved' ? '✅' : '❌', 'Request ' + status + '!', '');
     loadApprovals();
     refreshPendingBadge();
   } catch(e) {
