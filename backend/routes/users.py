@@ -214,7 +214,6 @@ def create_user(body: UserBody, current_user: dict = Depends(require_role("dba")
         VALUES (%s,'CREATE_USER',%s)
     """, (int(current_user["sub"]), f"Created user: {body.username}"), fetch="none")
 
-    # Send email notification to Nuwan
     try:
         from scheduler import send_user_created_email
         send_user_created_email(
@@ -225,8 +224,10 @@ def create_user(body: UserBody, current_user: dict = Depends(require_role("dba")
             branch=body.branch_access if body.branch_access and body.branch_access != "ALL" else "All Branches",
             created_by=current_user.get("username", "DBA")
         )
-    except Exception:
-        pass  # Never block user creation if email fails
+    except Exception as e:
+        print(f"[EMAIL ERROR] create_user email failed: {e}")
+        import traceback
+        traceback.print_exc()
 
     return user
 

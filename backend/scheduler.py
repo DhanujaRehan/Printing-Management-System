@@ -594,17 +594,25 @@ def send_user_created_email(full_name: str, username: str, password: str,
              f"Name: {full_name}\nUsername: {username}\nPassword: {password}\n"
              f"Role: {role}\nBranch: {branch}\n\nLogin: {LOGIN_URL}")
 
-    body = f"""
-    <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 6px;">Dear Mr. Nuwan,</p>
-    <p style="font-size:14px;color:#475569;margin:0 0 20px;">
-      A new user account has been created by <strong>{created_by}</strong>.
-      Here are the login credentials:
-    </p>
-    {_credentials_block([{{'full_name': full_name, 'username': username,
-                           'password': password, 'role': role, 'branch': branch}}])}
-    <table cellpadding="0" cellspacing="0" style="margin-top:20px;width:100%;">
-      {_detail_row('Created By', created_by)}
-    </table>"""
+    user_data = [{
+        'full_name': full_name,
+        'username':  username,
+        'password':  password,
+        'role':      role,
+        'branch':    branch,
+    }]
+    creds_html = _credentials_block(user_data)
+
+    body = (
+        '<p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 6px;">Dear Mr. Nuwan,</p>'
+        '<p style="font-size:14px;color:#475569;margin:0 0 20px;">'
+        'A new user account has been created by <strong>' + created_by + '</strong>.'
+        ' Here are the login credentials:</p>'
+        + creds_html
+        + '<table cellpadding="0" cellspacing="0" style="margin-top:20px;width:100%;">'
+        + _detail_row('Created By', created_by)
+        + '</table>'
+    )
 
     html = _base_html("👤", "New User Account Created",
                       f"Account for {full_name} is now active", body, "#6366f1")
