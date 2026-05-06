@@ -1529,7 +1529,7 @@ async function nwInitPrintReport() {
     if (bSel) {
       while (bSel.options.length > 1) bSel.remove(1);
       _nwPrBranches.forEach(function(b) {
-        bSel.add(new Option(b.code + ' — ' + b.name, b.id));
+        bSel.add(new Option(b.code + ' — ' + b.name, b.id + '|' + b.code));
       });
     }
   }
@@ -1538,14 +1538,20 @@ async function nwInitPrintReport() {
   var toEl   = document.getElementById('npr-to');
   if (fromEl && !fromEl.value) fromEl.value = today;
   if (toEl   && !toEl.value)   toEl.value   = today;
+  await nwLoadPrintReport();
 }
 
 async function nwLoadPrintReport() {
-  var from     = (document.getElementById('npr-from')    || {}).value || '';
-  var to       = (document.getElementById('npr-to')      || {}).value || '';
-  var branchId = (document.getElementById('npr-branch')  || {}).value || '';
-  var printerQ = ((document.getElementById('npr-printer') || {}).value || '').trim().toLowerCase();
+  var from      = (document.getElementById('npr-from')    || {}).value || '';
+  var to        = (document.getElementById('npr-to')      || {}).value || '';
+  var branchVal = (document.getElementById('npr-branch')  || {}).value || '';
+  var printerQ  = ((document.getElementById('npr-printer') || {}).value || '').trim().toLowerCase();
 
+  // branchVal is "id|code" — split to get both
+  var branchId   = branchVal ? branchVal.split('|')[0] : '';
+  var branchCode = branchVal ? branchVal.split('|')[1] : '';
+
+  // Paper summary uses query params for efficiency
   var params = [];
   if (from)     params.push('date_from=' + from);
   if (to)       params.push('date_to='   + to);
@@ -1557,14 +1563,15 @@ async function nwLoadPrintReport() {
   container.innerHTML = '<div class="nw-spin-wrap"><div class="nw-spin"></div> Loading...</div>';
   if (statsEl) statsEl.style.display = 'none';
 
+  // Use /requests/print-logs — same as manager, includes meter_reading
   var results = await Promise.all([
-    nwApi('/nuwan/prints/summary' + qs),
+    nwApi('/requests/print-logs'),
     nwApi('/nuwan/prints/paper-summary' + qs),
   ]);
-  var d    = results[0];
-  var psum = results[1];
+  var allLogs = results[0] || [];
+  var psum    = results[1];
 
-  if (!d || !d.logs || !d.logs.length) {
+  if (!allLogs.length) {
     container.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:10px;padding:60px">'
       + '<div style="font-size:48px">🔍</div>'
       + '<div style="font-size:14px;font-weight:700;color:#0f172a">No print logs found</div>'
@@ -1573,8 +1580,42 @@ async function nwLoadPrintReport() {
     return;
   }
 
-  // Build paper lookup: branch_code + date → breakdown
-  var paperMap = {};
+  // ── Client-side filtering (same pattern as manager's printreport.js) ──
+  var logs = allLogs;
+
+  if (from) {
+    logs = logs.filter(function(l) {
+      return l.log_date && l.log_date.toString().slice(0, 10) >= from;
+    });
+  }
+  if (to) {
+    logs = logs.filter(function(l) {
+      return l.log_date && l.log_date.toString().slice(0, 10) <= to;
+    });
+  }
+  if (branchCode) {
+    logs = logs.filter(function(l) {
+      return l.branch_code === branchCode;
+    });
+  }
+  if (printerQ) {
+    logs = logs.filter(function(l) {
+      return (l.printer_code || '').toLowerCase().includes(printerQ);
+    });
+  }
+
+  if (!logs.length) {
+    container.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:10px;padding:60px">'
+      + '<div style="font-size:48px">🖨️</div>'
+      + '<div style="font-size:14px;font-weight:700;color:#0f172a">No results for selected filters</div>'
+      + '<div style="font-size:12px;color:#94a3b8">Try widening the date range or clearing filters</div>'
+      + '</div>';
+    return;
+  }
+
+  // ── Build paper lookup ─────────────────────────────────────────────────
+  var paperMap      = {};
+  var branchPaperMap = {};
   if (psum && psum.rows) {
     psum.rows.forEach(function(r) {
       var dateKey = r.log_date ? r.log_date.toString().slice(0, 10) : '';
@@ -1591,16 +1632,10 @@ async function nwLoadPrintReport() {
       paperMap[key].waste_a4    += parseInt(r.waste_a4)    || 0;
       paperMap[key].waste_b4    += parseInt(r.waste_b4)    || 0;
       paperMap[key].waste_legal += parseInt(r.waste_legal) || 0;
-    });
-  }
 
-  // Build branch-level paper totals across all dates
-  var branchPaperMap = {};
-  if (psum && psum.rows) {
-    psum.rows.forEach(function(r) {
       var bc = r.branch_code || '';
       if (!branchPaperMap[bc]) branchPaperMap[bc] = { a4:0, b4:0, legal:0, waste:0 };
-      var total = (parseInt(r.single_side)||0) + (parseInt(r.double_side)||0);
+      var total = ss + ds;
       if (r.paper_type === 'a4')    branchPaperMap[bc].a4    += total;
       if (r.paper_type === 'b4')    branchPaperMap[bc].b4    += total;
       if (r.paper_type === 'legal') branchPaperMap[bc].legal += total;
@@ -1608,23 +1643,7 @@ async function nwLoadPrintReport() {
     });
   }
 
-  // Apply printer code filter
-  var logs = d.logs;
-  if (printerQ) {
-    logs = logs.filter(function(l) {
-      return (l.printer_code || '').toLowerCase().includes(printerQ);
-    });
-  }
-
-  if (!logs.length) {
-    container.innerHTML = '<div class="nw-spin-wrap" style="flex-direction:column;gap:10px;padding:60px">'
-      + '<div style="font-size:48px">🖨️</div>'
-      + '<div style="font-size:14px;font-weight:700;color:#0f172a">No printers match "' + printerQ + '"</div>'
-      + '</div>';
-    return;
-  }
-
-  // KPIs
+  // ── KPIs ───────────────────────────────────────────────────────────────
   var totalPrints    = logs.reduce(function(a, l) { return a + (l.print_count || 0); }, 0);
   var activeBranches = new Set(logs.map(function(l) { return l.branch_code; })).size;
   var activePrinters = new Set(logs.map(function(l) { return l.printer_code; })).size;
@@ -1636,7 +1655,7 @@ async function nwLoadPrintReport() {
     setK('npr-kpi-printers', activePrinters);
   }
 
-  // Group by branch
+  // ── Group by branch ────────────────────────────────────────────────────
   var byBranch = {};
   logs.forEach(function(l) {
     var key = l.branch_code;
@@ -1656,6 +1675,7 @@ async function nwLoadPrintReport() {
 
   var colors = ['#0ea5e9','#6366f1','#10b981','#f59e0b','#ec4899','#14b8a6','#8b5cf6','#22c55e','#f97316','#06b6d4'];
 
+  // ── Render ─────────────────────────────────────────────────────────────
   container.innerHTML = sorted.map(function(branch, bi) {
     var col         = colors[bi % colors.length];
     var branchTotal = branch.printers.reduce(function(s, p) { return s + (p.print_count || 0); }, 0);
@@ -1673,7 +1693,6 @@ async function nwLoadPrintReport() {
         + '</div>';
     }
 
-    // Sort printers by print count desc
     var printers = branch.printers.slice().sort(function(a, b) {
       return (b.print_count || 0) - (a.print_count || 0);
     });
@@ -1687,10 +1706,14 @@ async function nwLoadPrintReport() {
       var timeStr = p.created_at
         ? new Date(p.created_at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
         : '';
+
+      // ── meter_reading now available from /requests/print-logs ──────────
       var meterStr = p.meter_reading
         ? parseInt(p.meter_reading).toLocaleString()
         : null;
-      var whoStr = p.logged_by || p.logged_by_name || '—';
+
+      // /requests/print-logs uses logged_by_name (not logged_by)
+      var whoStr = p.logged_by_name || p.logged_by || '—';
 
       return '<div class="npr-printer-row">'
         + '<div class="npr-pr-left">'
