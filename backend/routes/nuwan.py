@@ -426,14 +426,30 @@ def export_print_summary(
         SELECT pl.log_date, b.code AS branch_code, b.name AS branch_name,
                p.printer_code, p.model AS printer_model,
                pl.print_count,
-               pl.a4_single, pl.a4_double,
-               pl.b4_single, pl.b4_double,
-               pl.letter_single, pl.letter_double,
+               COALESCE(dpl_a4.single_side,  0) AS a4_single,
+               COALESCE(dpl_a4.double_side,  0) AS a4_double,
+               COALESCE(dpl_b4.single_side,  0) AS b4_single,
+               COALESCE(dpl_b4.double_side,  0) AS b4_double,
+               COALESCE(dpl_lg.single_side,  0) AS letter_single,
+               COALESCE(dpl_lg.double_side,  0) AS letter_double,
+               COALESCE(dpl_a4.waste_a4,     0) + COALESCE(dpl_b4.waste_b4, 0) + COALESCE(dpl_lg.waste_legal, 0) AS total_waste,
                u.full_name AS logged_by, pl.created_at
         FROM print_logs pl
         JOIN printers p ON p.id = pl.printer_id
         JOIN branches b ON b.id = p.branch_id
         JOIN users    u ON u.id = pl.logged_by
+        LEFT JOIN daily_paper_logs dpl_a4
+               ON dpl_a4.branch_id = b.id
+              AND dpl_a4.log_date  = pl.log_date
+              AND dpl_a4.paper_type = 'a4'
+        LEFT JOIN daily_paper_logs dpl_b4
+               ON dpl_b4.branch_id = b.id
+              AND dpl_b4.log_date  = pl.log_date
+              AND dpl_b4.paper_type = 'b4'
+        LEFT JOIN daily_paper_logs dpl_lg
+               ON dpl_lg.branch_id = b.id
+              AND dpl_lg.log_date  = pl.log_date
+              AND dpl_lg.paper_type = 'legal'
         WHERE {where}
         ORDER BY pl.log_date DESC, b.code, p.printer_code
         LIMIT 5000
