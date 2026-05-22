@@ -2750,3 +2750,16 @@
 .pr-pb-total strong{ color:#0ea5e9; }
 .pr-pb-waste span  { color:#ef4444 !important; }
 .pr-pb-waste strong{ color:#ef4444 !important; }
+
+/* ══════════════════════════════════════════════════════════
+   HIDE TONER % FROM SERVICE PERSON PRINTER CARDS (EOD LOG)
+   ══════════════════════════════════════════════════════════ */
+.eod3-toner-bar-wrap,
+.eod3-toner-bar,
+.eod3-toner-pct,
+.eod3-pop-pct,
+.eod-toner-ring,
+.eod-toner-pct,
+.eod-toner-word {
+  display: none !important;
+}
