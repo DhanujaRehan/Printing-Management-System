@@ -2763,3 +2763,12 @@
 .eod-toner-word {
   display: none !important;
 }
+
+/* ══════════════════════════════════════════════════════════
+   HIDE TONER % FROM TONER REPLACED PAGE (page-tonerlog)
+   ══════════════════════════════════════════════════════════ */
+.tl-card-right,
+.tl-bar,
+.tl-bar-fill {
+  display: none !important;
+}
