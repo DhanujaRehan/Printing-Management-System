@@ -99,10 +99,156 @@ function eodSetDateUI() {
   var lbl=document.getElementById('eod-date');
   if(lbl) lbl.textContent=eodFmtDate(_eodLogDate);
 }
-function eodSelectDate(which) {
-  _eodLogDate = (which==='today') ? eodToday() : eodYesterday();
+/* ── Calendar state ─────────────────────────────────────── */
+var _eodCalViewYear  = new Date().getFullYear();
+var _eodCalViewMonth = new Date().getMonth();     // 0-based
+var _eodCalSelected  = null;                      // 'YYYY-MM-DD' string
+
+/* ── Helpers ─────────────────────────────────────────────── */
+function eodToday() { return new Date().toISOString().slice(0,10); }
+function eodYesterday() {
+  var d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10);
+}
+function eodFmtDate(iso) {
+  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+function eodFmtDateShort(iso) {
+  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function eodEmpty(icon, title, sub) {
+  return '<div class="eod-empty"><div class="eod-empty-icon">'+icon+'</div>'
+    +'<div class="eod-empty-title">'+title+'</div>'
+    +(sub?'<div class="eod-empty-sub">'+sub+'</div>':'')+'</div>';
+}
+
+/* ── Date bar UI ─────────────────────────────────────────── */
+function eodSetDateUI() {
+  var lbl = document.getElementById('eod-date');
+  if (lbl) lbl.textContent = eodFmtDate(_eodLogDate);
+  var btnLbl = document.getElementById('eod-cal-btn-lbl');
+  if (btnLbl) {
+    var today = eodToday();
+    if (_eodLogDate === today) {
+      btnLbl.textContent = 'Today';
+    } else if (_eodLogDate === eodYesterday()) {
+      btnLbl.textContent = 'Yesterday';
+    } else {
+      btnLbl.textContent = eodFmtDateShort(_eodLogDate);
+    }
+  }
+}
+
+/* ── Calendar open/close ─────────────────────────────────── */
+function eodOpenCalendar() {
+  var selDate = _eodLogDate || eodToday();
+  var parts   = selDate.split('-');
+  _eodCalViewYear  = parseInt(parts[0]);
+  _eodCalViewMonth = parseInt(parts[1]) - 1;
+  _eodCalSelected  = selDate;
+  eodRenderCalendar();
+  document.getElementById('eod-cal-overlay').style.display = 'flex';
+}
+function eodCloseCalendar() {
+  document.getElementById('eod-cal-overlay').style.display = 'none';
+}
+
+/* ── Calendar navigation ─────────────────────────────────── */
+function eodCalPrevMonth() {
+  if (_eodCalViewMonth === 0) { _eodCalViewMonth = 11; _eodCalViewYear--; }
+  else { _eodCalViewMonth--; }
+  eodRenderCalendar();
+}
+function eodCalNextMonth() {
+  if (_eodCalViewMonth === 11) { _eodCalViewMonth = 0; _eodCalViewYear++; }
+  else { _eodCalViewMonth++; }
+  eodRenderCalendar();
+}
+function eodCalGoToday() {
+  var t = new Date();
+  _eodCalViewYear  = t.getFullYear();
+  _eodCalViewMonth = t.getMonth();
+  _eodCalSelected  = eodToday();
+  eodRenderCalendar();
+}
+
+/* ── Render calendar grid ────────────────────────────────── */
+function eodRenderCalendar() {
+  var MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+  var lbl = document.getElementById('eod-cal-month-lbl');
+  if (lbl) lbl.textContent = MONTHS[_eodCalViewMonth] + ' ' + _eodCalViewYear;
+
+  var grid  = document.getElementById('eod-cal-grid');
+  var today = eodToday();
+  var todayD = new Date(today + 'T00:00:00');
+
+  var firstDay = new Date(_eodCalViewYear, _eodCalViewMonth, 1).getDay();
+  var daysIn   = new Date(_eodCalViewYear, _eodCalViewMonth + 1, 0).getDate();
+
+  var html = '';
+  // Empty cells before first day
+  for (var e = 0; e < firstDay; e++) {
+    html += '<div class="eod3-cal-day eod-cal-empty"></div>';
+  }
+  for (var d = 1; d <= daysIn; d++) {
+    var mm  = String(_eodCalViewMonth + 1).padStart(2, '0');
+    var dd  = String(d).padStart(2, '0');
+    var iso = _eodCalViewYear + '-' + mm + '-' + dd;
+    var dayD= new Date(iso + 'T00:00:00');
+    var cls = 'eod3-cal-day';
+    if (iso === today)          cls += ' eod-cal-today';
+    if (iso === _eodCalSelected)cls += ' eod-cal-selected';
+    if (dayD > todayD)          cls += ' eod-cal-future';
+    html += '<button class="' + cls + '" onclick="eodCalSelectDay(\'' + iso + '\')">' + d + '</button>';
+  }
+  if (grid) grid.innerHTML = html;
+}
+
+function eodCalSelectDay(iso) {
+  _eodCalSelected = iso;
+  eodRenderCalendar();
+}
+
+function eodCalConfirm() {
+  if (!_eodCalSelected) return;
+  _eodLogDate = _eodCalSelected;
   eodSetDateUI();
+  eodCloseCalendar();
   if (_eodBranchId) eodLoadPrinters(_eodBranchId);
+}
+
+/* ── EOD Save Success Toast ──────────────────────────────── */
+var _eodToastTimer = null;
+function eodShowSaveToast(title, sub, prints) {
+  var el    = document.getElementById('eod3-save-toast');
+  var tDate = document.getElementById('eod3-toast-date');
+  var tTitle= document.getElementById('eod3-toast-title');
+  var tSub  = document.getElementById('eod3-toast-sub');
+  var tBar  = document.getElementById('eod3-toast-bar');
+  if (!el) return;
+
+  tTitle.textContent = title || 'Saved!';
+  tDate.textContent  = eodFmtDate(_eodLogDate);
+  tSub.textContent   = sub  || '';
+
+  // Reset bar then animate
+  tBar.style.transition = 'none';
+  tBar.style.width      = '100%';
+
+  el.classList.add('show');
+
+  // Start shrink after a tick
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      tBar.style.transition = 'width 3.5s linear';
+      tBar.style.width      = '0%';
+    });
+  });
+
+  clearTimeout(_eodToastTimer);
+  _eodToastTimer = setTimeout(function() {
+    el.classList.remove('show');
+  }, 3700);
 }
 async function eodBranchChanged() {
   var sel = document.getElementById('eod-branch-sel');
@@ -236,7 +382,13 @@ async function eodPopSave() {
         card.insertBefore(b, card.firstChild.nextSibling);
       }
     }
-    toast('✅','Saved!','Meter reading saved');
+    var p = _eodPrinters.find(function(x){ return x.printer_id === pid; });
+    var pcode = p ? p.printer_code : 'Printer';
+    eodShowSaveToast(
+      pcode + ' — Logged ✓',
+      total.toLocaleString() + ' meter reading saved',
+      total
+    );
     eodClosePop(); eodUpdateSummaryBar();
     await eodLoadPrinters(_eodBranchId);
     eodLoadHistory();
@@ -372,7 +524,11 @@ async function eodWastePopSave() {
     _eodWasteData[type]={paper_type:type,waste:count};
     eodRenderWasteCards(true);
     var labels={a4:'A4 Waste',b4:'B4 Waste',legal:'Legal Waste'};
-    toast('✅',labels[type]+' saved!',count.toLocaleString()+' waste sheets logged');
+    eodShowSaveToast(
+      labels[type] + ' Logged ✓',
+      count.toLocaleString() + ' waste sheets recorded',
+      count
+    );
     eodCloseWastePop();
   } catch(e) {
     btn.textContent='✓ Save'; btn.disabled=false;
@@ -442,7 +598,11 @@ async function eodPaperPopSave() {
     _eodPaperData[type]={paper_type:type,single_side:single,double_side:dbl};
     eodRenderPaperCards(true);
     var m=PAPER_META[type];
-    toast('✅',m.label+' saved!',(single+dbl).toLocaleString()+' sheets logged');
+    eodShowSaveToast(
+      m.label + ' Saved ✓',
+      (single+dbl).toLocaleString() + ' sheets logged',
+      single+dbl
+    );
     eodClosePaperPop(); eodLoadHistory();
   } catch(e) {
     btn.textContent='✓ Save'; btn.disabled=false;

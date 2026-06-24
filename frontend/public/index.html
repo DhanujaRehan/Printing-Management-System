@@ -644,14 +644,52 @@
 
       <!-- ── Date Selector ────────────────────────────── -->
       <div class="eod3-date-bar">
-        <div class="eod3-date-label" id="eod-date">Loading...</div>
-        <div class="eod3-date-btns">
-          <button class="eod3-date-btn eod-date-active" id="eod-btn-today"
-            onclick="eodSelectDate('today')">📅 Today</button>
-          <button class="eod3-date-btn" id="eod-btn-yest"
-            onclick="eodSelectDate('yesterday')">◀ Yesterday</button>
-        </div>
-      </div>
+  <div class="eod3-date-label" id="eod-date">Loading...</div>
+  <div class="eod3-date-btns">
+    <button class="eod3-cal-btn" onclick="eodOpenCalendar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="3"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span id="eod-cal-btn-lbl">Today</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── Calendar Overlay ─────────────────────────── -->
+<div id="eod-cal-overlay" class="eod3-cal-overlay" style="display:none" onclick="if(event.target===this)eodCloseCalendar()">
+  <div class="eod3-cal-box">
+    <div class="eod3-cal-hdr">
+      <div class="eod3-cal-title">📅 Select Date</div>
+      <button class="eod3-cal-close" onclick="eodCloseCalendar()">✕</button>
+    </div>
+    <div class="eod3-cal-nav">
+      <button class="eod3-cal-nav-btn" onclick="eodCalPrevMonth()">‹</button>
+      <div class="eod3-cal-month-lbl" id="eod-cal-month-lbl"></div>
+      <button class="eod3-cal-nav-btn" onclick="eodCalNextMonth()">›</button>
+    </div>
+    <div class="eod3-cal-dow">
+      <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
+      <span>Th</span><span>Fr</span><span>Sa</span>
+    </div>
+    <div class="eod3-cal-grid" id="eod-cal-grid"></div>
+    <div class="eod3-cal-footer">
+      <button class="eod3-cal-today-btn" onclick="eodCalGoToday()">Today</button>
+      <button class="eod3-cal-confirm-btn" onclick="eodCalConfirm()">✓ Confirm Date</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Save Success Toast ──────────────────────── -->
+<div id="eod3-save-toast" class="eod3-save-toast">
+  <div class="eod3-save-toast-icon">✅</div>
+  <div class="eod3-save-toast-title" id="eod3-toast-title">Saved!</div>
+  <div class="eod3-save-toast-date" id="eod3-toast-date"></div>
+  <div class="eod3-save-toast-sub" id="eod3-toast-sub"></div>
+  <div class="eod3-save-toast-bar"><div class="eod3-save-toast-bar-fill" id="eod3-toast-bar"></div></div>
+</div>
 
       <!-- ── Branch (for manager/dba) ─────────────────── -->
       <div id="eod-branch-row" style="display:none;margin-bottom:12px">
