@@ -148,11 +148,9 @@ function eodOpenCalendar() {
   eodRenderCalendar();
 
   var overlay = document.getElementById('eod-cal-overlay');
-  /* Move to direct child of <body> so position:fixed is never blocked */
-  if (overlay.parentNode !== document.body) {
-    document.body.appendChild(overlay);
-  }
   overlay.style.display = 'flex';
+  /* Reset overlay scroll so calendar always shows at the top */
+  setTimeout(function() { overlay.scrollTop = 0; }, 0);
 }
 function eodCloseCalendar() {
   document.getElementById('eod-cal-overlay').style.display = 'none';
