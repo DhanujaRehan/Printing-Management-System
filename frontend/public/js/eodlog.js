@@ -182,7 +182,9 @@ function eodRenderCalendar() {
   var today = eodToday();
   var todayD = new Date(today + 'T00:00:00');
 
-  var firstDay = new Date(_eodCalViewYear, _eodCalViewMonth, 1).getDay();
+  // getDay() 0=Sun..6=Sat; shift to Mon-first (Mon=0)
+  var rawFirst = new Date(_eodCalViewYear, _eodCalViewMonth, 1).getDay();
+  var firstDay = (rawFirst === 0) ? 6 : rawFirst - 1;
   var daysIn   = new Date(_eodCalViewYear, _eodCalViewMonth + 1, 0).getDate();
 
   var html = '';
@@ -195,7 +197,10 @@ function eodRenderCalendar() {
     var dd  = String(d).padStart(2, '0');
     var iso = _eodCalViewYear + '-' + mm + '-' + dd;
     var dayD= new Date(iso + 'T00:00:00');
+    var dow  = new Date(iso + 'T00:00:00').getDay(); // 0=Sun, 6=Sat
     var cls = 'eod3-cal-day';
+    if (dow === 6)              cls += ' eod-cal-sat';
+    if (dow === 0)              cls += ' eod-cal-sun';
     if (iso === today)          cls += ' eod-cal-today';
     if (iso === _eodCalSelected)cls += ' eod-cal-selected';
     if (dayD > todayD)          cls += ' eod-cal-future';
