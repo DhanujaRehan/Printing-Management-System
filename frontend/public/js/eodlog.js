@@ -147,30 +147,13 @@ function eodOpenCalendar() {
   _eodCalSelected  = selDate;
   eodRenderCalendar();
 
-  /* Lock body scroll so the page can't drift while overlay is open */
-  var scrollY = window.scrollY || window.pageYOffset || 0;
-  document.body.dataset.calScrollY = scrollY;
-  document.body.style.position   = 'fixed';
-  document.body.style.top        = '-' + scrollY + 'px';
-  document.body.style.left       = '0';
-  document.body.style.right      = '0';
-  document.body.style.overflow   = 'hidden';
-
   var overlay = document.getElementById('eod-cal-overlay');
   overlay.style.display = 'flex';
-  overlay.scrollTop = 0;  /* always start at top of overlay */
+  /* Reset overlay scroll so calendar always shows at the top */
+  setTimeout(function() { overlay.scrollTop = 0; }, 0);
 }
 function eodCloseCalendar() {
   document.getElementById('eod-cal-overlay').style.display = 'none';
-
-  /* Restore body scroll */
-  var scrollY = parseInt(document.body.dataset.calScrollY || '0');
-  document.body.style.position = '';
-  document.body.style.top      = '';
-  document.body.style.left     = '';
-  document.body.style.right    = '';
-  document.body.style.overflow = '';
-  window.scrollTo(0, scrollY);
 }
 
 /* ── Calendar navigation ─────────────────────────────────── */
