@@ -146,10 +146,31 @@ function eodOpenCalendar() {
   _eodCalViewMonth = parseInt(parts[1]) - 1;
   _eodCalSelected  = selDate;
   eodRenderCalendar();
-  document.getElementById('eod-cal-overlay').style.display = 'flex';
+
+  /* Lock body scroll so the page can't drift while overlay is open */
+  var scrollY = window.scrollY || window.pageYOffset || 0;
+  document.body.dataset.calScrollY = scrollY;
+  document.body.style.position   = 'fixed';
+  document.body.style.top        = '-' + scrollY + 'px';
+  document.body.style.left       = '0';
+  document.body.style.right      = '0';
+  document.body.style.overflow   = 'hidden';
+
+  var overlay = document.getElementById('eod-cal-overlay');
+  overlay.style.display = 'flex';
+  overlay.scrollTop = 0;  /* always start at top of overlay */
 }
 function eodCloseCalendar() {
   document.getElementById('eod-cal-overlay').style.display = 'none';
+
+  /* Restore body scroll */
+  var scrollY = parseInt(document.body.dataset.calScrollY || '0');
+  document.body.style.position = '';
+  document.body.style.top      = '';
+  document.body.style.left     = '';
+  document.body.style.right    = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, scrollY);
 }
 
 /* ── Calendar navigation ─────────────────────────────────── */
