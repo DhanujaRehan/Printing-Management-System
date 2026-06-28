@@ -48,6 +48,13 @@ class DispatchBody(BaseModel):
     dispatch_note: Optional[str] = None
 
 
+class AnomalyCheckBody(BaseModel):
+    printer_id:     int
+    print_count:    int
+    log_date:       Optional[str] = None
+    force_save:     bool = False   # True = user confirmed, skip anomaly block
+
+
 @router.get("/pending-count")
 def get_pending_count(current_user: dict = Depends(get_current_user)):
     try:
@@ -265,6 +272,97 @@ def get_my_print_logs(current_user: dict = Depends(get_current_user)):
         return rows or []
     except Exception:
         return []
+
+
+@router.post("/print-logs/check-anomaly")
+def check_print_anomaly(body: AnomalyCheckBody, current_user: dict = Depends(get_current_user)):
+    """
+    Pre-save anomaly check — call BEFORE saving.
+    Returns {anomaly: false} if OK, or {anomaly: true, ...details} if suspicious.
+    The frontend shows a warning dialog; user can override with force_save=true.
+    """
+    meter_reading = body.print_count
+
+    # ── Get previous meter reading ────────────────────────────────────────
+    if body.log_date:
+        prev = query("""
+            SELECT meter_reading, log_date FROM print_logs
+            WHERE printer_id = %s AND log_date < %s::date
+            ORDER BY log_date DESC LIMIT 1
+        """, (body.printer_id, body.log_date), fetch="one")
+    else:
+        prev = query("""
+            SELECT meter_reading, log_date FROM print_logs
+            WHERE printer_id = %s AND log_date < CURRENT_DATE
+            ORDER BY log_date DESC LIMIT 1
+        """, (body.printer_id,), fetch="one")
+
+    # ── Get printer info + avg_daily_copies ───────────────────────────────
+    printer = query("""
+        SELECT p.printer_code, p.model,
+               COALESCE(ti.avg_daily_copies, 0) AS avg_daily,
+               COALESCE(ti.yield_copies, 3000)  AS yield_copies
+        FROM printers p
+        LEFT JOIN toner_installations ti ON ti.printer_id = p.id AND ti.is_current = TRUE
+        WHERE p.id = %s
+    """, (body.printer_id,), fetch="one")
+
+    avg_daily    = int(printer["avg_daily"])    if printer else 0
+    printer_code = printer["printer_code"]      if printer else "Printer"
+    yield_copies = int(printer["yield_copies"]) if printer else 3000
+
+    warnings = []
+
+    # ── Rule 1: Meter went backward ───────────────────────────────────────
+    if prev and prev.get("meter_reading"):
+        prev_meter = int(prev["meter_reading"])
+        if meter_reading < prev_meter:
+            warnings.append({
+                "rule":    "meter_decrease",
+                "message": f"Meter reading {meter_reading:,} is LOWER than the previous reading of {prev_meter:,}. "
+                           f"This could mean a typo or a meter reset.",
+                "severity": "high"
+            })
+        else:
+            daily_diff = meter_reading - prev_meter
+            # Rule 2: Daily diff is 5× higher than average
+            if avg_daily > 0 and daily_diff > (avg_daily * 5):
+                warnings.append({
+                    "rule":    "spike_vs_average",
+                    "message": f"Today's print count ({daily_diff:,}) is {round(daily_diff/avg_daily, 1)}× "
+                               f"higher than this printer's average of {avg_daily:,}/day. "
+                               f"Did you enter the correct meter reading?",
+                    "severity": "high"
+                })
+            # Rule 3: Single-day diff exceeds toner yield (physically impossible)
+            if daily_diff > yield_copies:
+                warnings.append({
+                    "rule":    "exceeds_yield",
+                    "message": f"Daily diff of {daily_diff:,} prints exceeds the toner yield of {yield_copies:,}. "
+                               f"This is physically unlikely. Please double-check the meter reading.",
+                    "severity": "critical"
+                })
+
+    # Rule 4: Absolute value sanity — meter > 9,999,999 is likely a typo
+    if meter_reading > 9_999_999:
+        warnings.append({
+            "rule":    "absurd_value",
+            "message": f"Meter reading {meter_reading:,} seems extremely high. "
+                       f"Most printers never exceed 9,999,999. Please verify.",
+            "severity": "high"
+        })
+
+    if warnings:
+        return {
+            "anomaly":      True,
+            "printer_code": printer_code,
+            "meter_entered": meter_reading,
+            "prev_meter":   int(prev["meter_reading"]) if prev and prev.get("meter_reading") else None,
+            "avg_daily":    avg_daily,
+            "warnings":     warnings
+        }
+
+    return {"anomaly": False}
 
 
 @router.post("/print-logs")

@@ -329,6 +329,62 @@ function eodUpdateSummaryBar() {
 }
 
 /* ══════════════════════════════════════════════════════════
+   ANOMALY DIALOG — shown when meter reading looks suspicious
+   ══════════════════════════════════════════════════════════ */
+function eodShowAnomalyDialog(data, meterValue) {
+  /* Build the warning list */
+  var warningHtml = data.warnings.map(function(w) {
+    var icon = w.severity === 'critical' ? '🚨' : '⚠️';
+    return '<div class="eod-anomaly-warn">'
+      + '<span class="eod-anomaly-icon">' + icon + '</span>'
+      + '<span class="eod-anomaly-msg">' + w.message + '</span>'
+      + '</div>';
+  }).join('');
+
+  var prevTxt = data.prev_meter != null
+    ? 'Previous meter: <strong>' + data.prev_meter.toLocaleString() + '</strong><br>'
+    : '';
+  var avgTxt = data.avg_daily > 0
+    ? 'Daily average: <strong>' + data.avg_daily.toLocaleString() + '</strong> prints'
+    : '';
+
+  var html = '<div id="eod-anomaly-overlay" class="eod-anomaly-overlay" onclick="if(event.target===this)eodCloseAnomalyDialog()">'
+    + '<div class="eod-anomaly-box">'
+    + '<div class="eod-anomaly-hdr">'
+    + '<div class="eod-anomaly-hdr-title">⚠️ Unusual Reading Detected</div>'
+    + '<button class="eod3-cal-close" onclick="eodCloseAnomalyDialog()">✕</button>'
+    + '</div>'
+    + '<div class="eod-anomaly-printer">Printer: <strong>' + data.printer_code + '</strong> &nbsp;·&nbsp; Meter entered: <strong>' + meterValue.toLocaleString() + '</strong></div>'
+    + '<div class="eod-anomaly-stats">' + prevTxt + avgTxt + '</div>'
+    + '<div class="eod-anomaly-warns">' + warningHtml + '</div>'
+    + '<div class="eod-anomaly-q">Is this meter reading correct?</div>'
+    + '<div class="eod-anomaly-actions">'
+    + '<button class="eod-anomaly-fix" onclick="eodCloseAnomalyDialog()">✏️ Fix the number</button>'
+    + '<button class="eod-anomaly-confirm" onclick="eodConfirmAnomalySave()">✓ Yes, save anyway</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
+  /* Teleport to body just like the calendar overlay */
+  var existing = document.getElementById('eod-anomaly-overlay');
+  if (existing) existing.remove();
+  var tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  var el = tmp.firstChild;
+  document.body.appendChild(el);
+}
+
+function eodCloseAnomalyDialog() {
+  var el = document.getElementById('eod-anomaly-overlay');
+  if (el) el.remove();
+}
+
+function eodConfirmAnomalySave() {
+  eodCloseAnomalyDialog();
+  eodPopSave(true); /* forceOverride = true, skip anomaly check */
+}
+
+/* ══════════════════════════════════════════════════════════
    PRINTER POPUP — scroll to top then show
    ══════════════════════════════════════════════════════════ */
 function eodOpenPrinter(pid) {
@@ -376,10 +432,26 @@ function eodPopTotalChanged() {
   if(preview){ preview.textContent=val>0?val.toLocaleString()+' (meter reading)':''; preview.style.color=val>0?'#0ea5e9':'#94a3b8'; }
 }
 
-async function eodPopSave() {
+async function eodPopSave(forceOverride) {
   var pid=_eodActivePid, total=parseInt(document.getElementById('eod-pop-total').value)||0;
   if(total<=0){ toast('⚠️','Enter total prints','Please enter the total print count'); return; }
   var btn=document.getElementById('eod-pop-save');
+  btn.textContent='⏳ Checking…'; btn.disabled=true;
+
+  /* ── Anomaly check (skip if user already confirmed override) ─────── */
+  if (!forceOverride) {
+    try {
+      var chk = await silentApi('POST', '/requests/print-logs/check-anomaly', {
+        printer_id: pid, print_count: total, log_date: _eodLogDate
+      });
+      if (chk && chk.anomaly) {
+        btn.textContent='✓ Save This Printer'; btn.disabled=false;
+        eodShowAnomalyDialog(chk, total);
+        return;
+      }
+    } catch(e) { /* anomaly check failed — proceed with save anyway */ }
+  }
+
   btn.textContent='⏳ Saving…'; btn.disabled=true;
   try {
     await api('POST','/requests/print-logs',{
