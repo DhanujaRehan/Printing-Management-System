@@ -147,13 +147,18 @@ function eodOpenCalendar() {
   _eodCalSelected  = selDate;
   eodRenderCalendar();
 
+  /* Teleport overlay to <body> so position:fixed is never broken
+     by a parent with transform/backdrop-filter/will-change */
   var overlay = document.getElementById('eod-cal-overlay');
-  overlay.style.display = 'flex';
-  /* Reset overlay scroll so calendar always shows at the top */
-  setTimeout(function() { overlay.scrollTop = 0; }, 0);
+  if (overlay.parentNode !== document.body) {
+    document.body.appendChild(overlay);
+  }
+  overlay.style.removeProperty('display'); /* clear any leftover inline style */
+  overlay.classList.add('is-open');
 }
 function eodCloseCalendar() {
-  document.getElementById('eod-cal-overlay').style.display = 'none';
+  var overlay = document.getElementById('eod-cal-overlay');
+  overlay.classList.remove('is-open');
 }
 
 /* ── Calendar navigation ─────────────────────────────────── */
