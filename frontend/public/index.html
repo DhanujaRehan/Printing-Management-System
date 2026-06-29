@@ -997,22 +997,35 @@
 
     <!-- ── USER AUDIT LOG ────────────────────────────────── -->
     <div class="page" id="page-dba-audit">
+      <!-- Header -->
       <div class="pgh">
         <div>
-          <div class="pgt">🔍 User Audit Log</div>
-          <div class="pgs">All user actions recorded in the system</div>
+          <div class="pgt">Audit Log Viewer</div>
+          <div class="pgs">Complete activity trail — every action by every user</div>
         </div>
-        <button class="btn btn-g" onclick="loadDbaAudit()" style="font-size:12px">↺ Refresh</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-g" onclick="auditExportCSV()" style="font-size:12px">⬇ Export CSV</button>
+          <button class="btn btn-g" onclick="loadDbaAudit()" style="font-size:12px">↺ Refresh</button>
+        </div>
       </div>
 
-      <!-- Filters -->
-      <div class="card mb16">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:4px 0">
-          <input id="audit-search" placeholder="🔍 Search user, action, detail..."
-            oninput="filterAuditLog()"
-            style="flex:1;min-width:180px;padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
-          <select id="audit-role-filter" onchange="filterAuditLog()"
-            style="padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
+      <!-- KPI strip -->
+      <div class="dba-audit-kpis" id="audit-kpis"></div>
+
+      <!-- Activity sparkline -->
+      <div class="audit-sparkline-card" id="audit-sparkline-wrap"></div>
+
+      <!-- Filter bar -->
+      <div class="audit-filter-bar">
+        <div class="audit-filter-row">
+          <div class="audit-filter-search-wrap">
+            <span class="audit-search-icon">🔍</span>
+            <input id="audit-search" class="audit-search-input"
+              placeholder="Search by user, action, or detail..."
+              oninput="filterAuditLog()">
+            <button class="audit-search-clear" onclick="auditClearSearch()" title="Clear">✕</button>
+          </div>
+          <select id="audit-role-filter" class="audit-select" onchange="filterAuditLog()">
             <option value="">All Roles</option>
             <option value="manager">Manager</option>
             <option value="service">Service</option>
@@ -1020,38 +1033,61 @@
             <option value="nuwan">Nuwan</option>
             <option value="dba">DBA</option>
           </select>
-          <select id="audit-action-filter" onchange="filterAuditLog()"
-            style="padding:9px 14px;border:1.5px solid var(--sb);border-radius:10px;font-size:13px;background:#f8fafc;outline:none">
+          <select id="audit-action-filter" class="audit-select" onchange="filterAuditLog()">
             <option value="">All Actions</option>
             <option value="LOGIN">Login</option>
+            <option value="CREATE_USER">Create User</option>
+            <option value="DEACTIVATE_USER">Deactivate User</option>
+            <option value="ACTIVATE_USER">Activate User</option>
+            <option value="RESET_PASSWORD">Reset Password</option>
             <option value="TONER_REQUEST">Toner Request</option>
             <option value="APPROVE">Approve</option>
+            <option value="REJECT">Reject</option>
             <option value="DISPATCH">Dispatch</option>
             <option value="PRINT_LOG">Print Log</option>
+            <option value="HARDWARE_REQUEST">Hardware Request</option>
+            <option value="ANOMALY_WARNING">Anomaly Warning</option>
+            <option value="IMPORT">Import</option>
+            <option value="EXPORT">Export</option>
           </select>
-          <div id="audit-count" style="font-size:12px;color:var(--t3);white-space:nowrap"></div>
+          <input type="date" id="audit-date-from" class="audit-select" onchange="filterAuditLog()" title="From date">
+          <input type="date" id="audit-date-to"   class="audit-select" onchange="filterAuditLog()" title="To date">
+          <button class="audit-clear-btn" onclick="auditResetFilters()">Clear Filters</button>
+        </div>
+        <div class="audit-filter-meta">
+          <span id="audit-count" class="audit-count-badge">— records</span>
+          <span id="audit-filter-active" class="audit-active-badge" style="display:none">Filters active</span>
         </div>
       </div>
 
-      <!-- Stats row -->
-      <div class="dba-audit-kpis" id="audit-kpis"></div>
-
       <!-- Log table -->
-      <div class="card">
+      <div class="card audit-table-card">
         <div class="scx">
-          <table class="tbl">
+          <table class="tbl audit-tbl">
             <thead>
               <tr>
-                <th>Date & Time</th>
-                <th>User</th>
-                <th>Role</th>
-                <th>Action</th>
+                <th style="width:140px">Date &amp; Time</th>
+                <th style="width:160px">User</th>
+                <th style="width:90px">Role</th>
+                <th style="width:150px">Action</th>
                 <th>Detail</th>
-                <th>IP Address</th>
+                <th style="width:110px">IP Address</th>
               </tr>
             </thead>
             <tbody id="dba-audit-tbody"></tbody>
           </table>
+        </div>
+        <div id="audit-pagination" class="audit-pagination"></div>
+      </div>
+
+      <!-- Detail drawer -->
+      <div id="audit-drawer-overlay" class="audit-drawer-overlay" onclick="auditCloseDrawer()">
+        <div class="audit-drawer" onclick="event.stopPropagation()">
+          <div class="audit-drawer-hdr">
+            <div id="audit-drawer-title" class="audit-drawer-title">Action Detail</div>
+            <button class="audit-drawer-close" onclick="auditCloseDrawer()">✕</button>
+          </div>
+          <div id="audit-drawer-body" class="audit-drawer-body"></div>
         </div>
       </div>
     </div>

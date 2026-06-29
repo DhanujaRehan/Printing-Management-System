@@ -65,10 +65,12 @@ def get_audit_log(limit: int = 50, current_user: dict = Depends(require_role("ma
 
 @router.get("/audit-log/full")
 def get_full_audit_log(
-    limit: int = 200,
+    limit: int = 300,
     role: str = None,
     action: str = None,
     search: str = None,
+    date_from: str = None,
+    date_to:   str = None,
     current_user: dict = Depends(require_role("dba"))
 ):
     """Extended audit log with filters — DBA only."""
@@ -84,6 +86,12 @@ def get_full_audit_log(
     if search:
         filters.append("(u.username ILIKE %s OR u.full_name ILIKE %s OR al.detail ILIKE %s OR al.action ILIKE %s)")
         params.extend([f"%{search}%"] * 4)
+    if date_from:
+        filters.append("al.created_at::date >= %s::date")
+        params.append(date_from)
+    if date_to:
+        filters.append("al.created_at::date <= %s::date")
+        params.append(date_to)
 
     params.append(limit)
     return query(f"""
@@ -102,6 +110,74 @@ def get_full_audit_log(
         ORDER BY al.created_at DESC
         LIMIT %s
     """, tuple(params)) or []
+
+
+@router.get("/audit-log/export-csv")
+def export_audit_csv(
+    role: str = None,
+    action: str = None,
+    search: str = None,
+    date_from: str = None,
+    date_to:   str = None,
+    token: str = None,   # allow token as query param for browser downloads
+    current_user: dict = None,
+    credentials: str = None,
+):
+    """Export filtered audit log as CSV — DBA only.
+    Accepts token as query param OR Authorization header for browser download links.
+    """
+    import io, csv
+    from fastapi.responses import StreamingResponse
+    from fastapi import Request
+    # Resolve user from query-param token if header not supplied
+    if current_user is None:
+        if not token:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        from middleware.auth import decode_token, require_role as _rr
+        user = decode_token(token)
+        if user.get("role") != "dba":
+            raise HTTPException(status_code=403, detail="DBA role required")
+        current_user = user
+
+    filters = ["1=1"]
+    params  = []
+    if role:
+        filters.append("u.role = %s"); params.append(role)
+    if action:
+        filters.append("al.action ILIKE %s"); params.append(f"%{action}%")
+    if search:
+        filters.append("(u.username ILIKE %s OR u.full_name ILIKE %s OR al.detail ILIKE %s OR al.action ILIKE %s)")
+        params.extend([f"%{search}%"] * 4)
+    if date_from:
+        filters.append("al.created_at::date >= %s::date"); params.append(date_from)
+    if date_to:
+        filters.append("al.created_at::date <= %s::date"); params.append(date_to)
+
+    rows = query(f"""
+        SELECT al.id, al.action, al.detail, al.ip_address, al.created_at,
+               u.username, u.full_name, u.role
+        FROM audit_log al
+        LEFT JOIN users u ON u.id = al.user_id
+        WHERE {' AND '.join(filters)}
+        ORDER BY al.created_at DESC LIMIT 5000
+    """, tuple(params)) or []
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Date & Time", "Full Name", "Username", "Role", "Action", "Detail", "IP Address"])
+    for r in rows:
+        writer.writerow([
+            r.get("id",""), r.get("created_at",""), r.get("full_name",""),
+            r.get("username",""), r.get("role",""), r.get("action",""),
+            r.get("detail",""), r.get("ip_address","")
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=audit_log.csv"}
+    )
 
 
 @router.get("/audit-log/stats")
