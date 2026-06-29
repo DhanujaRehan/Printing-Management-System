@@ -109,6 +109,7 @@ async function doLogin() {
     document.getElementById('app').style.display   = 'block';
 
     buildNav();
+    buildBottomNav();
     setInterval(updateClock, 1000);
     updateClock();
 

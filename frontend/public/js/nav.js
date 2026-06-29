@@ -114,6 +114,10 @@ function showPage(id, btn) {
   document.querySelectorAll('.nb').forEach(function(b)   { b.classList.remove('act'); });
   if (btn) btn.classList.add('act');
 
+  /* Sync bottom nav active state */
+  var _bnavMap = { eodlog: 'bnav-eod', tonerlog: 'bnav-toner' };
+  if (_bnavMap[id] && typeof bnavSetActive === 'function') bnavSetActive(_bnavMap[id]);
+
   /* ── Store sub-tabs ── */
   if (id === 'store' || id === 'store-dispatch' || id === 'store-toner' || id === 'store-paper' || id === 'store-history') {
     var tab = id === 'store' ? 'overview' : id.replace('store-', '');
@@ -269,3 +273,147 @@ function filterTable(q, tbodyId) {
     r.style.display = (q && !r.textContent.toLowerCase().includes(q.toLowerCase())) ? 'none' : '';
   });
 }
+
+/* ══════════════════════════════════════════════════════════
+   BOTTOM NAV BAR — Service person only, mobile only
+   ══════════════════════════════════════════════════════════ */
+
+/* Items shown in the bottom nav for the service role */
+var BNAV_ITEMS = [
+  { i: '📋', l: 'EOD Log',      p: 'eodlog',   id: 'bnav-eod'   },
+  { i: '🔄', l: 'Toner Log',   p: 'tonerlog', id: 'bnav-toner' },
+];
+
+function buildBottomNav() {
+  if (APP.user.role !== 'service') return;
+
+  /* Mark body so padding adjusts */
+  document.body.classList.add('has-bnav');
+
+  var nav = document.createElement('nav');
+  nav.className = 'bnav svc-bnav';
+  nav.setAttribute('aria-label', 'Main navigation');
+
+  BNAV_ITEMS.forEach(function(item) {
+    var btn = document.createElement('button');
+    btn.className   = 'bnav-item';
+    btn.id          = item.id;
+    btn.setAttribute('aria-label', item.l);
+    btn.innerHTML   =
+      '<div class="bnav-pill"></div>'
+      + '<span class="bnav-ico">' + item.i
+        + (item.p === 'eodlog'
+           ? '<span class="bnav-done-dot" id="bnav-done-dot"></span>'
+           : '')
+      + '</span>'
+      + '<span class="bnav-lbl">' + item.l + '</span>';
+
+    btn.addEventListener('click', (function(itm, b) {
+      return function() {
+        /* Find the matching sidebar button and delegate */
+        var sidebarBtn = Array.from(document.querySelectorAll('.nb')).find(function(el) {
+          return el.textContent.trim().startsWith(itm.l.replace(' Log','').trim()) ||
+                 el.onclick && el.onclick.toString().indexOf(itm.p) !== -1;
+        });
+        showPage(itm.p, sidebarBtn || null);
+        bnavSetActive(itm.id);
+      };
+    })(item, btn));
+
+    nav.appendChild(btn);
+  });
+
+  document.body.appendChild(nav);
+
+  /* Set first item active by default */
+  bnavSetActive(BNAV_ITEMS[0].id);
+
+  /* Check if today's EOD is already done */
+  setTimeout(bnavCheckEodDone, 1200);
+}
+
+function bnavSetActive(activeId) {
+  document.querySelectorAll('.bnav-item').forEach(function(b) {
+    b.classList.toggle('bnav-act', b.id === activeId);
+  });
+}
+
+/* ── "Log done today" badge ──────────────────────────────
+   Calls the existing EOD API to check if all printers in
+   this service person's branch have a log for today.
+   Shows / hides the green dot on the EOD nav icon.
+   ─────────────────────────────────────────────────────── */
+async function bnavCheckEodDone() {
+  var dot = document.getElementById('bnav-done-dot');
+  if (!dot) return;
+
+  try {
+    var today    = new Date().toISOString().slice(0, 10);
+    var access   = (APP.user.branch_access || '').trim().toUpperCase();
+    var branches = (await silentApi('GET', '/branches')) || [];
+    var branch   = branches.find(function(b) {
+      return b.code.toUpperCase() === access || String(b.id) === access;
+    });
+    if (!branch) return;
+
+    var printers = (await silentApi('GET', '/branches/' + branch.id + '/printers')) || [];
+    if (!printers.length) return;
+
+    var logs = (await silentApi('GET', '/requests/print-logs?branch_id=' + branch.id)) || [];
+    var todayLogs = logs.filter(function(l) { return (l.log_date || '').slice(0,10) === today; });
+    var loggedIds = todayLogs.map(function(l) { return l.printer_id; });
+    var allDone   = printers.length > 0 && printers.every(function(p) {
+      return loggedIds.indexOf(p.printer_id || p.id) !== -1;
+    });
+
+    dot.classList.toggle('vis', allDone);
+  } catch (e) { /* silently ignore — badge is a nice-to-have */ }
+}
+
+/* Expose so eodlog.js can call it after each successful save */
+function bnavRefreshEodBadge() {
+  setTimeout(bnavCheckEodDone, 400);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MICRO-FEEDBACK HELPERS
+   ══════════════════════════════════════════════════════════ */
+
+/* Shake any element — used on validation error */
+function swShake(el) {
+  if (!el) return;
+  el.classList.remove('sw-shake');
+  void el.offsetWidth; /* force reflow to restart animation */
+  el.classList.add('sw-shake');
+  el.addEventListener('animationend', function h() {
+    el.classList.remove('sw-shake');
+    el.removeEventListener('animationend', h);
+  });
+}
+
+/* Press ripple on a button */
+function swBtnPress(el) {
+  if (!el) return;
+  el.classList.remove('sw-btn-press');
+  void el.offsetWidth;
+  el.classList.add('sw-btn-press');
+  el.addEventListener('animationend', function h() {
+    el.classList.remove('sw-btn-press');
+    el.removeEventListener('animationend', h);
+  });
+}
+
+/* Patch the global toast function to shake on warning/error toasts */
+(function() {
+  var _origToast = window.toast || toast;
+  window.toast = function(ico, tx, sb) {
+    _origToast(ico, tx, sb);
+    /* If it's a warning/error toast, also shake the active form card */
+    if (ico && (ico.includes('⚠') || ico.includes('❌'))) {
+      var activeForm = document.querySelector('.eod-pop-inner') ||
+                       document.querySelector('.eod-paper-pop-body') ||
+                       document.querySelector('.mx.op');
+      if (activeForm) swShake(activeForm);
+    }
+  };
+})();

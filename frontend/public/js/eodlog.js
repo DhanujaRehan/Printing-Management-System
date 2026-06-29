@@ -436,6 +436,7 @@ async function eodPopSave(forceOverride) {
   var pid=_eodActivePid, total=parseInt(document.getElementById('eod-pop-total').value)||0;
   if(total<=0){ toast('⚠️','Enter total prints','Please enter the total print count'); return; }
   var btn=document.getElementById('eod-pop-save');
+  if (typeof swBtnPress === 'function') swBtnPress(btn);
   btn.textContent='⏳ Checking…'; btn.disabled=true;
 
   /* ── Anomaly check (skip if user already confirmed override) ─────── */
@@ -475,6 +476,10 @@ async function eodPopSave(forceOverride) {
       total.toLocaleString() + ' meter reading saved',
       total
     );
+    /* ── micro-feedback: glow the saved card */
+    if (card) { card.classList.add("sw-card-glow"); setTimeout(function(){ card.classList.remove("sw-card-glow"); }, 700); }
+    /* ── refresh bottom nav EOD badge */
+    if (typeof bnavRefreshEodBadge === "function") bnavRefreshEodBadge();
     eodClosePop(); eodUpdateSummaryBar();
     await eodLoadPrinters(_eodBranchId);
     eodLoadHistory();
