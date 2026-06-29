@@ -87,8 +87,32 @@ function selectRole(el, role) {
 async function doLogin() {
   var u = document.getElementById('lu').value.trim();
   var p = document.getElementById('lp').value;
-  var errEl = document.getElementById('lerr');
-  errEl.style.display = 'none';
+
+  /* Hide any previous error */
+  var errEl  = document.getElementById('lerr');
+  var errTx  = document.getElementById('lerr-tx');
+  errEl.classList.remove('vis');
+
+  /* Basic empty-field validation */
+  if (!u || !p) {
+    var emptyWrap = !u
+      ? document.getElementById('lu-wrap')
+      : document.getElementById('lp-wrap');
+    if (emptyWrap) {
+      emptyWrap.classList.add('lp-input-err');
+      emptyWrap.addEventListener('animationend', function() {
+        emptyWrap.classList.remove('lp-input-err');
+      }, { once: true });
+      var inp = emptyWrap.querySelector('.lpf-input');
+      if (inp) { inp.classList.add('err'); setTimeout(function(){ inp.classList.remove('err'); }, 1500); }
+    }
+    showLoginErr(!u ? 'Please enter your username.' : 'Please enter your password.');
+    return;
+  }
+
+  /* Loading state on button */
+  var btn = document.getElementById('lp-submit-btn');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
 
   try {
     var d = await api('POST', '/auth/login', { username: u, password: p });
@@ -109,22 +133,30 @@ async function doLogin() {
     document.getElementById('app').style.display   = 'block';
 
     buildNav();
-    buildBottomNav();
     setInterval(updateClock, 1000);
     updateClock();
 
-
-
   } catch(e) {
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+    /* Shake both inputs */
+    ['lu-wrap','lp-wrap'].forEach(function(id) {
+      var w = document.getElementById(id);
+      if (!w) return;
+      w.classList.add('lp-input-err');
+      w.addEventListener('animationend', function() { w.classList.remove('lp-input-err'); }, { once: true });
+      var inp = w.querySelector('.lpf-input');
+      if (inp) { inp.classList.add('err'); setTimeout(function(){ inp.classList.remove('err'); }, 1500); }
+    });
     showLoginErr('Invalid username or password. Please try again.');
   }
 }
 
 function showLoginErr(msg) {
-  var e = document.getElementById('lerr');
-  e.textContent   = msg;
-  e.style.display = 'block';
-  setTimeout(function() { e.style.display = 'none'; }, 4500);
+  var errEl = document.getElementById('lerr');
+  var errTx = document.getElementById('lerr-tx');
+  if (errTx) errTx.textContent = msg;
+  errEl.classList.add('vis');
+  setTimeout(function() { errEl.classList.remove('vis'); }, 4500);
 }
 
 function doLogout() {
