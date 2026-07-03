@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/css/main.css?v=1774595818">
 <link rel="stylesheet" href="/css/login.css?v=1774595818">
 <link rel="stylesheet" href="/css/pages.css?v=1774595818">
+<link rel="stylesheet" href="/css/loading.css?v=1774595818">
 </head>
 <body>
 
@@ -78,6 +79,65 @@
     📑
 </div>
     <div class="login-footer">Authorised personnel only · All access is logged and monitored</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     POST-LOGIN LOADING SCREEN
+     ════════════════════════════════════════════════════════ -->
+<div id="loading-screen" style="display:none">
+  <div class="ls-wrap">
+    <div class="ls-logo-text">soft<span>Wave</span></div>
+
+    <div class="ls-printer-anim">
+      <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
+        <rect x="5" y="21" width="48" height="23" rx="5" fill="#1a5fb4"/>
+        <rect x="12" y="11" width="34" height="13" rx="3" fill="#2d7dd2"/>
+        <rect x="17" y="41" width="24" height="2.5" rx="1.2" fill="rgba(255,255,255,0.6)"/>
+        <circle cx="44" cy="29" r="3.5" fill="#4ade80"/>
+        <rect x="13" y="26" width="3" height="8" rx="1.5" fill="rgba(0,0,0,0.25)"/>
+        <rect x="18" y="26" width="3" height="8" rx="1.5" fill="rgba(220,60,60,0.6)"/>
+        <rect x="23" y="26" width="3" height="8" rx="1.5" fill="rgba(0,190,255,0.6)"/>
+        <rect x="28" y="26" width="3" height="8" rx="1.5" fill="rgba(255,210,0,0.65)"/>
+      </svg>
+      <div class="ls-paper-out" id="ls-paper-out"></div>
+    </div>
+
+    <div class="ls-title">Loading dashboard</div>
+    <div class="ls-sub" id="ls-sub">Preparing your workspace…</div>
+
+    <div class="ls-bar-track">
+      <div class="ls-bar-fill" id="ls-bar-fill"></div>
+    </div>
+    <div class="ls-bar-pct" id="ls-bar-pct">0%</div>
+
+    <div class="ls-steps">
+      <div class="ls-step" id="ls-s1">
+        <div class="ls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8.111 16.404a5.5 5.5 0 017.778 0M6.343 14.636a8 8 0 0111.314 0M4.929 12a10.5 10.5 0 0114.142 0M12 20h.01"/></svg>
+        </div>
+        <span>Connecting</span>
+      </div>
+      <div class="ls-step" id="ls-s2">
+        <div class="ls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <span>Verifying</span>
+      </div>
+      <div class="ls-step" id="ls-s3">
+        <div class="ls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+        </div>
+        <span>Loading data</span>
+      </div>
+      <div class="ls-step" id="ls-s4">
+        <div class="ls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <span>Almost done</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1977,6 +2037,7 @@
      ════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="/js/api.js"></script>
+<script src="/js/loading.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/dashboard.js"></script>
 <script src="/js/branches.js"></script>

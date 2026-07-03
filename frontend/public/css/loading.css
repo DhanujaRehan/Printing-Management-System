@@ -1,0 +1,122 @@
+/* ============================================================
+   SoftWave — Post-Login Loading Screen (Full-screen overlay)
+   ============================================================ */
+
+#loading-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+  font-family: var(--f);
+  background: #ffffff;
+}
+
+.ls-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 32px;
+}
+
+.ls-logo-text {
+  font-size: 28px; font-weight: 800;
+  color: #1a5fb4; letter-spacing: -0.03em;
+  margin-bottom: 36px;
+  opacity: 0; transform: translateY(10px);
+  animation: lsFadeUp 0.5s 0.1s ease forwards;
+}
+.ls-logo-text span { color: #2d7dd2; }
+
+.ls-printer-anim {
+  width: 100px; height: 100px;
+  background: #e8f1fb;
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 28px;
+  opacity: 0; transform: translateY(10px);
+  animation: lsFadeUp 0.5s 0.2s ease forwards;
+  position: relative; overflow: hidden;
+}
+
+.ls-paper-out {
+  position: absolute;
+  bottom: 14px; left: 50%; transform: translateX(-50%);
+  width: 36px; background: white;
+  border-radius: 2px;
+  animation: lsPaperSlide 1.8s 1s ease-in-out infinite;
+}
+
+@keyframes lsPaperSlide {
+  0%   { height: 0px; opacity: 0; bottom: 14px; }
+  20%  { height: 2px; opacity: 1; }
+  70%  { height: 20px; opacity: 1; bottom: 8px; }
+  90%  { height: 22px; opacity: 0.6; bottom: 6px; }
+  100% { height: 0px; opacity: 0; bottom: 14px; }
+}
+
+.ls-title {
+  font-size: 19px; font-weight: 700;
+  color: #0d1b2e; letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  opacity: 0; transform: translateY(8px);
+  animation: lsFadeUp 0.5s 0.3s ease forwards;
+}
+
+.ls-sub {
+  font-size: 13px; color: #7b8fa6;
+  margin-bottom: 32px;
+  opacity: 0; transform: translateY(8px);
+  animation: lsFadeUp 0.5s 0.35s ease forwards;
+}
+
+.ls-bar-track {
+  width: 260px; height: 4px;
+  background: #e8f1fb; border-radius: 99px;
+  overflow: hidden; margin-bottom: 8px;
+  opacity: 0;
+  animation: lsFadeUp 0.5s 0.4s ease forwards;
+}
+
+.ls-bar-fill {
+  height: 100%; width: 0%;
+  background: #1a5fb4;
+  border-radius: 99px;
+  transition: width 0.12s linear;
+}
+
+.ls-bar-pct {
+  font-size: 12px; color: #7b8fa6;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: lsFadeUp 0.5s 0.45s ease forwards;
+}
+
+.ls-steps {
+  display: flex; gap: 28px;
+  opacity: 0;
+  animation: lsFadeUp 0.5s 0.5s ease forwards;
+}
+
+.ls-step {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 7px;
+  font-size: 11px; color: #a0aeba;
+  transition: color 0.3s ease;
+}
+.ls-step.active { color: #1a5fb4; }
+.ls-step.done   { color: #2d7dd2; }
+
+.ls-step-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid #d6e3f0;
+  background: white;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+}
+.ls-step.active .ls-step-icon { border-color: #1a5fb4; background: #e8f1fb; }
+.ls-step.done   .ls-step-icon { border-color: #2d7dd2; background: #e8f1fb; }
+
+.ls-step-icon svg { width: 15px; height: 15px; }
+
+@keyframes lsFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}

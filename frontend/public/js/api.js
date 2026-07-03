@@ -130,11 +130,14 @@ async function doLogin() {
     document.getElementById('sb-role').style.color = roleColors[APP.user.role];
 
     document.getElementById('login').style.display = 'none';
-    document.getElementById('app').style.display   = 'block';
 
-    buildNav();
-    setInterval(updateClock, 1000);
-    updateClock();
+    runLoadingScreen(function() {
+      document.getElementById('app').style.display = 'block';
+
+      buildNav();
+      setInterval(updateClock, 1000);
+      updateClock();
+    });
 
   } catch(e) {
     if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
