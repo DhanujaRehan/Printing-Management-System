@@ -1784,3 +1784,131 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
   .npr-branch-hdr     { gap:8px; }
   .npr-branch-right   { width:100%; margin-left:0; }
 }
+/* ============================================================
+   POST-LOGIN LOADING SCREEN
+   Shown for ~3.5s after a successful sign-in, before the
+   branch-monitor app shell (#nw-app) is revealed.
+   ============================================================ */
+#nw-loading {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+  font-family: var(--f);
+  background: #ffffff;
+}
+
+.nwls-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 32px;
+}
+
+.nwls-logo-text {
+  font-size: 28px; font-weight: 800;
+  color: var(--c2); letter-spacing: -0.03em;
+  margin-bottom: 36px;
+  opacity: 0; transform: translateY(10px);
+  animation: nwlsFadeUp 0.5s 0.1s ease forwards;
+}
+.nwls-logo-text span { color: var(--c1); }
+
+.nwls-printer-anim {
+  width: 100px; height: 100px;
+  background: #eef2ff;
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 28px;
+  opacity: 0; transform: translateY(10px);
+  animation: nwlsFadeUp 0.5s 0.2s ease forwards;
+  position: relative; overflow: hidden;
+}
+
+.nwls-paper-out {
+  position: absolute;
+  bottom: 14px; left: 50%; transform: translateX(-50%);
+  width: 36px; background: #ffffff;
+  border-radius: 2px;
+  animation: nwlsPaperSlide 1.8s 1s ease-in-out infinite;
+}
+
+@keyframes nwlsPaperSlide {
+  0%   { height: 0px; opacity: 0; bottom: 14px; }
+  20%  { height: 2px; opacity: 1; }
+  70%  { height: 20px; opacity: 1; bottom: 8px; }
+  90%  { height: 22px; opacity: 0.6; bottom: 6px; }
+  100% { height: 0px; opacity: 0; bottom: 14px; }
+}
+
+.nwls-title {
+  font-size: 19px; font-weight: 700;
+  color: var(--tx); letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  opacity: 0; transform: translateY(8px);
+  animation: nwlsFadeUp 0.5s 0.3s ease forwards;
+}
+
+.nwls-sub {
+  font-size: 13px; color: var(--t3);
+  margin-bottom: 32px;
+  opacity: 0; transform: translateY(8px);
+  animation: nwlsFadeUp 0.5s 0.35s ease forwards;
+}
+
+.nwls-bar-track {
+  width: 260px; height: 4px;
+  background: #eef2ff; border-radius: 99px;
+  overflow: hidden; margin-bottom: 8px;
+  opacity: 0;
+  animation: nwlsFadeUp 0.5s 0.4s ease forwards;
+}
+
+.nwls-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(135deg, var(--c2), var(--c1));
+  border-radius: 99px;
+  transition: width 0.12s linear;
+}
+
+.nwls-bar-pct {
+  font-size: 12px; color: var(--t3);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: nwlsFadeUp 0.5s 0.45s ease forwards;
+}
+
+.nwls-steps {
+  display: flex; gap: 28px;
+  opacity: 0;
+  animation: nwlsFadeUp 0.5s 0.5s ease forwards;
+}
+
+.nwls-step {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 7px;
+  font-size: 11px; color: var(--t3);
+  transition: color 0.3s ease;
+}
+.nwls-step.active { color: var(--c2); }
+.nwls-step.done   { color: var(--c1); }
+
+.nwls-step-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sb);
+  background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+}
+.nwls-step.active .nwls-step-icon { border-color: var(--c2); background: #eef2ff; }
+.nwls-step.done   .nwls-step-icon { border-color: var(--c1); background: #eef2ff; }
+
+.nwls-step-icon svg { width: 15px; height: 15px; }
+
+@keyframes nwlsFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width:480px) {
+  .nwls-bar-track { width: 220px; }
+  .nwls-steps { gap: 18px; }
+}

@@ -31,6 +31,64 @@
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════
+     POST-LOGIN LOADING SCREEN
+     ════════════════════════════════════════════════════════ -->
+<div id="nw-loading" style="display:none">
+  <div class="nwls-wrap">
+    <div class="nwls-logo-text">soft<span>Wave</span></div>
+
+    <div class="nwls-printer-anim">
+      <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
+        <rect x="5" y="21" width="48" height="23" rx="5" fill="#6366f1"/>
+        <rect x="12" y="11" width="34" height="13" rx="3" fill="#0ea5e9"/>
+        <rect x="17" y="41" width="24" height="2.5" rx="1.2" fill="rgba(255,255,255,0.6)"/>
+        <circle cx="44" cy="29" r="3.5" fill="#4ade80"/>
+        <rect x="13" y="26" width="3" height="8" rx="1.5" fill="rgba(0,0,0,0.25)"/>
+        <rect x="18" y="26" width="3" height="8" rx="1.5" fill="rgba(220,60,60,0.6)"/>
+        <rect x="23" y="26" width="3" height="8" rx="1.5" fill="rgba(0,190,255,0.6)"/>
+        <rect x="28" y="26" width="3" height="8" rx="1.5" fill="rgba(255,210,0,0.65)"/>
+      </svg>
+      <div class="nwls-paper-out" id="nwls-paper-out"></div>
+    </div>
+
+    <div class="nwls-title">Loading Branch Monitor</div>
+    <div class="nwls-sub" id="nwls-sub">Preparing your workspace…</div>
+
+    <div class="nwls-bar-track">
+      <div class="nwls-bar-fill" id="nwls-bar-fill"></div>
+    </div>
+    <div class="nwls-bar-pct" id="nwls-bar-pct">0%</div>
+
+    <div class="nwls-steps">
+      <div class="nwls-step" id="nwls-s1">
+        <div class="nwls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8.111 16.404a5.5 5.5 0 017.778 0M6.343 14.636a8 8 0 0111.314 0M4.929 12a10.5 10.5 0 0114.142 0M12 20h.01"/></svg>
+        </div>
+        <span>Connecting</span>
+      </div>
+      <div class="nwls-step" id="nwls-s2">
+        <div class="nwls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <span>Verifying</span>
+      </div>
+      <div class="nwls-step" id="nwls-s3">
+        <div class="nwls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+        </div>
+        <span>Loading data</span>
+      </div>
+      <div class="nwls-step" id="nwls-s4">
+        <div class="nwls-step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <span>Almost done</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="nw-app">
 
   <button class="nw-ham-btn" id="nw-ham-btn" onclick="nwToggleMenu()" aria-label="Menu">
@@ -535,7 +593,8 @@ async function nwLogin() {
     if(!['nuwan','manager','dba'].includes(d.user.role)){showErr('This portal is for management only.');return;}
     NW.token=d.token; NW.user=d.user;
     localStorage.setItem('nw_token',d.token); localStorage.setItem('nw_user',JSON.stringify(d.user));
-    showApp();
+    document.getElementById('nw-login').style.display='none';
+    runNwLoadingScreen(showApp);
   } catch(e){showErr('Connection error.');}
 }
 function showErr(msg){var el=document.getElementById('nw-err');el.textContent=msg;el.style.display='block';}
@@ -544,6 +603,70 @@ function showApp(){
   document.getElementById('nw-app').style.display='block';
   document.getElementById('nw-uname').textContent=NW.user.full_name||NW.user.username;
   nwLoadYesterday();
+}
+
+/* ── Post-login loading screen ───────────────────────────
+   Plays an animated "connecting / verifying / loading data"
+   screen for ~3.5s after a successful sign-in, then invokes
+   the supplied callback (reveals the app shell). ── */
+function runNwLoadingScreen(onComplete) {
+  var screen = document.getElementById('nw-loading');
+  var bar    = document.getElementById('nwls-bar-fill');
+  var pct    = document.getElementById('nwls-bar-pct');
+  var subTxt = document.getElementById('nwls-sub');
+  var steps  = ['nwls-s1','nwls-s2','nwls-s3','nwls-s4'];
+  var tholds = [10, 35, 65, 88];
+  var msgs   = ['Connecting to server…','Verifying credentials…','Loading branch data…','Almost there…'];
+
+  var prog = 0, timer = null;
+
+  steps.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active','done');
+  });
+
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  pct.textContent = '0%';
+  subTxt.textContent = 'Preparing your workspace…';
+
+  screen.style.display = 'flex';
+
+  setTimeout(function() {
+    bar.style.transition = 'width 0.12s linear';
+
+    /* Tuned so the bar completes in roughly 3.5s */
+    timer = setInterval(function() {
+      prog = Math.min(prog + Math.random() * 2.5 + 1.2, 100);
+      var p = Math.round(prog);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+
+      tholds.forEach(function(t, i) {
+        var el = document.getElementById(steps[i]);
+        if (!el) return;
+        if (prog >= t && !el.classList.contains('active') && !el.classList.contains('done')) {
+          el.classList.add('active');
+          subTxt.textContent = msgs[i];
+        }
+        if (prog >= (tholds[i+1] || 101)) {
+          el.classList.remove('active');
+          el.classList.add('done');
+        }
+      });
+
+      if (prog >= 100) {
+        clearInterval(timer);
+        pct.textContent = '100%';
+        subTxt.textContent = 'Ready! Redirecting…';
+
+        setTimeout(function() {
+          screen.style.display = 'none';
+          if (typeof onComplete === 'function') onComplete();
+        }, 400);
+      }
+    }, 80);
+  }, 50);
 }
 function nwLogout(){NW.token='';NW.user=null;localStorage.removeItem('nw_token');localStorage.removeItem('nw_user');location.reload();}
 
