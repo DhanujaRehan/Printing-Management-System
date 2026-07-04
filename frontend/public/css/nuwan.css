@@ -125,7 +125,24 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
 .nwl-foot .dot { opacity:.5; }
 
 /* Right — form panel */
-.nwl-formpanel { display:flex; align-items:center; justify-content:center; padding:40px 36px; }
+.nwl-formpanel { display:flex; align-items:center; justify-content:center; padding:40px 36px; position:relative; overflow:hidden; }
+
+/* Watermark logo behind the login card.
+   Tweak --nwl-watermark-opacity to taste — 0.06–0.10 reads as a
+   subtle brand mark; anything much higher starts to fight with
+   the form fields' readability. */
+.nwl-formpanel::before {
+  content:"";
+  position:absolute; top:50%; left:50%;
+  width:340px; height:340px;
+  transform:translate(-50%,-50%);
+  background:url('/images/logo.png') center/contain no-repeat;
+  opacity: var(--nwl-watermark-opacity, 0.07);
+  pointer-events:none;
+  z-index:0;
+}
+.nwl-card { position:relative; z-index:1; }
+
 .nwl-card { width:100%; max-width:340px; }
 .nwl-mobile-logo { height:44px; margin-bottom:18px; display:none; }
 .nwl-card h2 { font-family:var(--f); font-size:23px; font-weight:700; color:var(--nwl-ink); margin:0; }
