@@ -11,23 +11,75 @@
 <body>
 
 <div id="nw-login">
-  <div class="nw-login-card">
-    <div class="nw-login-logo">
-      <img src="/images/logo.png" alt="SoftWave">
-      <div class="nw-login-title">SoftWave</div>
-      <div class="nw-login-sub">Branch Monitor · Management View</div>
+  <div class="nwl-wrap">
+
+    <!-- Left: brand / analytics panel -->
+    <div class="nwl-brand">
+      <div class="nwl-top">
+        <img src="/images/logo2.png" alt="SoftWave">
+        <span>Soft<b>Wave</b></span>
+      </div>
+
+      <span class="nwl-badge">Executive Access</span>
+
+      <div class="nwl-mid">
+        <h1>Branch performance,<br>at a glance.</h1>
+        <p>Live toner levels, paper stock and branch health — monitored from one view.</p>
+      </div>
+
+      <div class="nwl-chart" aria-hidden="true">
+        <div class="nwl-bar b1"></div>
+        <div class="nwl-bar b2"></div>
+        <div class="nwl-bar b3"></div>
+        <div class="nwl-bar b4"></div>
+        <div class="nwl-bar b5"></div>
+        <div class="nwl-dot"></div>
+      </div>
+
+      <div class="nwl-foot">
+        <span>Branch Monitor · Management View</span>
+        <span class="dot">•</span>
+        <span>Read-only branch oversight</span>
+      </div>
     </div>
-    <div class="nw-login-err" id="nw-err"></div>
-    <div class="nw-login-field">
-      <label class="nw-login-label">Username</label>
-      <input class="nw-login-input" id="nw-lu" type="text" placeholder="Enter username" autocomplete="off">
+
+    <!-- Right: form panel -->
+    <div class="nwl-formpanel">
+      <div class="nwl-card">
+        <img src="/images/logo.png" alt="SoftWave" class="nwl-mobile-logo">
+        <h2>Welcome, Manager</h2>
+        <p class="nwl-sub">Sign in to the Branch Monitor</p>
+
+        <div class="nw-login-err" id="nw-err"></div>
+
+        <div class="nwl-field">
+          <label for="nw-lu">Username</label>
+          <div class="nwl-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="nw-lu" type="text" placeholder="Enter username" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="nwl-field">
+          <label for="nw-lp">Password</label>
+          <div class="nwl-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="nw-lp" type="password" placeholder="••••••••">
+            <button type="button" class="nwl-eye" id="nwl-eye-btn" onclick="nwTogglePw()" aria-label="Show password">
+              <svg id="nwl-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="nwl-btn" onclick="nwLogin()">
+          <span>Sign In to Dashboard</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+
+        <div class="nwl-back">Staff login? <a href="/">Go to main system</a></div>
+      </div>
     </div>
-    <div class="nw-login-field">
-      <label class="nw-login-label">Password</label>
-      <input class="nw-login-input" id="nw-lp" type="password" placeholder="••••••••">
-    </div>
-    <button class="nw-login-btn" onclick="nwLogin()">Sign In →</button>
-    <div class="nw-login-back">Staff login? <a href="/">Go to main system</a></div>
+
   </div>
 </div>
 
@@ -598,6 +650,19 @@ async function nwLogin() {
   } catch(e){showErr('Connection error.');}
 }
 function showErr(msg){var el=document.getElementById('nw-err');el.textContent=msg;el.style.display='block';}
+function nwTogglePw(){
+  var inp=document.getElementById('nw-lp');
+  var btn=document.getElementById('nwl-eye-btn');
+  if(inp.type==='password'){
+    inp.type='text';
+    btn.style.color='#6366f1';
+    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+  } else {
+    inp.type='password';
+    btn.style.color='#98a2ba';
+    btn.innerHTML='<svg id="nwl-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+  }
+}
 function showApp(){
   document.getElementById('nw-login').style.display='none';
   document.getElementById('nw-app').style.display='block';
