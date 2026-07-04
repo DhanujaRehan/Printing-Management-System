@@ -307,3 +307,11 @@
 @media (prefers-reduced-motion: reduce) {
   #login .paper, #login .scan-line, #login .printer-led, #login .spinner { animation: none !important; }
 }
+
+/* Desktop-only: the printer graphic was pinned to the very bottom of
+   its flex space, so the ejected paper overflowed into the footer
+   divider below it. Centering it here (901px+) gives that overflow
+   room to breathe, while mobile/tablet stay exactly as they are. */
+@media (min-width: 901px) {
+  #login .printer-stage { align-items: center; padding-bottom: 30px; }
+}
