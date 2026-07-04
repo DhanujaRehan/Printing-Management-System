@@ -78,7 +78,7 @@
 }
 
 #login .brand-top { display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; }
-#login .brand-logo { height: 30px; width: auto; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+#login .brand-logo { height: 38px; width: auto; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
 #login .brand-name { font-family: 'Space Grotesk',sans-serif; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: #dce6ff; opacity: .9; }
 #login .brand-name strong { color: #fff; }
 
@@ -299,8 +299,9 @@
 }
 @media (max-width: 480px) {
   #login .brand-mid h1 { font-size: 21px; }
-  #login .printer-stage { display: none; }
-  #login .brand-panel { padding-bottom: 22px; }
+  #login .printer-stage { min-height: 92px; margin-top: 10px; }
+  #login .printer { transform: scale(.62); }
+  #login .brand-panel { padding-bottom: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
