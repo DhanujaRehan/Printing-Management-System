@@ -102,7 +102,7 @@ function renderAuditFilters() {
     +   '<input class="audit-search-input" id="audit-search" placeholder="🔍 Quick search..." oninput="filterAuditTable(this.value)">'
     + '</div>'
     + '<div id="audit-kpis"></div>'
-    + '<div id="audit-table-wrap"><div class="loading"><div class="spin"></div>Loading...</div></div>';
+    + '<div id="audit-table-wrap">' + skList(5) + '</div>';
 }
 
 function clearAuditFilters() {
@@ -117,7 +117,7 @@ function clearAuditFilters() {
 async function loadAuditData() {
   var wrap = document.getElementById('audit-table-wrap');
   if (!wrap) return;
-  wrap.innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  wrap.innerHTML = skList(5);
 
   var from   = (document.getElementById('audit-from')   || {}).value || '';
   var to     = (document.getElementById('audit-to')     || {}).value || '';

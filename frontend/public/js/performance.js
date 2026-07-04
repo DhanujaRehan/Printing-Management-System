@@ -33,7 +33,7 @@ async function loadPerformance() {
   if (branch) params.push('branch_id='+branch);
 
   var container = document.getElementById('perf-container');
-  container.innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  container.innerHTML = skList(4);
 
   _perfData = await silentApi('GET', '/audit/performance?'+params.join('&'));
   if (!_perfData) { container.innerHTML = '<div class="svc-empty" style="padding:50px">Failed to load</div>'; return; }

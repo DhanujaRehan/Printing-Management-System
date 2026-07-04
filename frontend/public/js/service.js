@@ -299,7 +299,7 @@ async function loadLogBranches() {
 async function loadLogPrinters2() {
   var bid  = document.getElementById('log2-branch').value;
   var grid = document.getElementById('log2-grid');
-  grid.innerHTML = '<div class="svc-empty" style="grid-column:1/-1;padding:30px">Loading printers...</div>';
+  grid.innerHTML = skCards(6, 200);
   if (!bid) {
     grid.innerHTML = '<div class="svc-empty" style="grid-column:1/-1">Select a branch above.</div>';
     return;

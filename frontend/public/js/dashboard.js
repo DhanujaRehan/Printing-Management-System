@@ -6,6 +6,19 @@
 var _dashBranchPrints = [];
 
 async function loadDashboard() {
+  /* Show skeletons immediately — these sections were blank while
+     the Promise.all below was in flight. */
+  ['k-branches','k-stock','k-low','k-crit'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = skInline();
+  });
+  var alertsEl = document.getElementById('dash-alerts');
+  if (alertsEl) alertsEl.innerHTML = skList(2);
+  var activityEl = document.getElementById('dash-activity');
+  if (activityEl) activityEl.innerHTML = skList(3);
+  var branchPrintsEl = document.getElementById('dash-branch-prints');
+  if (branchPrintsEl) branchPrintsEl.innerHTML = skList(4);
+
   try {
     var s = function(url) { return silentApi('GET', url).then(function(r){ return r || []; }); };
 

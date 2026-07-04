@@ -12,7 +12,7 @@ async function loadBranches() {
   const grid = document.getElementById('branch-grid');
   const searchEl = document.getElementById('branch-search');
   if (searchEl) searchEl.value = '';
-  grid.innerHTML = '<div class="loading"><div class="spin"></div>Loading branches...</div>';
+  grid.innerHTML = skCards(6, 300);
 
   try {
     const [branches, printers] = await Promise.all([

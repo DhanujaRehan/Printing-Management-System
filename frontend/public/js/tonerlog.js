@@ -15,7 +15,7 @@ async function loadTonerLog() {
 
   var prDiv = document.getElementById('tl-printers');
   console.log('[TonerLog] prDiv at start:', prDiv);
-  if (prDiv) prDiv.innerHTML = '<div class="tl-loading"><div class="spin"></div> Loading…</div>';
+  if (prDiv) prDiv.innerHTML = skCards(6, 200);
 
   var access   = (APP.user.branch_access || '').trim().toUpperCase();
   console.log('[TonerLog] branch_access:', APP.user.branch_access, '→ access:', access);
@@ -70,8 +70,7 @@ async function tlBranchChanged() {
 
 /* ── Load printers for branch ────────────────────────────── */
 async function tlLoadPrinters(branchId) {
-  document.getElementById('tl-printers').innerHTML =
-    '<div class="tl-loading"><div class="spin"></div> Loading printers…</div>';
+  document.getElementById('tl-printers').innerHTML = skCards(6, 200);
 
   console.log('[TonerLog] loading printers for branchId:', branchId);
   var printers = await silentApi('GET', '/printers/branch-printers-with-toner?branch_id=' + branchId);

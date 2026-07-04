@@ -280,7 +280,7 @@ async function eodBranchChanged() {
 /* ── Load printers ───────────────────────────────────────── */
 async function eodLoadPrinters(branchId) {
   var wrap = document.getElementById('eod-printers');
-  wrap.innerHTML = '<div class="eod-loading"><div class="spin"></div> Loading…</div>';
+  wrap.innerHTML = skCards(6, 200);
   var all = (await silentApi('GET', '/printers')) || [];
   _eodPrinters = all.filter(function(p){ return p.branch_id===branchId; });
   if (!_eodPrinters.length) {

@@ -1,0 +1,55 @@
+/* ============================================================
+   SoftWave — Loading Skeletons
+   File: css/skeleton.css
+   Reusable shimmer placeholders shown while data fetches,
+   replacing blank tables/spinners with content-shaped blocks.
+   Paired with js/skeleton.js which generates the markup.
+   ============================================================ */
+
+@keyframes skShimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.sk-bar {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #edf0f6 25%, #e2e7f0 37%, #edf0f6 63%);
+  background-size: 400% 100%;
+  animation: skShimmer 1.4s ease infinite;
+}
+
+/* ── Table rows (used inside a <tbody>) ─────────────────── */
+.sk-tr td { padding: 16px !important; border-bottom: 1px solid var(--sb, #e2e8f0); }
+.sk-row-inner { display: flex; align-items: center; gap: 16px; }
+.sk-row-inner .sk-bar:nth-child(1) { width: 32px; height: 32px; border-radius: 50%; flex: none; }
+.sk-row-inner .sk-bar:nth-child(2) { width: 20%; height: 12px; }
+.sk-row-inner .sk-bar:nth-child(3) { width: 14%; height: 12px; }
+.sk-row-inner .sk-bar:nth-child(4) { width: 12%; height: 12px; }
+.sk-row-inner .sk-bar:nth-child(5) { width: 10%; height: 12px; margin-left: auto; }
+
+/* ── Card grid (branches, printer selectors, stock tubes) ─ */
+.sk-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.sk-card {
+  background: var(--white, #fff); border: 1px solid var(--sb, #e2e8f0);
+  border-radius: 14px; padding: 18px;
+}
+.sk-card .sk-bar { height: 10px; margin-bottom: 10px; }
+.sk-card .sk-bar:first-child { height: 15px; width: 55%; margin-bottom: 16px; }
+.sk-card .sk-bar:last-child { margin-bottom: 0; width: 40%; }
+
+/* ── List items (approvals, imports, audit, reports) ──────*/
+.sk-listitem {
+  background: var(--white, #fff); border: 1px solid var(--sb, #e2e8f0);
+  border-radius: 14px; padding: 18px 20px; margin-bottom: 12px;
+}
+.sk-listitem .sk-bar { height: 11px; margin-bottom: 9px; }
+.sk-listitem .sk-bar:first-child { height: 14px; width: 34%; margin-bottom: 12px; }
+.sk-listitem .sk-bar:last-child { margin-bottom: 0; width: 55%; }
+
+/* ── Small inline bar (KPI numbers, single stat fields) ───*/
+.sk-inline { display: inline-block; width: 46px; height: 22px; vertical-align: middle; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-bar { animation: none; }
+}

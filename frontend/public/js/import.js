@@ -153,7 +153,7 @@ async function submitImport() {
    ══════════════════════════════════════════════════════════ */
 async function loadImportPending() {
   var container = document.getElementById('imp-pending-container');
-  container.innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  container.innerHTML = skList(4);
   var imports = await silentApi('GET', '/imports/all').then(function(r){ return r || []; });
   var pending = imports.filter(function(i){ return i.status === 'pending'; });
 

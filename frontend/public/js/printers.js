@@ -21,7 +21,7 @@ function switchPrTab(tab) {
 
 async function loadPrinters() {
   const tbody = document.getElementById('prmgmt-tbody');
-  tbody.innerHTML = '<tr><td colspan="9"><div class="loading"><div class="spin"></div>Loading...</div></td></tr>';
+  tbody.innerHTML = skTableRows(9, 6);
 
   try {
     const [printers, branches] = await Promise.all([
@@ -86,6 +86,7 @@ async function loadPrinters() {
 async function loadPaperLevels() {
   const container = document.getElementById('paper-levels-container');
   if (!container) return;
+  container.innerHTML = skCards(6, 260);
 
   try {
     const levels = await api('GET', '/paper/printer-levels');

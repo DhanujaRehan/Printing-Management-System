@@ -4,6 +4,13 @@
    ============================================================ */
 
 async function loadStock() {
+  /* Show skeletons immediately — both sections were blank while
+     the Promise.all below was in flight. */
+  var gridEl = document.getElementById('stock-grid');
+  if (gridEl) gridEl.innerHTML = skCards(6, 140);
+  var logEl = document.getElementById('stock-log-tbody');
+  if (logEl) logEl.innerHTML = skTableRows(7, 6);
+
   try {
     const [stock, movements] = await Promise.all([
       silentApi('GET', '/toner/stock').then(function(r){return r||[];}),

@@ -33,7 +33,7 @@ async function downloadTonerAudit() {
 
 async function loadApprovals() {
   var container = document.getElementById('approvals-container');
-  container.innerHTML = '<div class="loading"><div class="spin"></div>Loading requests...</div>';
+  container.innerHTML = skList(4);
   try {
     var results = await Promise.all([
       silentApi('GET', '/requests/all'),

@@ -12,7 +12,7 @@ var _prFilterBranch = '';
 async function loadPrintReport() {
   const container = document.getElementById('pr-report-container');
 
-  container.innerHTML = '<div class="loading"><div class="spin"></div>Loading print activity...</div>';
+  container.innerHTML = skList(5);
 
   const [logs, branches, paperLogs] = await Promise.all([
     silentApi('GET', '/requests/print-logs').then(r => r || []),
