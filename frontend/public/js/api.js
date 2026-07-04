@@ -168,6 +168,44 @@ function doLogout() {
   location.reload();
 }
 
+/* ── Forgot password ─────────────────────────────────────
+   Requires a username to be entered first. Notifies the
+   admins by email (server-side), then shows a confirmation
+   popup — never a real password reset from this screen. */
+async function forgotPassword() {
+  var u = document.getElementById('lu').value.trim();
+
+  if (!u) {
+    var wrap = document.getElementById('lu-wrap');
+    if (wrap) {
+      wrap.classList.add('lp-input-err');
+      wrap.addEventListener('animationend', function() { wrap.classList.remove('lp-input-err'); }, { once: true });
+    }
+    showLoginErr('Please enter your username first, then click "Forgot password?".');
+    document.getElementById('lu').focus();
+    return;
+  }
+
+  var link = document.getElementById('lp-forgot-link');
+  if (link) { link.style.pointerEvents = 'none'; link.style.opacity = '.6'; }
+
+  await silentApi('POST', '/auth/forgot-password', { username: u });
+
+  if (link) { link.style.pointerEvents = ''; link.style.opacity = ''; }
+
+  showForgotPasswordPopup();
+}
+
+function showForgotPasswordPopup() {
+  var m = document.getElementById('fp-popup');
+  if (m) m.classList.add('vis');
+}
+
+function closeForgotPasswordPopup() {
+  var m = document.getElementById('fp-popup');
+  if (m) m.classList.remove('vis');
+}
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('login').style.display !== 'none') doLogin();
 });

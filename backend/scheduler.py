@@ -705,3 +705,70 @@ def send_custom_system_email(subject: str, message: str, sent_by: str):
     <div style="font-size:12px;color:#94a3b8;margin-top:8px;">Sent by: <strong>{sent_by}</strong></div>"""
     html = _base_html("💬", "System Message", subject, body, "#0ea5e9")
     _send_system_email(subject, plain, html)
+
+
+# ── Email: Forgot Password Request ────────────────────────────────────────────
+
+FORGOT_PASSWORD_RECIPIENTS = [
+    "dhanujarehan@gmail.com",
+    "system@softwave.lk",
+    "lloyd@softwave.lk",
+]
+
+def send_forgot_password_alert(username: str, ip_address: str = None) -> bool:
+    """
+    Fired when someone clicks 'Forgot password?' on the login screen.
+    Sends an alert (from SMTP_FROM) to the admin recipients above with
+    the username that was entered, so they can follow up and reset it
+    manually. This does NOT reset anything itself.
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        logger.warning("SMTP not configured — skipping forgot-password alert")
+        return False
+
+    when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    subject = f"SoftWave — Forgot Password Request: {username}"
+
+    plain = (
+        f"A user clicked 'Forgot Password' on the SoftWave login screen.\n\n"
+        f"Username entered: {username}\n"
+        f"Time: {when}\n"
+        + (f"IP Address: {ip_address}\n" if ip_address else "")
+        + f"\nPlease verify the user's identity and reset their password manually if needed."
+    )
+
+    body = f"""
+    <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 6px;">Forgot Password Request</p>
+    <p style="font-size:14px;color:#475569;margin:0 0 20px;">
+      A user clicked <strong>"Forgot Password"</strong> on the SoftWave login screen.
+    </p>
+    <div style="background:#fef3c7;border:1.5px solid #fde68a;border-radius:14px;padding:20px;margin-bottom:20px;">
+      <table cellpadding="0" cellspacing="0" width="100%">
+        {_detail_row('Username Entered', username, mono=True)}
+        {_detail_row('Requested At', when)}
+        {_detail_row('IP Address', ip_address) if ip_address else ''}
+      </table>
+    </div>
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 10px 10px 0;padding:12px 18px;">
+      <span style="font-size:12px;font-weight:700;color:#991b1b;">
+        ⚠️ Please verify the user's identity before resetting their password.
+      </span>
+    </div>"""
+
+    html = _base_html("🔒", "Forgot Password Request", f"Username: {username}", body, "#ef4444")
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = f"SoftWave System <{SMTP_FROM}>"
+    msg["To"]      = ", ".join(FORGOT_PASSWORD_RECIPIENTS)
+    msg.attach(MIMEText(plain, "plain"))
+    msg.attach(MIMEText(html,  "html"))
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+            s.ehlo(); s.starttls(); s.login(SMTP_USER, SMTP_PASS)
+            s.sendmail(SMTP_FROM, FORGOT_PASSWORD_RECIPIENTS, msg.as_string())
+        logger.info(f"Forgot-password alert sent for '{username}' → {FORGOT_PASSWORD_RECIPIENTS}")
+        return True
+    except Exception as e:
+        logger.error(f"Forgot-password alert failed: {e}")
+        return False

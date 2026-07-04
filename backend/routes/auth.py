@@ -22,6 +22,10 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    username: str
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @router.post("/login")
@@ -91,3 +95,27 @@ def change_password(body: ChangePasswordRequest, current_user: dict = Depends(ge
         (new_hash, user["id"]), fetch="none"
     )
     return {"message": "Password updated successfully"}
+
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordRequest, request: Request):
+    """
+    Called when someone clicks 'Forgot password?' on the login screen.
+    Does NOT reset anything — just alerts the admins by email with the
+    username that was entered, so they can follow up and reset it
+    manually. Always returns a generic success message.
+    """
+    username = (body.username or "").strip()
+    if not username:
+        raise HTTPException(status_code=400, detail="Username is required")
+
+    try:
+        from scheduler import send_forgot_password_alert
+        send_forgot_password_alert(username, request.client.host)
+    except Exception as e:
+        # Never fail the request just because the email failed to send —
+        # log it server-side and still tell the user we've handled it.
+        import logging
+        logging.getLogger("softwave.auth").error(f"Forgot-password email failed: {e}")
+
+    return {"message": "Your administrator has been notified."}

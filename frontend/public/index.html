@@ -87,7 +87,7 @@
 
         <div class="row-between">
           <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
-          <a href="#" class="forgot">Forgot password?</a>
+          <a href="#" class="forgot" id="lp-forgot-link" onclick="forgotPassword(); return false;">Forgot password?</a>
         </div>
 
         <div class="lerr" id="lerr"><span id="lerr-tx"></span></div>
@@ -104,6 +104,18 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Forgot-password confirmation popup -->
+  <div class="fp-popup" id="fp-popup">
+    <div class="fp-popup-card">
+      <div class="fp-popup-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <h3>Request Sent</h3>
+      <p>We have notified your administrator. They'll be in touch shortly to help reset your password.</p>
+      <button type="button" class="fp-popup-btn" onclick="closeForgotPasswordPopup()">Got it</button>
+    </div>
   </div>
 </div>
 
