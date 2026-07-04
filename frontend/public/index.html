@@ -6,6 +6,9 @@
 <title>SoftWave — Print Management System</title>
 <link rel="icon" type="image/png" href="/images/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- Separated CSS files -->
 <link rel="stylesheet" href="/css/main.css?v=1774595818">
@@ -16,69 +19,91 @@
 <body>
 
 <!-- ════════════════════════════════════════════════════════
-     LOGIN PAGE — Animated White Background
+     LOGIN PAGE — Split-screen SoftWave design
      ════════════════════════════════════════════════════════ -->
 <div id="login">
-  <div class="login-bg">
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-    <div class="orb orb3"></div>
-    <div class="login-grid"></div>
-  </div>
+  <div class="auth-wrap">
 
-  <div class="lw">
-    <div class="login-brand">
-    <div class="login-logo-container">
-        <img src="images/logo.png" alt="SoftWave Logo" class="login-logo">
-        <div class="logo-glow"></div>
-    </div>
-
-    <h1 class="login-title">
-        SoftWave <span>Print Management</span>
-    </h1>
-
-    <p class="login-subtitle">
-        Enterprise Printing Operations Platform
-    </p>
-</div>
-
-    <div class="lf">
-      <div class="lfi">
-        <label class="lfl">Username</label>
-        <input id="lu" type="text" placeholder="Enter your username" autocomplete="off">
+    <!-- LEFT: brand / animation panel -->
+    <div class="brand-panel">
+      <div class="brand-top">
+        <img class="brand-logo" src="images/logo2.png" alt="SoftWave">
+        <span class="brand-name">Soft<strong>Wave</strong></span>
       </div>
-      <div class="lfi">
-        <label class="lfl">Password</label>
-        <div class="lfi-pw-wrap">
-          <input id="lp" type="password" placeholder="••••••••">
-          <button type="button" class="lfi-eye" onclick="togglePw()" id="lfi-eye-btn" aria-label="Show password">
-            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </button>
+
+      <div class="brand-mid">
+        <h1>Printing operations,<br>perfectly in sync.</h1>
+        <p>Track toner, paper stock and branch activity in real time — from the warehouse to every print head.</p>
+      </div>
+
+      <div class="printer-stage" aria-hidden="true">
+        <div class="printer">
+          <div class="printer-slot"></div>
+          <div class="printer-led"></div>
+          <div class="printer-body"><div class="scan-line"></div></div>
+          <div class="printer-tray"></div>
+          <div class="stack"></div>
+          <div class="paper p1"></div>
+          <div class="paper p2"></div>
+          <div class="paper p3"></div>
         </div>
       </div>
 
-      <div class="lerr" id="lerr"></div>
-      <button class="lbtn" onclick="doLogin()">Sign in to Dashboard →</button>
+      <div class="brand-foot">
+        <span>Authorised personnel only</span>
+        <span class="dot">•</span>
+        <span>All access is logged &amp; monitored</span>
+      </div>
     </div>
-<div class="print-decoration printer1">
-    🖨️
-</div>
 
-<div class="print-decoration printer2">
-    📄
-</div>
+    <!-- RIGHT: form panel -->
+    <div class="form-panel">
+      <div class="form-card">
+        <img class="form-logo" src="images/logo.png" alt="SoftWave">
+        <h2>Welcome back</h2>
+        <p class="sub">Sign in to your SoftWave dashboard</p>
 
-<div class="print-decoration printer3">
-    🖨️
-</div>
+        <div class="lfi" id="lu-wrap">
+          <label for="lu">Username</label>
+          <div class="field">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="lu" type="text" placeholder="Enter your username" autocomplete="username">
+          </div>
+        </div>
 
-<div class="print-decoration printer4">
-    📑
-</div>
-    <div class="login-footer">Authorised personnel only · All access is logged and monitored</div>
+        <div class="lfi" id="lp-wrap">
+          <label for="lp">Password</label>
+          <div class="field">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="lp" type="password" placeholder="Enter your password" autocomplete="current-password">
+            <button type="button" class="toggle-eye" id="lfi-eye-btn" onclick="togglePw()" aria-label="Show password">
+              <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
+          <a href="#" class="forgot">Forgot password?</a>
+        </div>
+
+        <div class="lerr" id="lerr"><span id="lerr-tx"></span></div>
+
+        <button type="button" class="btn-submit" id="lp-submit-btn" onclick="doLogin()">
+          <span class="btn-default-content">
+            <span>Sign in to Dashboard</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+          <span class="spinner"></span>
+        </button>
+
+        <div class="divider-note">SoftWave Print Management</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
