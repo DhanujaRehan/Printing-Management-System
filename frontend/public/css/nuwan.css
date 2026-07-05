@@ -61,21 +61,6 @@ body { background:var(--bg); color:var(--tx); font-family:var(--f); min-height:1
 }
 @keyframes nwFadeIn { from{opacity:0; transform:translateY(22px) scale(.98);} }
 
-/* Watermark logo — spans the WHOLE card (both the navy and white
-   sides). z-index:1 places it above both panels' plain backgrounds
-   but every piece of real content (headings, chart, form fields,
-   button) is z-index:2+ so it always stays fully readable on top. */
-.nwl-wrap::before {
-  content:"";
-  position:absolute; top:50%; left:50%;
-  width:820px; height:820px;
-  transform:translate(-50%,-50%);
-  background:url('/images/logo.png') center/contain no-repeat;
-  opacity: var(--nwl-watermark-opacity, 0.75);
-  pointer-events:none;
-  z-index:1;
-}
-
 /* Left — brand / analytics panel */
 .nwl-brand {
   position:relative;
