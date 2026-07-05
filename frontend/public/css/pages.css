@@ -59,6 +59,78 @@
 .aft   { font-size:12px; font-weight:500; color:var(--tx); }
 .afm   { font-size:10px; color:var(--t3); margin-top:2px; }
 
+/* ── DASHBOARD ENTRANCE ANIMATION ─────────────────────────
+   .dash-anim plays a fade-up once. Static elements (KPI
+   cards) get it re-triggered from JS each time the dashboard
+   loads; freshly-generated elements (alerts, activity rows,
+   branch rows) get it baked straight into their markup since
+   they're brand-new DOM nodes every render. */
+@keyframes dashFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.dash-anim { opacity:0; animation:dashFadeUp .45s ease forwards; }
+
+/* ── BRANCH HEALTH STRIP ───────────────────────────────────
+   Horizontal row of dots — one per branch, colored by that
+   branch's worst printer status. Click jumps to it below. */
+.dhs {
+  display:flex; align-items:center; gap:7px; margin-bottom:18px;
+  overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;
+}
+.dhs-label {
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--t3); margin-right:2px; white-space:nowrap; flex-shrink:0;
+}
+.dhs-dot {
+  width:12px; height:12px; border-radius:50%; flex-shrink:0; cursor:pointer;
+  transition:transform .15s ease; border:2px solid #fff; box-shadow:0 0 0 1px var(--sb);
+}
+.dhs-dot:hover { transform:scale(1.35); }
+.dhs-dot.ok   { background:var(--ok); }
+.dhs-dot.warn { background:var(--wr); }
+.dhs-dot.crit { background:var(--er); animation:dhsPulse 1.6s ease infinite; }
+@keyframes dhsPulse {
+  0%,100% { box-shadow:0 0 0 1px var(--sb); }
+  50%     { box-shadow:0 0 0 5px rgba(239,68,68,.25); }
+}
+
+/* ── DISMISSIBLE ALERTS ────────────────────────────────── */
+.ac-close {
+  margin-left:8px; flex-shrink:0; background:none; border:none; cursor:pointer;
+  font-size:13px; line-height:1; padding:6px; border-radius:6px; color:inherit; opacity:.45;
+  transition:opacity .15s ease, background .15s ease;
+}
+.ac-close:hover { opacity:1; background:rgba(0,0,0,.06); }
+.ac.dismissing {
+  animation:acDismiss .28s ease forwards;
+  pointer-events:none;
+}
+@keyframes acDismiss {
+  to { opacity:0; transform:translateX(24px) scale(.97); max-height:0; margin:0; padding-top:0; padding-bottom:0; border-width:0; }
+}
+
+/* ── MOBILE SEGMENTED TOGGLE (Prints / Activity) ──────────
+   Hidden on desktop — both dashboard columns already sit
+   side by side there. On narrow screens this swaps which
+   single column is visible instead of stacking both full
+   height, one under the other. */
+.dash-seg { display:none; gap:8px; margin-bottom:14px; }
+.dash-seg-btn {
+  flex:1; padding:10px; border-radius:10px; border:1px solid var(--sb);
+  background:#fff; font-size:12.5px; font-weight:700; color:var(--t2);
+  cursor:pointer; font-family:var(--f); transition:all .15s ease;
+}
+.dash-seg-btn.act { background:var(--c1); color:#fff; border-color:var(--c1); }
+
+@media (max-width:900px) {
+  .dash-seg { display:flex; }
+  .dash-twocol .dash-col-activity { display:none; }
+  .dash-twocol.show-activity .dash-col-prints  { display:none; }
+  .dash-twocol.show-activity .dash-col-activity { display:flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-anim, .dhs-dot.crit, .ac.dismissing { animation:none !important; }
+}
+
 /* ── BRANCH CARDS ───────────────────────────────────────── */
 .bc { background:var(--white); border:1px solid var(--sb); border-radius:18px;
   padding:20px; transition:all .25s; box-shadow:var(--shadow); }

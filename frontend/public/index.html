@@ -240,6 +240,8 @@
         </div>
       </div>
 
+      <div class="dhs" id="dash-health-strip"></div>
+
       <div class="krow">
         <div class="kpi k1"><span class="kico">🏢</span><div class="knum" id="k-branches">—</div><div class="klbl">Active Branches</div><div class="ktr" id="k-branches-s"></div><div class="kbg">🏢</div></div>
         <div class="kpi k2"><span class="kico">📦</span><div class="knum" id="k-stock">—</div><div class="klbl">Stock Units</div><div class="ktr" id="k-stock-s"></div><div class="kbg">📦</div></div>
@@ -249,8 +251,13 @@
 
       <div class="as" id="dash-alerts"></div>
 
-      <div class="twocol mb20">
-        <div class="card">
+      <div class="dash-seg" id="dash-seg">
+        <button class="dash-seg-btn act" onclick="setDashMobileView('prints', this)">📊 Prints</button>
+        <button class="dash-seg-btn" onclick="setDashMobileView('activity', this)">🔔 Activity</button>
+      </div>
+
+      <div class="twocol mb20 dash-twocol" id="dash-twocol">
+        <div class="card dash-col-prints">
           <div class="ch">
             <h3>📊 Yesterday's Prints by Branch</h3>
             <div class="chr">
@@ -261,7 +268,7 @@
             <div class="loading"><div class="spin"></div> Loading...</div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:15px">
+        <div style="display:flex;flex-direction:column;gap:15px" class="dash-col-activity">
           <div class="card" style="padding:20px">
             <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--tx)">🔔 Recent Activity</div>
             <div id="dash-activity" class="aff"></div>

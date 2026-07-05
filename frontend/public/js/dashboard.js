@@ -18,6 +18,10 @@ async function loadDashboard() {
   if (activityEl) activityEl.innerHTML = skList(3);
   var branchPrintsEl = document.getElementById('dash-branch-prints');
   if (branchPrintsEl) branchPrintsEl.innerHTML = skList(4);
+  var healthEl = document.getElementById('dash-health-strip');
+  if (healthEl) healthEl.innerHTML = '<span class="dhs-label">Branch health</span>';
+
+  playKpiEntrance();
 
   try {
     var s = function(url) { return silentApi('GET', url).then(function(r){ return r || []; }); };
@@ -42,35 +46,42 @@ async function loadDashboard() {
     var crit            = printers.filter(function(p){ return p.days_remaining <= 3 || p.current_pct <= 10; }).length;
     var branches_active = [...new Set(printers.map(function(p){ return p.branch_code; }))].length;
 
-    document.getElementById('k-branches').textContent   = branches_active;
     document.getElementById('k-branches-s').textContent = printers.length + ' total printers';
-    document.getElementById('k-stock').textContent      = total_stock;
+    animateNumber(document.getElementById('k-branches'), branches_active);
     document.getElementById('k-stock-s').textContent    = 'Across ' + stock.length + ' toner models';
-    document.getElementById('k-low').textContent        = low;
+    animateNumber(document.getElementById('k-stock'), total_stock);
     document.getElementById('k-low-s').textContent      = low > 0 ? low + ' printers need attention' : 'All levels OK ✓';
-    document.getElementById('k-crit').textContent       = crit;
+    animateNumber(document.getElementById('k-low'), low);
     document.getElementById('k-crit-s').textContent     = crit > 0 ? 'Immediate action required' : 'No critical alerts ✓';
+    animateNumber(document.getElementById('k-crit'), crit);
+
+    renderDashHealthStrip(printers);
 
     var crits = alerts.filter(function(p){ return p.current_pct <= 10 || p.days_remaining <= 3; }).slice(0, 2);
     var warns = alerts.filter(function(p){ return p.current_pct > 10 && p.current_pct <= 25 && p.days_remaining > 3; }).slice(0, 2);
 
+    var acIdx = 0;
     document.getElementById('dash-alerts').innerHTML = crits.map(function(p) {
-      return '<div class="ac cr">'
+      var delay = (acIdx++ * 0.06).toFixed(2);
+      return '<div class="ac cr dash-anim" style="animation-delay:' + delay + 's">'
         + '<div class="acico">🚨</div>'
         + '<div>'
         + '<div class="actit">Printer ' + p.printer_code + ' — Critical (' + p.current_pct + '% / ' + p.days_remaining + ' days left)</div>'
         + '<div class="acsub">Branch ' + p.branch_code + ' · ' + p.toner_model + ' · ' + (p.current_copies || 0).toLocaleString() + ' copies remaining</div>'
         + '</div>'
         + '<button class="acbtn" onclick="toast(\'🚀\',\'Dispatch logged\',\'Printer ' + p.printer_code + '\')">Dispatch</button>'
+        + '<button class="ac-close" onclick="dismissAlert(this)" aria-label="Dismiss">✕</button>'
         + '</div>';
     }).concat(warns.map(function(p) {
-      return '<div class="ac wn">'
+      var delay = (acIdx++ * 0.06).toFixed(2);
+      return '<div class="ac wn dash-anim" style="animation-delay:' + delay + 's">'
         + '<div class="acico">⚠️</div>'
         + '<div>'
         + '<div class="actit">Printer ' + p.printer_code + ' — Low Toner (' + p.current_pct + '%)</div>'
         + '<div class="acsub">Branch ' + p.branch_code + ' · ' + p.days_remaining + ' days remaining</div>'
         + '</div>'
         + '<button class="acbtn" onclick="toast(\'📅\',\'Scheduled\',\'Printer ' + p.printer_code + '\')">Schedule</button>'
+        + '<button class="ac-close" onclick="dismissAlert(this)" aria-label="Dismiss">✕</button>'
         + '</div>';
     })).join('');
 
@@ -79,7 +90,7 @@ async function loadDashboard() {
 
     // ── Recent activity ────────────────────────────────────
     document.getElementById('dash-activity').innerHTML = movements.slice(0, 6).map(function(m, i) {
-      return '<div class="afi">'
+      return '<div class="afi dash-anim" style="animation-delay:' + (i * 0.05).toFixed(2) + 's">'
         + '<div class="afdc">'
         + '<div class="afd" style="background:' + (m.movement_type === 'IN' ? 'var(--c1)' : 'var(--c3)') + '"></div>'
         + (i < 5 ? '<div class="afl"></div>' : '')
@@ -118,11 +129,12 @@ function renderDashBranchPrints(branches, yesterday) {
     + '</div>'
     + '</div>'
     + '<div class="dbp-list" id="dbp-list">'
-    + branches.map(function(b) {
+    + branches.map(function(b, i) {
         var pct    = Math.round((b.total_prints / max) * 100);
         var col    = b.has_submitted ? '#0ea5e9' : '#e2e8f0';
         var txtCol = b.has_submitted ? '#0f172a' : '#94a3b8';
-        return '<div class="dbp-row">'
+        var delay  = (Math.min(i, 10) * 0.04).toFixed(2);
+        return '<div class="dbp-row dash-anim" style="animation-delay:' + delay + 's">'
           + '<div class="dbp-branch-code">' + b.branch_code + '</div>'
           + '<div class="dbp-branch-bar-wrap">'
           +   '<div class="dbp-branch-name" style="color:' + txtCol + '">' + b.branch_name + '</div>'
@@ -148,4 +160,82 @@ function filterDashBranchPrints(q) {
 
 function filterPrTable(q) {
   filterTable(q, 'pr-tbody');
+}
+
+/* ── Count-up animation for KPI numbers ────────────────── */
+function animateNumber(el, target) {
+  if (!el) return;
+  var start = parseInt(el.textContent, 10);
+  if (isNaN(start)) start = 0;
+  target = parseInt(target, 10) || 0;
+  if (start === target) { el.textContent = target; return; }
+  var t0 = null, dur = 650;
+  function step(ts) {
+    if (!t0) t0 = ts;
+    var p = Math.min((ts - t0) / dur, 1);
+    el.textContent = Math.round(start + (target - start) * p);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── Re-trigger the KPI cards' fade-up on every dashboard
+   load. They're static elements reused across page visits
+   (unlike alerts/activity, which are fresh DOM each time),
+   so the CSS animation needs a manual reflow to replay. */
+function playKpiEntrance() {
+  document.querySelectorAll('.krow .kpi').forEach(function(el, i) {
+    el.classList.remove('dash-anim');
+    void el.offsetWidth;
+    el.style.animationDelay = (i * 0.06).toFixed(2) + 's';
+    el.classList.add('dash-anim');
+  });
+}
+
+/* ── Branch health strip — one dot per branch, colored by
+   that branch's worst printer status. Real data, computed
+   from the same /printers list the KPI cards use. Clicking
+   a dot filters the branch-prints list below to that branch. */
+function renderDashHealthStrip(printers) {
+  var el = document.getElementById('dash-health-strip');
+  if (!el) return;
+
+  var rank = { ok: 0, warn: 1, crit: 2 };
+  var byBranch = {};
+  printers.forEach(function(p) {
+    var code = p.branch_code;
+    if (!code) return;
+    var status = (p.current_pct <= 10 || p.days_remaining <= 3) ? 'crit'
+               : (p.current_pct <= 25) ? 'warn' : 'ok';
+    if (!byBranch[code] || rank[status] > rank[byBranch[code]]) byBranch[code] = status;
+  });
+
+  var codes = Object.keys(byBranch).sort();
+  if (!codes.length) { el.innerHTML = '<span class="dhs-label">Branch health</span>'; return; }
+
+  var labelText = { ok: 'OK', warn: 'Low toner', crit: 'Critical' };
+  el.innerHTML = '<span class="dhs-label">Branch health</span>'
+    + codes.map(function(code) {
+        var status = byBranch[code];
+        return '<span class="dhs-dot ' + status + '" title="' + code + ' — ' + labelText[status] + '" '
+          + 'onclick="filterDashBranchPrints(\'' + code + '\')"></span>';
+      }).join('');
+}
+
+/* ── Dismiss a single alert card ───────────────────────── */
+function dismissAlert(btn) {
+  var card = btn.closest('.ac');
+  if (!card) return;
+  card.classList.add('dismissing');
+  setTimeout(function() { card.remove(); }, 280);
+}
+
+/* ── Mobile Prints/Activity segmented toggle. No-op on
+   desktop — the CSS only acts on it below the 900px
+   breakpoint, both columns stay visible side by side above it. */
+function setDashMobileView(which, btn) {
+  var wrap = document.getElementById('dash-twocol');
+  if (wrap) wrap.classList.toggle('show-activity', which === 'activity');
+  document.querySelectorAll('.dash-seg-btn').forEach(function(b) { b.classList.remove('act'); });
+  if (btn) btn.classList.add('act');
 }
